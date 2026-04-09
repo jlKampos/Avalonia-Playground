@@ -1,5 +1,6 @@
-﻿using MyAvalonia.Integrations.Contracts.Forecast;
-using MyAvalonia.Integrations.Contracts.Localtions;
+﻿using MyAvalonia.Integrations.Contracts.Awarness;
+using MyAvalonia.Integrations.Contracts.Forecast;
+using MyAvalonia.Integrations.Contracts.Locations;
 using MyAvalonia.Integrations.Contracts.Seismic;
 using MyAvalonia.Integrations.Contracts.Weather;
 using MyAvalonia.Integrations.Contracts.Wind;
@@ -27,7 +28,7 @@ namespace MyAvalonia.Integrations.Services
 		{
 			try
 			{
-				return await _apiClient.GetAsync<LocationsResponse>("distrits-islands.json");
+				return await _apiClient.GetAsync<LocationsResponse>("distrits-islands.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -39,7 +40,7 @@ namespace MyAvalonia.Integrations.Services
 		{
 			try
 			{
-				return await _apiClient.GetAsync<WeatherTypeResponse>("weather-type-classe.json");
+				return await _apiClient.GetAsync<WeatherTypeResponse>("weather-type-classe.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -52,7 +53,7 @@ namespace MyAvalonia.Integrations.Services
 			try
 			{
 				return await _apiClient.GetAsync<ForecastResponse>(
-					$"forecast/meteorology/cities/daily/{globalId}.json");
+					$"forecast/meteorology/cities/daily/{globalId}.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -65,7 +66,7 @@ namespace MyAvalonia.Integrations.Services
 			try
 			{
 				return await _apiClient.GetAsync<ForecastByDayResponse>(
-					$"forecast/meteorology/cities/daily/hp-daily-forecast-day{day}.json");
+					$"forecast/meteorology/cities/daily/hp-daily-forecast-day{day}.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -77,7 +78,7 @@ namespace MyAvalonia.Integrations.Services
 		{
 			try
 			{
-				return await _apiClient.GetAsync<WindSpeedResponse>("wind-speed-daily-classe.json");
+				return await _apiClient.GetAsync<WindSpeedResponse>("wind-speed-daily-classe.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -89,11 +90,25 @@ namespace MyAvalonia.Integrations.Services
 		{
 			try
 			{
-				return await _apiClient.GetAsync<SeismicResponse>($"observation/seismic/{date}.json");
+				return await _apiClient.GetAsync<SeismicResponse>($"observation/seismic/{date}.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
 				throw new ApiException($"Failed to load seismic data for date {date}", ex);
+			}
+		}
+
+		public async Task<List<AwarenessItem>> GetAwarnessAsync()
+		{
+			try
+			{
+				return await _apiClient
+					.GetAsync<List<AwarenessItem>>("forecast/warnings/warnings_www.json")
+					.ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				throw new ApiException("Failed to load warnings", ex);
 			}
 		}
 	}

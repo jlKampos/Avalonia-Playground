@@ -1,12 +1,18 @@
-﻿using MyAvalonia.Models.Weather;
+﻿using MyAvalonia.Models.Awarness;
+using MyAvalonia.Models.Weather;
 using MyAvalonia.Models.Wind;
 using System;
+using System.Collections.Generic;
 
 namespace MyAvalonia.Models.Forecast
 {
 	public class ForecastItemDto
 	{
-		public string Date { get; set; } = String.Empty;
+		public string WeekDay { get; set; } = String.Empty;
+		public int DayOfYear { get; set; }
+
+		public string DisplayDate { get; set; } = String.Empty;
+		public DateTime Date { get; set; }
 
 		public string PrecipitationProbability { get; set; } = String.Empty;
 
@@ -32,6 +38,6 @@ namespace MyAvalonia.Models.Forecast
 
 		public WindSpeedDto WindInformation { get; set; } = new();
 
-
+		public List<AwarnessItemDto> AwarnessInformation { get; set; } = new();
 	}
 }

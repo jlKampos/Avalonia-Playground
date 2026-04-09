@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
+using MyAvalonia.Integrations.Contracts.Awarness;
 using MyAvalonia.Integrations.Contracts.Forecast;
-using MyAvalonia.Integrations.Contracts.Localtions;
+using MyAvalonia.Integrations.Contracts.Locations;
 using MyAvalonia.Integrations.Contracts.Seismic;
 using MyAvalonia.Integrations.Contracts.Weather;
 using MyAvalonia.Integrations.Contracts.Wind;
+using MyAvalonia.Models.Awarness;
 using MyAvalonia.Models.Forecast;
 using MyAvalonia.Models.Locations;
 using MyAvalonia.Models.Seismic;
@@ -26,7 +28,10 @@ namespace MyAvalonia.Mapping
 			// FORECAST
 			// =========================
 			CreateMap<ForecastItem, ForecastItemDto>()
-			.ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.ForecastDate.ToString("dd/MM/yyyy")));
+			.ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.ForecastDate))
+			.ForMember(dest => dest.DisplayDate, opt => opt.MapFrom(src => src.ForecastDate.ToString("dd/MM/yyyy")))
+			.ForMember(dest => dest.WeekDay, opt => opt.MapFrom(src => src.ForecastDate.DayOfWeek))
+			.ForMember(dest => dest.DayOfYear, opt => opt.MapFrom(src => src.ForecastDate.DayOfYear));
 
 			// =========================
 			// WEATHER TYPES (DRTO)
@@ -42,6 +47,17 @@ namespace MyAvalonia.Mapping
 			// SEISMIC ACTIVITY
 			// =========================
 			CreateMap<SeismicItem, SeismicActivityDto>();
+
+			// =========================
+			// AWARENESS
+			// =========================
+			CreateMap<AwarenessItem, AwarnessItemDto>()
+				.ForMember(dest => dest.Area, opt => opt.MapFrom(src => src.IdAreaAviso))
+				.ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.AwarenessTypeName))
+				.ForMember(dest => dest.Level, opt => opt.MapFrom(src => src.AwarenessLevelID))
+				.ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.StartTime))
+				.ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.EndTime))
+				.ForMember(dest => dest.Text, opt => opt.MapFrom(src => src.Text));
 		}
 	}
 }

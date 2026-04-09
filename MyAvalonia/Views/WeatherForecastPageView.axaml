@@ -1,20 +1,22 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
 			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:MyAvalonia.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 mc:Ignorable="d"
+			 d:DesignWidth="800"
+			 d:DesignHeight="450"
 			 x:Class="MyAvalonia.Views.WeatherForecastPageView"
 			 x:DataType="vm:WeatherForecastPageViewModel"
-			 xmlns:local="clr-namespace:MyAvalonia.Models.Forecast" >
+			 xmlns:local="clr-namespace:MyAvalonia.Models.Forecast"
+			 xmlns:awarness="clr-namespace:MyAvalonia.Models.Awarness">
+
 	<Grid RowDefinitions="Auto,*">
 		<Border Grid.Row="0" Padding="20">
 			<StackPanel Spacing="10">
 
 				<StackPanel Orientation="Horizontal">
 					<TextBlock Text="Weather Forecast!" FontSize="18" />
-					<TextBlock Text="{Binding LocationName}" FontSize="18" />
-
 				</StackPanel>
 
 				<StackPanel Orientation="Horizontal">
@@ -35,23 +37,116 @@
 			</StackPanel>
 		</Border>
 		<Border Grid.Row="1">
-			<TabControl TabStripPlacement="Left" Classes="card"
+			<TabControl TabStripPlacement="Left"
+						Classes="modern"
 						ItemsSource="{Binding Forecasts}"
 						SelectedItem="{Binding SelectedTab}">
+
+				<!-- ================= TAB HEADER ================= -->
 				<TabControl.ItemTemplate>
-					<DataTemplate>
-						<TextBlock Text="{Binding Date}" />
+					<DataTemplate x:DataType="local:ForecastItemDto">
+						<Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" Margin="6">
+
+							<!-- Icon -->
+							<Label Grid.Row="0"
+								   Grid.RowSpan="2"
+								   Grid.Column="0"
+								   FontFamily="{DynamicResource PhosphorFill}"
+								   Classes="icon"
+								   Content="{Binding WeatherInformation.WeatherIcon}"
+								   VerticalAlignment="Center"
+								   Margin="0,0,8,0"/>
+
+							<!-- WeekDay -->
+							<TextBlock Grid.Row="0"
+									   Grid.Column="1"
+									   Text="{Binding WeekDay}"
+									   FontWeight="SemiBold"/>
+
+							<!-- Date -->
+							<TextBlock Grid.Row="1"
+									   Grid.Column="1"
+									   Text="{Binding Date}"
+									   FontSize="11"
+									   Opacity="0.7"/>
+
+						</Grid>
 					</DataTemplate>
 				</TabControl.ItemTemplate>
+
+				<!-- ================= CONTENT ================= -->
 				<TabControl.ContentTemplate>
 					<DataTemplate x:DataType="local:ForecastItemDto">
-						<StackPanel>
-							<TextBlock Text="{Binding TemperatureDisplay}" />
-							<TextBlock Text="{Binding PrecipitationProbability}" />
-							<TextBlock Text="{Binding PredictedWindDirection}" />
-						</StackPanel>
+
+						<Border Padding="16"
+								Margin="10"
+								CornerRadius="12"
+								Background="#1E1E1E">
+
+							<ScrollViewer  VerticalScrollBarVisibility="Auto"
+										   HorizontalScrollBarVisibility="Disabled"
+										   IsScrollChainingEnabled="True">
+								<StackPanel Spacing="16">
+
+									<!-- ================= FORECAST ================= -->
+									<StackPanel Spacing="10">
+
+										<TextBlock Text="Previsão"
+												   FontSize="16"
+												   FontWeight="Bold"/>
+
+										<TextBlock Text="{Binding TemperatureDisplay}" />
+										<TextBlock Text="{Binding PrecipitationProbability}" />
+										<TextBlock Text="{Binding PredictedWindDirection}" />
+
+									</StackPanel>
+
+									<!-- ================= AWARENESS ================= -->
+									<StackPanel Spacing="10">
+
+										<TextBlock Text="Avisos"
+												   FontSize="16"
+												   FontWeight="Bold"/>
+
+										<ItemsControl ItemsSource="{Binding AwarnessInformation}">
+											<ItemsControl.ItemTemplate>
+												<DataTemplate x:DataType="awarness:AwarnessItemDto">
+													<Border Padding="10"
+															CornerRadius="8"
+															Background="#2A2A2A"
+															Margin="0,4"
+															BorderThickness="0.6"
+															BorderBrush="{Binding LevelBrush}">
+
+														<StackPanel Spacing="4">
+
+															<TextBlock Text="{Binding Type}"
+																	   FontWeight="SemiBold"/>
+
+															<TextBlock Text="{Binding DisplayLevel}"
+																	   Opacity="0.8"/>
+
+															<TextBlock Text="{Binding Period}"
+																	   FontSize="12"
+																	   Opacity="0.7"/>
+
+														</StackPanel>
+
+													</Border>
+												</DataTemplate>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
+
+									</StackPanel>
+
+								</StackPanel>
+							</ScrollViewer>
+
+						</Border>
+
 					</DataTemplate>
 				</TabControl.ContentTemplate>
+
 			</TabControl>
 		</Border>
 	</Grid>
