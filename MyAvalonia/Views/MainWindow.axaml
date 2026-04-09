@@ -28,6 +28,12 @@
 					<Image PointerPressed="Image_PointerPressed" IsVisible="{Binding Path=SideMenuExpanded}" Source="{SvgImage /Assets/Images/w_logo.svg}" />
 					<Image PointerPressed="Image_PointerPressed" IsVisible="{Binding Path=!SideMenuExpanded}" Source="{SvgImage /Assets/Images/w_icon.svg}" Width="22" />
 
+					<Button Classes.active="{Binding Path=WeatherPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToWeatherCommand}">
+						<StackPanel Orientation="Horizontal">
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE59A;"> </Label>
+							<Label Content="Weather" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+						</StackPanel>
+					</Button>
 					<Button Classes.active="{Binding Path=HomePageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToHomeCommand}">
 						<StackPanel Orientation="Horizontal">
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE2C2;"> </Label>

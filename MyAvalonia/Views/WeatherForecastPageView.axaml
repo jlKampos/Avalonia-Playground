@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:MyAvalonia.ViewModels"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="MyAvalonia.Views.WeatherForecastPageView"
+			 x:DataType="vm:WeatherForecastPageViewModel"
+			 xmlns:local="clr-namespace:MyAvalonia.Models.Forecast" >
+	<Grid RowDefinitions="Auto,*">
+		<Border Grid.Row="0" Padding="20">
+			<StackPanel Spacing="10">
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Weather Forecast!" FontSize="18" />
+					<TextBlock Text="{Binding LocationName}" FontSize="18" />
+
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="Select location" FontSize="18" Margin="0,5,5,0" />
+
+					<ComboBox Width="200"
+							  ItemsSource="{Binding Locations}"
+							  SelectedItem="{Binding SelectedLocation}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<StackPanel>
+									<TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+								</StackPanel>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+				</StackPanel>
+			</StackPanel>
+		</Border>
+		<Border Grid.Row="1">
+			<TabControl TabStripPlacement="Left" Classes="card"
+						ItemsSource="{Binding Forecasts}"
+						SelectedItem="{Binding SelectedTab}">
+				<TabControl.ItemTemplate>
+					<DataTemplate>
+						<TextBlock Text="{Binding Date}" />
+					</DataTemplate>
+				</TabControl.ItemTemplate>
+				<TabControl.ContentTemplate>
+					<DataTemplate x:DataType="local:ForecastItemDto">
+						<StackPanel>
+							<TextBlock Text="{Binding TemperatureDisplay}" />
+							<TextBlock Text="{Binding PrecipitationProbability}" />
+							<TextBlock Text="{Binding PredictedWindDirection}" />
+						</StackPanel>
+					</DataTemplate>
+				</TabControl.ContentTemplate>
+			</TabControl>
+		</Border>
+	</Grid>
+</UserControl>

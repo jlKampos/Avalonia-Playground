@@ -136,24 +136,60 @@
 		<Setter Property="BorderBrush" Value="{StaticResource AccentSoftBrush}" />
 	</Style>
 
-
-	<!-- CARDS -->
-	<Style Selector="Button.card">
-		<Setter Property="Background" Value="{StaticResource CardGradient}" />
-		<Setter Property="BorderBrush" Value="#333" />
-		<Setter Property="BorderThickness" Value="1" />
-		<Setter Property="CornerRadius" Value="12" />
+	<!-- MODERN TABCONTROL -->
+	<Style Selector="TabControl.modern">
+		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
+		<Setter Property="BorderBrush" Value="#00000000" />
 		<Setter Property="Padding" Value="0" />
-		<Setter Property="HorizontalContentAlignment" Value="Stretch" />
-		<Setter Property="VerticalContentAlignment" Value="Stretch" />
+	</Style>
+
+	<!-- TAB HEADER PANEL -->
+	<Style Selector="TabControl.modern /template/ Panel#PART_ItemsPresenter">
+		<Setter Property="Background" Value="{StaticResource DarkSurface}" />
+
+	</Style>
+
+	<!-- TAB ITEM BASE -->
+	<Style Selector="TabControl.modern TabItem">
+		<Setter Property="Background" Value="#00000000" />
+		<Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+		<Setter Property="Padding" Value="10,6" />
+		<Setter Property="Margin" Value="4,0" />
+		<Setter Property="CornerRadius" Value="6" />
+		<Setter Property="BorderBrush" Value="#00000000" />
+		<Setter Property="BorderThickness" Value="0" />
 		<Setter Property="Transitions">
 			<Transitions>
-				<BrushTransition Property="BorderBrush" Duration="0:0:0.20"/>
+				<BrushTransition Property="Background" Duration="0:0:0.20"/>
+				<BrushTransition Property="Foreground" Duration="0:0:0.20"/>
 			</Transitions>
 		</Setter>
 	</Style>
 
-	<Style Selector="Button.card:pointerover">
-		<Setter Property="BorderBrush" Value="{StaticResource DarkAccent}" />
+	<!-- HOVER -->
+	<Style Selector="TabControl.modern TabItem:pointerover">
+		<Setter Property="Background" Value="#22FFFFFF" />
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
 	</Style>
+
+	<!-- SELECTED TAB -->
+	<Style Selector="TabControl.modern TabItem:selected">
+		<Setter Property="Foreground" Value="{StaticResource DarkAccentSoft}" />
+		<Setter Property="Background" Value="#33FFFFFF" />
+	</Style>
+
+	<!-- SELECTED TAB - BARRA INFERIOR -->
+	<Style Selector="TabControl.modern TabItem:selected /template/ Border#PART_SelectedPipe">
+		<Setter Property="Background" Value="{StaticResource DarkAccent}" />
+		<Setter Property="Height" Value="3" />
+		<Setter Property="CornerRadius" Value="2" />
+	</Style>
+
+	<!-- CONTENT AREA -->
+	<Style Selector="TabControl.modern /template/ ContentPresenter">
+		<Setter Property="Background" Value="{StaticResource DarkPanel}" />
+		<Setter Property="Padding" Value="16" />
+		<Setter Property="CornerRadius" Value="10" />
+	</Style>
+
 </Styles>

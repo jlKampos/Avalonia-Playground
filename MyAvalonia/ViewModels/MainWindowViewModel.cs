@@ -17,6 +17,7 @@ namespace MyAvalonia.ViewModels
 		private bool _sideMenuExpanded = true;
 
 		[ObservableProperty]
+		[NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
 		[NotifyPropertyChangedFor(nameof(HomePageIsActive))]
 		[NotifyPropertyChangedFor(nameof(ProcessPageIsActive))]
 		[NotifyPropertyChangedFor(nameof(MacrosPageIsActive))]
@@ -26,6 +27,7 @@ namespace MyAvalonia.ViewModels
 		[NotifyPropertyChangedFor(nameof(SettingsPageIsActive))]
 		private PageViewModel _currentPage;
 
+		public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
 		public bool HomePageIsActive => CurrentPage.PageName == ApplicationPageNames.Home;
 		public bool ProcessPageIsActive => CurrentPage.PageName == ApplicationPageNames.Process;
 		public bool MacrosPageIsActive => CurrentPage.PageName == ApplicationPageNames.Macros;
@@ -39,14 +41,14 @@ namespace MyAvalonia.ViewModels
 			if (Design.IsDesignMode)
 			{
 				// Página fake para preview
-				CurrentPage = new HomePageViewModel();
+				CurrentPage = new WeatherForecastPageViewModel();
 			}
 		}
 
 		public MainWindowViewModel(PageFactory pageFactory)
 		{
 			_pageFactory = pageFactory;
-			GoToHome();
+			GoToWeather();
 		}
 
 
@@ -54,6 +56,12 @@ namespace MyAvalonia.ViewModels
 		private void SideMenuResize()
 		{
 			SideMenuExpanded = !SideMenuExpanded;
+		}
+
+		[RelayCommand]
+		private void GoToWeather()
+		{
+			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
 		}
 
 		[RelayCommand]

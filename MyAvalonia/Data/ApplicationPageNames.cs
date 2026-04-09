@@ -9,6 +9,7 @@ namespace MyAvalonia.Data
 	public enum ApplicationPageNames
 	{
 		Unknown,
+		WeatherForecast,
 		Home,
 		Process,
 		Macros,
