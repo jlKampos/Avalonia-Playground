@@ -142,7 +142,7 @@
 	<Style Selector="ComboBox">
 		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
 		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
-		<Setter Property="BorderBrush" Value="Black" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkPanel}" />
 	</Style>
 
 
@@ -152,7 +152,7 @@
 		<Setter Property="CornerRadius" Value="12" />
 		<Setter Property="Padding" Value="15" />
 		<Setter Property="Margin" Value="8" />
-		<Setter Property="BorderBrush" Value="Black"/>
+		<Setter Property="BorderBrush" Value="{StaticResource DarkPanel}"/>
 		<Setter Property="BorderThickness" Value="1"/>
 	</Style>
 
