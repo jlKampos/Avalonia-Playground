@@ -18,6 +18,7 @@
 
 		<Color x:Key="DarkAccent">#4FC3F7</Color>
 		<Color x:Key="DarkAccentSoft">#81D4FA</Color>-->
+		<Color x:Key="DarkAccentPurple">#540269</Color>
 		<Color x:Key="DarkAccentOrange">#D67A1F</Color>
 
 
@@ -139,10 +140,11 @@
 
 	<!-- COMBOBOX -->
 	<Style Selector="ComboBox">
-		<Setter Property="Background" Value="{StaticResource PanelGradient}" />
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
 		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
-		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentSoft}" />
+		<Setter Property="BorderBrush" Value="Black" />
 	</Style>
+
 
 	<!-- TAB ITEM = MESMO ESTILO DOS CARDS -->
 	<Style Selector="TabControl.modern TabItem">
@@ -150,12 +152,12 @@
 		<Setter Property="CornerRadius" Value="12" />
 		<Setter Property="Padding" Value="15" />
 		<Setter Property="Margin" Value="8" />
-
-		<Setter Property="BorderBrush" Value="{StaticResource AccentSoftBrush}"/>
+		<Setter Property="BorderBrush" Value="Black"/>
 		<Setter Property="BorderThickness" Value="1"/>
 	</Style>
 
 	<Style Selector="TabControl.modern TabItem:pointerover">
+		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentPurple}" />
 		<Setter Property="Background" Value="{StaticResource DarkPanel}" />
 	</Style>
 	
