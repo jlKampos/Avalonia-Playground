@@ -1,270 +1,272 @@
 ﻿using AutoMapper;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using MyAvalonia.Data;
+using MyAvalonia.Integrations.Exceptions;
 using MyAvalonia.Integrations.Interfaces;
+using MyAvalonia.Interfaces;
 using MyAvalonia.Models.Awarness;
 using MyAvalonia.Models.Forecast;
 using MyAvalonia.Models.Locations;
 using MyAvalonia.Models.Weather;
 using MyAvalonia.Models.Wind;
-using MyAvalonia.Utils;
+using MyAvalonia.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using static MyAvalonia.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace MyAvalonia.ViewModels
 {
-    public partial class WeatherForecastPageViewModel : PageViewModel
-    {
-        private readonly IMapper _mapper;
-        private readonly IIpmaService _apiClient;
-        public Window? OwnerWindow { get; set; }
+	public partial class WeatherForecastPageViewModel : PageViewModel
+	{
+		private readonly IMapper _mapper;
+		private readonly IIpmaService _apiClient;
+		private readonly IMessageService _messageService;
+		public Window? OwnerWindow { get; set; }
 
-        [ObservableProperty]
-        private ForecastItemDto? _selectedTab;
+		[ObservableProperty]
+		private ProgressControlViewModel _progressControl = new();
 
-        [ObservableProperty]
-        private LocationDto _selectedLocation;
+		[ObservableProperty]
+		private ForecastItemDto? _selectedTab;
 
-        [ObservableProperty]
-        private AwarnessItemDto _awarness;
+		[ObservableProperty]
+		private LocationDto _selectedLocation;
 
-        private ProgressDialog _progressDialog;
+		[ObservableProperty]
+		private AwarnessItemDto _awarness;
 
-        public ObservableCollection<LocationDto> Locations { get; } = new();
+		public ObservableCollection<LocationDto> Locations { get; } = new();
 
-        public ObservableCollection<ForecastItemDto> Forecasts { get; } = new();
+		public ObservableCollection<ForecastItemDto> Forecasts { get; } = new();
 
-        private List<WeatherTypeDto> WeatherTypes { get; set; } = new();
-        private List<WindSpeedDto> WindSpeeds { get; set; } = new();
+		private List<WeatherTypeDto> WeatherTypes { get; set; } = new();
+		private List<WindSpeedDto> WindSpeeds { get; set; } = new();
 
-        private List<AwarnessItemDto> AwarnessTypes { get; set; } = new();
+		private List<AwarnessItemDto> AwarnessTypes { get; set; } = new();
 
-        // =========================
-        // RUNTIME CONSTRUCTOR
-        // =========================
-        public WeatherForecastPageViewModel(IIpmaService apiClient, IMapper mapper)
-        {
-            PageName = ApplicationPageNames.WeatherForecast;
-            _progressDialog = new ProgressDialog();
-            _mapper = mapper;
-            _apiClient = apiClient;
+		// =========================
+		// RUNTIME CONSTRUCTOR
+		// =========================
+		public WeatherForecastPageViewModel(ProgressControlViewModel progressControl, IMessageService messageService, IIpmaService apiClient, IMapper mapper)
+		{
+			PageName = ApplicationPageNames.WeatherForecast;
+			_progressControl = progressControl;
+			_messageService = messageService;
+			_mapper = mapper;
+			_apiClient = apiClient;
+			_ = InitializeAsync();
+		}
 
-            _ = LoadWindAsync();
-            _ = LoadLocationsAsync();
-            _ = LoadWeatherTypesAsync();
-            _ = LoadAwarnessAsync();
-        }
+		private async Task InitializeAsync()
+		{
+			try
+			{
+				// 1. Setup and show the progress indicator
+				ProgressControl.IsVisible = true;
+				ProgressControl.Title = "Loading";
+				ProgressControl.Message = "Initialising application data...";
 
-        // =========================
-        // DESIGN MODE CONSTRUCTOR
-        // =========================
-        public WeatherForecastPageViewModel()
-        {
-            if (Design.IsDesignMode)
-            {
-                PageName = ApplicationPageNames.WeatherForecast;
+				// 2. Execute all initial data loads in parallel for better performance
+				await Task.WhenAll(
+					LoadWindAsync(),
+					LoadLocationsAsync(),
+					LoadWeatherTypesAsync(),
+					LoadAwarnessAsync()
+				);
+			}
+			catch (ApiException ex)
+			{
+				// 3. Catch any Api specific error
 
-                Locations.Clear();
-                Locations.Add(new LocationDto { GlobalIdLocal = 1, Name = "Braga" });
-                Locations.Add(new LocationDto { GlobalIdLocal = 2, Name = "Porto" });
+				var exMsg = "Error loading data";
 
-                WeatherTypes = new List<WeatherTypeDto>
-                {
-                    new WeatherTypeDto { IdWeatherType = 1, DescriptionPT = "Limpo"},
-                    new WeatherTypeDto { IdWeatherType = 10, DescriptionPT = "Chuva" }
-                };
+				if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.InnerException.Message))
+				{
+					exMsg = ex.InnerException.InnerException.Message;
+				}
 
-                WindSpeeds = new List<WindSpeedDto>
-                {
-                    new WindSpeedDto { ClassWindSpeed = "1", DescriptionPT = "NW" }
-                };
+				await _messageService.ShowAsync($"Startup Error: {exMsg}", MessageDialogType.Error);
+			}
+			catch (Exception ex)
+			{
+				// 3. Catch any error from the parallel tasks and notify the user
+				await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
+			}
+			finally
+			{
+				// 4. Ensure the progress overlay is hidden regardless of success or failure
+				ProgressControl.IsVisible = false;
+			}
+		}
 
-                Forecasts.Clear();
+		// =========================
+		// DESIGN MODE CONSTRUCTOR
+		// =========================
+		public WeatherForecastPageViewModel()
+		{
+			if (Design.IsDesignMode)
+			{
+				PageName = ApplicationPageNames.WeatherForecast;
 
-                Forecasts.Add(new ForecastItemDto
-                {
-                    DisplayDate = "03/04/2014",
-                    WeatherTypeId = 1,
-                    WeatherInformation = WeatherTypes[0]
-                });
+				Locations.Clear();
+				Locations.Add(new LocationDto { GlobalIdLocal = 1, Name = "Braga" });
+				Locations.Add(new LocationDto { GlobalIdLocal = 2, Name = "Porto" });
 
-                Forecasts.Add(new ForecastItemDto
-                {
-                    DisplayDate = "04/04/2014",
-                    WeatherTypeId = 10,
-                    WeatherInformation = WeatherTypes[1]
-                });
+				WeatherTypes = new List<WeatherTypeDto>
+				{
+					new WeatherTypeDto { IdWeatherType = 1, DescriptionPT = "Limpo"},
+					new WeatherTypeDto { IdWeatherType = 10, DescriptionPT = "Chuva" }
+				};
 
-                SelectedLocation = Locations.First();
-                SelectedTab = Forecasts.First();
+				WindSpeeds = new List<WindSpeedDto>
+				{
+					new WindSpeedDto { ClassWindSpeed = "1", DescriptionPT = "NW" }
+				};
 
-                return;
-            }
-        }
+				Forecasts.Clear();
 
-        // =========================
-        // EVENTS
-        // =========================
-        partial void OnSelectedLocationChanged(LocationDto value)
-        {
-            RunWithProgressSelectedLocationChanged(value);
-        }
+				Forecasts.Add(new ForecastItemDto
+				{
+					DisplayDate = "03/04/2014",
+					WeatherTypeId = 1,
+					WeatherInformation = WeatherTypes[0]
+				});
 
-        private async void RunWithProgressSelectedLocationChanged(LocationDto value)
-        {
-            var dlg = ProgressDialog.StartShowProgressDialog(OwnerWindow, "Loading", "Please wait...");
+				Forecasts.Add(new ForecastItemDto
+				{
+					DisplayDate = "04/04/2014",
+					WeatherTypeId = 10,
+					WeatherInformation = WeatherTypes[1]
+				});
 
-            if (value != null && !Design.IsDesignMode)
-            {
-                await LoadForecastAsync(value.GlobalIdLocal);
-            }
+				SelectedLocation = Locations.First();
+				SelectedTab = Forecasts.First();
 
-            ProgressDialog.CloseShowProgressDialog(dlg);
-        }
+				return;
+			}
+		}
 
+		// =========================
+		// EVENTS
+		// =========================
+		partial void OnSelectedLocationChanged(LocationDto value)
+		{
+			if (value == null || Design.IsDesignMode) return;
 
-        #region API Methods
+			_ = LoadDataOrchestratorAsync(value);
+		}
 
-        private async Task LoadAwarnessAsync()
-        {
-            try
-            {
-                AwarnessTypes.Clear();
+		private async Task LoadDataOrchestratorAsync(LocationDto value)
+		{
+			try
+			{
+				ProgressControl.IsVisible = true;
+				ProgressControl.Title = "Loading";
+				ProgressControl.Message = $"Forecast for {value.Name}...";
+				// Only the heavy lifting goes to a background thread
+				await Task.Run(async () =>
+				{
+					await Task.Delay(500); // Artificial delay
+					await LoadForecastAsync(value.GlobalIdLocal);
+				});
+			}
+			catch (Exception ex)
+			{
+				await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
+			}
+			finally
+			{
+				ProgressControl.IsVisible = false;
+			}
+		}
 
-                var response = await _apiClient.GetAwarnessAsync();
+		#region API Methods
 
-                if (response != null)
-                {
-                    var mapped = _mapper.Map<List<AwarnessItemDto>>(response);
+		private async Task LoadAwarnessAsync()
+		{
+			AwarnessTypes.Clear();
+			var response = await _apiClient.GetAwarnessAsync();
 
+			if (response != null)
+			{
+				var mapped = _mapper.Map<List<AwarnessItemDto>>(response);
+				foreach (var item in mapped) AwarnessTypes.Add(item);
+			}
+		}
 
-                    foreach (var item in mapped)
-                    {
-                        AwarnessTypes.Add(item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Current.HandleException(ex);
-            }
-        }
+		private async Task LoadWindAsync()
+		{
+			WindSpeeds.Clear();
+			var response = await _apiClient.GetWindAsync();
 
-        private async Task LoadWindAsync()
-        {
-            try
-            {
-                WindSpeeds.Clear();
+			if (response?.Data != null)
+			{
+				var mapped = _mapper.Map<List<WindSpeedDto>>(response.Data);
+				foreach (var item in mapped) WindSpeeds.Add(item);
+			}
+		}
 
-                var response = await _apiClient.GetWindAsync();
-                if (response.Data != null)
-                {
-                    var mapped = _mapper.Map<List<WindSpeedDto>>(response.Data);
-                    foreach (var item in mapped)
-                    {
-                        WindSpeeds.Add(item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Current.HandleException(ex);
-            }
-        }
+		private async Task LoadLocationsAsync()
+		{
+			Locations.Clear();
+			var response = await _apiClient.GetLocationsAsync();
 
-        private async Task LoadLocationsAsync()
-        {
-            try
-            {
-                Locations.Clear();
+			if (response?.Data != null)
+			{
+				var mapped = _mapper.Map<List<LocationDto>>(response.Data);
+				foreach (var item in mapped) Locations.Add(item);
+			}
+		}
 
-                var response = await _apiClient.GetLocationsAsync();
+		private async Task LoadWeatherTypesAsync()
+		{
+			WeatherTypes.Clear();
+			var response = await _apiClient.GetWeatherTypesAsync();
 
-                if (response.Data != null)
-                {
-                    var mapped = _mapper.Map<List<LocationDto>>(response.Data);
+			if (response?.Data != null)
+			{
+				var mapped = _mapper.Map<List<WeatherTypeDto>>(response.Data);
+				foreach (var item in mapped) WeatherTypes.Add(item);
+			}
+		}
 
+		private async Task LoadForecastAsync(int locationId)
+		{
+			Forecasts.Clear();
+			var response = await _apiClient.GetForecastByCityAsync(locationId);
 
-                    foreach (var item in mapped)
-                    {
-                        Locations.Add(item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Current.HandleException(ex);
-            }
-        }
+			if (response?.Data != null)
+			{
+				var mapped = _mapper.Map<List<ForecastItemDto>>(response.Data);
+				var tempList = new List<ForecastItemDto>();
 
-        private async Task LoadWeatherTypesAsync()
-        {
-            try
-            {
-                var response = await _apiClient.GetWeatherTypesAsync();
-                if (response.Data != null)
-                {
-                    var mapped = _mapper.Map<List<WeatherTypeDto>>(response.Data);
-                    WeatherTypes.Clear();
-                    foreach (var item in mapped)
-                    {
-                        WeatherTypes.Add(item);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Current.HandleException(ex);
-            }
-        }
+				foreach (var item in mapped)
+				{
+					// Map metadata from previously loaded collections
+					item.WeatherInformation = WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId);
+					item.WindInformation = WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass);
 
-        private async Task LoadForecastAsync(int locationId)
-        {
-            try
-            {
-                Forecasts.Clear();
+					// Link awareness alerts to this specific forecast day/area
+					item.AwarnessInformation = AwarnessTypes
+					   .Where(a => item.Date >= a.StartTime &&
+								   item.Date <= a.EndTime &&
+								   SelectedLocation?.IdAreaAviso == a.Area)
+					   .ToList();
 
-                var response = await _apiClient.GetForecastByCityAsync(locationId);
+					tempList.Add(item);
+				}
 
-                if (response.Data != null)
-                {
-                    var mapped = _mapper.Map<List<ForecastItemDto>>(response.Data);
+				foreach (var item in tempList) Forecasts.Add(item);
+				SelectedTab = Forecasts.FirstOrDefault();
 
-                    foreach (var item in mapped)
-                    {
-                        item.WeatherInformation =
-                            WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId);
+			}
+		}
 
-                        item.WindInformation =
-                            WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass);
-
-                        var awarnessForDay = AwarnessTypes
-                           .Where(a =>
-                               item.Date >= a.StartTime &&
-                               item.Date <= a.EndTime &&
-                               SelectedLocation.IdAreaAviso == a.Area)
-
-                           .ToList();
-
-                        // se tiveres uma propriedade
-                        item.AwarnessInformation = awarnessForDay;
-
-                        Forecasts.Add(item);
-                    }
-
-                    SelectedTab = Forecasts.FirstOrDefault();
-                }
-            }
-            catch (Exception ex)
-            {
-                App.Current.HandleException(ex);
-            }
-        }
-
-        #endregion
-    }
+		#endregion
+	}
 }

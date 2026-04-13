@@ -17,6 +17,9 @@
 	</Application.Styles>
 
 	<Application.Resources>
+		<StaticResource x:Key="MsBoxBackground" ResourceKey="PanelBrush" />
+		<StaticResource x:Key="MsBoxForeground" ResourceKey="PrimaryBrush" />
+
 		<FontFamily x:Key="Phosphor">/Assets/Fonts/Phosphor.ttf#Phosphor</FontFamily>
 		<FontFamily x:Key="PhosphorFill">/Assets/Fonts/Phosphor-Fill.ttf#Phosphor-Fill</FontFamily>
 	</Application.Resources>

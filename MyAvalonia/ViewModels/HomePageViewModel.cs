@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MyAvalonia.Data;
 using MyAvalonia.Integrations.Interfaces;
+using MyAvalonia.Interfaces;
 using MyAvalonia.Models.Forecast;
 using MyAvalonia.Models.Locations;
 using MyAvalonia.Models.Weather;
@@ -13,13 +14,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using static MyAvalonia.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 namespace MyAvalonia.ViewModels
 {
 	public partial class HomePageViewModel : PageViewModel
 	{
 		private readonly IMapper _mapper;
 		private readonly IIpmaService _apiClient;
-
+		private readonly IMessageService _messageService;
 		[ObservableProperty]
 		private bool _scrollerWeatherForecastVisible = false;
 
@@ -37,9 +39,10 @@ namespace MyAvalonia.ViewModels
 		private List<WindSpeedDto> WindSpeeds { get; set; } = new();
 
 
-		public HomePageViewModel(IIpmaService apiClient, IMapper mapper)
+		public HomePageViewModel(IMessageService messageService, IIpmaService apiClient, IMapper mapper)
 		{
 			PageName = Data.ApplicationPageNames.Home;
+			_messageService = messageService;
 			_mapper = mapper;
 			_apiClient = apiClient;
 
@@ -115,7 +118,7 @@ namespace MyAvalonia.ViewModels
 			}
 			catch (Exception ex)
 			{
-				App.Current.HandleException(ex);
+				await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
 			}
 		}
 
@@ -138,7 +141,7 @@ namespace MyAvalonia.ViewModels
 			catch (Exception ex)
 			{
 
-				App.Current.HandleException(ex);
+				await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
 			}
 		}
 
@@ -160,7 +163,7 @@ namespace MyAvalonia.ViewModels
 			}
 			catch (Exception ex)
 			{
-				App.Current.HandleException(ex);
+				await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
 			}
 		}
 
@@ -193,7 +196,7 @@ namespace MyAvalonia.ViewModels
 			catch (Exception ex)
 			{
 				ScrollerWeatherForecastVisible = false;
-				App.Current.HandleException(ex);
+				await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
 			}
 		}
 		#endregion

@@ -7,7 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using MyAvalonia.Data;
 using MyAvalonia.Factory;
 using MyAvalonia.Integrations;
+using MyAvalonia.Interfaces;
+using MyAvalonia.Services;
 using MyAvalonia.ViewModels;
+using MyAvalonia.ViewModels.ProgressControl;
 using MyAvalonia.Views;
 using System;
 using System.Linq;
@@ -36,25 +39,6 @@ namespace MyAvalonia
 
 		public override void OnFrameworkInitializationCompleted()
 		{
-			// GLOBAL EXCEPTION HANDLERS
-			AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-			{
-				if (e.ExceptionObject is Exception ex)
-					HandleException(ex);
-			};
-
-			TaskScheduler.UnobservedTaskException += (s, e) =>
-			{
-				HandleException(e.Exception);
-				e.SetObserved();
-			};
-
-			Dispatcher.UIThread.UnhandledException += (s, e) =>
-			{
-				HandleException(e.Exception);
-				e.Handled = true;
-			};
-
 			var collection = new ServiceCollection();
 
 			// IPMA
@@ -63,6 +47,7 @@ namespace MyAvalonia
 
 			// ViewModels
 			collection.AddSingleton<MainWindowViewModel>();
+			collection.AddSingleton<IMessageService, MessageService>();
 			collection.AddTransient<WeatherForecastPageViewModel>();
 			collection.AddTransient<HomePageViewModel>();
 			collection.AddTransient<ProcessPageViewModel>();
@@ -71,6 +56,7 @@ namespace MyAvalonia
 			collection.AddTransient<ReporterPageViewModel>();
 			collection.AddTransient<HistoryPageViewModel>();
 			collection.AddTransient<SettingsPageViewModel>();
+			collection.AddTransient<ProgressControlViewModel>();
 
 			// Factory
 			collection.AddSingleton<Func<ApplicationPageNames, PageViewModel>>(provider => name => name switch
@@ -104,30 +90,6 @@ namespace MyAvalonia
 			base.OnFrameworkInitializationCompleted();
 		}
 
-
-		internal void HandleException(Exception ex)
-		{
-			if (_isErrorWindowOpen)
-				return;
-
-			_isErrorWindowOpen = true;
-
-			Dispatcher.UIThread.Post(() =>
-			{
-				var window = new ErrorWindow
-				{
-					DataContext = new ErrorWindowViewModel(ex.ToString())
-				};
-
-				window.Closed += (_, __) => _isErrorWindowOpen = false;
-
-				if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop &&
-					desktop.MainWindow != null)
-				{
-					window.Show(desktop.MainWindow);
-				}
-			});
-		}
 
 		private void DisableAvaloniaDataAnnotationValidation()
 		{

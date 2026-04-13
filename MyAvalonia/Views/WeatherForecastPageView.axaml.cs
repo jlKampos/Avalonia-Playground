@@ -9,20 +9,8 @@ namespace MyAvalonia.Views;
 
 public partial class WeatherForecastPageView : UserControl
 {
-    public WeatherForecastPageView()
-    {
-        InitializeComponent();
-
-        this.AttachedToVisualTree += OnAttached;
-    }
-
-    private void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)
-    {
-        var vm = DataContext as WeatherForecastPageViewModel;
-
-        if (vm != null)
-        {
-            vm.OwnerWindow = this.FindAncestorOfType<Window>();
-        }
-    }
+	public WeatherForecastPageView()
+	{
+		InitializeComponent();
+	}
 }
