@@ -141,8 +141,12 @@
 	<!-- COMBOBOX -->
 	<Style Selector="ComboBox">
 		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
-		
+		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />	
+	</Style>
+
+	<Style Selector="ComboBox:pointerover /template/ Border#Background">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 	</Style>
 
 	<Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter"> 
