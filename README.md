@@ -5,7 +5,7 @@ Project created for learning Avalonia
     - Full working API CLient for IPMA data gathering
 * Work in progress
 
-
+![Demo Vid](./vid/v.mp4)
 
 
 ![w4](./imgs/W4.png)
