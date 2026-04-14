@@ -54,8 +54,17 @@
 		<AvaloniaResource Update="Assets\Fonts\Phosphor.ttf">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</AvaloniaResource>
+		<AvaloniaResource Update="Assets\Images\OpenSky\airplane.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Styles\DarkVintageTheme.axaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Views\OepnSkyPageView.axaml.cs">
+	    <DependentUpon>OepnSkyPageView.axaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 </Project>

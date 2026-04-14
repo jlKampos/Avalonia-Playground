@@ -1,35 +1,37 @@
-﻿using MyAvalonia.Integrations.Exceptions;
+﻿using MyAvalonia.Integrations.Enums;
+using MyAvalonia.Integrations.Exceptions;
 using MyAvalonia.Integrations.Interfaces;
 using System.Text.Json;
 
 namespace MyAvalonia.Integrations.Services
 {
-	public class ApiClient : IApiClient
-	{
-		private readonly HttpClient _httpClient;
+    public class ApiClient : IApiClient
+    {
+        private readonly IHttpClientFactory _factory;
 
-		public ApiClient(HttpClient httpClient)
-		{
-			_httpClient = httpClient;
-		}
+        public ApiClient(IHttpClientFactory factory)
+        {
+            _factory = factory;
+        }
 
-		public async Task<T> GetAsync<T>(string endpoint)
-		{
-			try
-			{
-				var response = await _httpClient.GetAsync(endpoint);
+        public async Task<T> GetAsync<T>(string endpoint, ApiType api)
+        {
+            try
+            {
+                var client = _factory.CreateClient(api.ToString());
 
-				response.EnsureSuccessStatusCode();
+                var response = await client.GetAsync(endpoint);
+                response.EnsureSuccessStatusCode();
 
-				var json = await response.Content.ReadAsStringAsync();
+                var json = await response.Content.ReadAsStringAsync();
 
-				return JsonSerializer.Deserialize<T>(json,
-					new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-			}
-			catch (Exception ex)
-			{
-				throw new ApiException($"API Error calling '{endpoint}'", ex);
-			}
-		}
-	}
+                return JsonSerializer.Deserialize<T>(json,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+            }
+            catch (Exception ex)
+            {
+                throw new ApiException($"API Error calling '{api}/{endpoint}'", ex);
+            }
+        }
+    }
 }

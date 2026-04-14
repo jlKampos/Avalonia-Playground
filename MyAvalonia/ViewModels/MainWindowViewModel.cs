@@ -9,101 +9,68 @@ using MyAvalonia.Integrations.Services;
 
 namespace MyAvalonia.ViewModels
 {
-	public partial class MainWindowViewModel : ViewModelBase
-	{
-		private PageFactory _pageFactory;
+    public partial class MainWindowViewModel : ViewModelBase
+    {
+        private PageFactory _pageFactory;
 
-		[ObservableProperty]
-		private bool _sideMenuExpanded = true;
+        [ObservableProperty]
+        private bool _sideMenuExpanded = true;
 
-		[ObservableProperty]
-		[NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(ProcessPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(MacrosPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(ActionsPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(ReporterPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(HistoryPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(SettingsPageIsActive))]
-		private PageViewModel _currentPage;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
+        [NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
+        [NotifyPropertyChangedFor(nameof(OepnSkyPageIsActive))]
+        private PageViewModel _currentPage;
 
-		public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
-		public bool SeismologyPageIsActive => CurrentPage.PageName == ApplicationPageNames.Seismology;
-		public bool ProcessPageIsActive => CurrentPage.PageName == ApplicationPageNames.Process;
-		public bool MacrosPageIsActive => CurrentPage.PageName == ApplicationPageNames.Macros;
-		public bool ActionsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Actions;
-		public bool ReporterPageIsActive => CurrentPage.PageName == ApplicationPageNames.Reporter;
-		public bool HistoryPageIsActive => CurrentPage.PageName == ApplicationPageNames.History;
-		public bool SettingsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Settings;
+        public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
+        public bool SeismologyPageIsActive => CurrentPage.PageName == ApplicationPageNames.Seismology;
+        public bool OepnSkyPageIsActive => CurrentPage.PageName == ApplicationPageNames.OepnSky;
+        public bool SettingsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Settings;
 
-		public MainWindowViewModel()
-		{
-			if (Design.IsDesignMode)
-			{
-				// Página fake para preview
-				CurrentPage = new WeatherForecastPageViewModel();
-			}
-		}
+        public MainWindowViewModel()
+        {
+            if (Design.IsDesignMode)
+            {
+                // Página fake para preview
+                CurrentPage = new WeatherForecastPageViewModel();
+            }
+        }
 
-		public MainWindowViewModel(PageFactory pageFactory)
-		{
-			_pageFactory = pageFactory;
-			GoToWeather();
-		}
+        public MainWindowViewModel(PageFactory pageFactory)
+        {
+            _pageFactory = pageFactory;
+            GoToWeather();
+        }
 
 
-		[RelayCommand]
-		private void SideMenuResize()
-		{
-			SideMenuExpanded = !SideMenuExpanded;
-		}
+        [RelayCommand]
+        private void SideMenuResize()
+        {
+            SideMenuExpanded = !SideMenuExpanded;
+        }
 
-		[RelayCommand]
-		private void GoToWeather()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
-		}
+        [RelayCommand]
+        private void GoToWeather()
+        {
+            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
+        }
 
-		[RelayCommand]
-		private void GoToSeismology()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Seismology);
-		}
+        [RelayCommand]
+        private void GoToSeismology()
+        {
+            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Seismology);
+        }
 
-		[RelayCommand]
-		private void GoToProcess()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Process);
-		}
+        [RelayCommand]
+        private void GoToOepnSky()
+        {
+            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.OepnSky);
+        }
 
-		[RelayCommand]
-		private void GoToMacros()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Macros);
-		}
-
-		[RelayCommand]
-		private void GoToActions()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Actions);
-		}
-
-		[RelayCommand]
-		private void GoToReporter()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Reporter);
-		}
-
-		[RelayCommand]
-		private void GoToHistory()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.History);
-		}
-
-		[RelayCommand]
-		private void GoToSettings()
-		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Settings);
-		}
-	}
+        [RelayCommand]
+        private void GoToSettings()
+        {
+            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Settings);
+        }
+    }
 }

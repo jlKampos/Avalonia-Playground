@@ -7,6 +7,7 @@ Project created for learning Avalonia
 
 ![Demo Vid](./vid/v.mp4)
 
+![w8](./imgs/w8.png)
 ![w7](./imgs/w7.png)
 ![w6](./imgs/w6.png)
 ![w5](./imgs/w5.png)

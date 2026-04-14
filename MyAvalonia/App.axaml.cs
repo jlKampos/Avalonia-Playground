@@ -18,90 +18,82 @@ using System.Threading.Tasks;
 
 namespace MyAvalonia
 {
-	public partial class App : Application
-	{
-		private IServiceProvider _serviceProvider;
-		private bool _isErrorWindowOpen;
+    public partial class App : Application
+    {
+        private IServiceProvider _serviceProvider;
+        private bool _isErrorWindowOpen;
 
-		internal IServiceProvider ServiceProvider => _serviceProvider;
+        internal IServiceProvider ServiceProvider => _serviceProvider;
 
-		internal static App Current { get; private set; }
+        internal static App Current { get; private set; }
 
-		public App()
-		{
-			Current = this;
-		}
+        public App()
+        {
+            Current = this;
+        }
 
-		public override void Initialize()
-		{
-			AvaloniaXamlLoader.Load(this);
-		}
+        public override void Initialize()
+        {
+            AvaloniaXamlLoader.Load(this);
+        }
 
-		public override void OnFrameworkInitializationCompleted()
-		{
-			var collection = new ServiceCollection();
+        public override void OnFrameworkInitializationCompleted()
+        {
+            var collection = new ServiceCollection();
 
-			// IPMA
-			collection.AddApplicationServices();
-			collection.AddIntegrations();
+            // IPMA
+            collection.AddApplicationServices();
+            collection.AddIntegrations();
 
-			// ViewModels
-			collection.AddSingleton<MainWindowViewModel>();
-			collection.AddSingleton<IMessageService, MessageService>();
-			collection.AddTransient<WeatherForecastPageViewModel>();
-			collection.AddTransient<SeismologyPageViewModel>();
-			collection.AddTransient<ProcessPageViewModel>();
-			collection.AddTransient<MacrosPageViewModel>();
-			collection.AddTransient<ActionsPageViewModel>();
-			collection.AddTransient<ReporterPageViewModel>();
-			collection.AddTransient<HistoryPageViewModel>();
-			collection.AddTransient<SettingsPageViewModel>();
-			collection.AddTransient<ProgressControlViewModel>();
+            // ViewModels
+            collection.AddSingleton<MainWindowViewModel>();
+            collection.AddSingleton<IMessageService, MessageService>();
+            collection.AddTransient<WeatherForecastPageViewModel>();
+            collection.AddTransient<SeismologyPageViewModel>();
+            collection.AddTransient<OepnSkyPageViewModel>();
+            collection.AddTransient<SettingsPageViewModel>();
+            collection.AddTransient<ProgressControlViewModel>();
 
-			// Factory
-			collection.AddSingleton<Func<ApplicationPageNames, PageViewModel>>(provider => name => name switch
-			{
-				ApplicationPageNames.WeatherForecast => provider.GetRequiredService<WeatherForecastPageViewModel>(),
-				ApplicationPageNames.Seismology => provider.GetRequiredService<SeismologyPageViewModel>(),
-				ApplicationPageNames.Process => provider.GetRequiredService<ProcessPageViewModel>(),
-				ApplicationPageNames.Macros => provider.GetRequiredService<MacrosPageViewModel>(),
-				ApplicationPageNames.Actions => provider.GetRequiredService<ActionsPageViewModel>(),
-				ApplicationPageNames.Reporter => provider.GetRequiredService<ReporterPageViewModel>(),
-				ApplicationPageNames.History => provider.GetRequiredService<HistoryPageViewModel>(),
-				ApplicationPageNames.Settings => provider.GetRequiredService<SettingsPageViewModel>(),
-				_ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
-			});
+            // Factory
+            collection.AddSingleton<Func<ApplicationPageNames, PageViewModel>>(provider => name => name switch
+            {
+                ApplicationPageNames.WeatherForecast => provider.GetRequiredService<WeatherForecastPageViewModel>(),
+                ApplicationPageNames.Seismology => provider.GetRequiredService<SeismologyPageViewModel>(),
+                ApplicationPageNames.OepnSky => provider.GetRequiredService<OepnSkyPageViewModel>(),
+                ApplicationPageNames.Settings => provider.GetRequiredService<SettingsPageViewModel>(),
+                _ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
+            });
 
-			// PageFactory
-			collection.AddSingleton<PageFactory>();
+            // PageFactory
+            collection.AddSingleton<PageFactory>();
 
-			_serviceProvider = collection.BuildServiceProvider();
+            _serviceProvider = collection.BuildServiceProvider();
 
-			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-			{
-				DisableAvaloniaDataAnnotationValidation();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                DisableAvaloniaDataAnnotationValidation();
 
-				desktop.MainWindow = new MainWindow
-				{
-					DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
-				};
-			}
+                desktop.MainWindow = new MainWindow
+                {
+                    DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
+                };
+            }
 
-			base.OnFrameworkInitializationCompleted();
-		}
+            base.OnFrameworkInitializationCompleted();
+        }
 
 
-		private void DisableAvaloniaDataAnnotationValidation()
-		{
-			// Get an array of plugins to remove
-			var dataValidationPluginsToRemove =
-				BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
+        private void DisableAvaloniaDataAnnotationValidation()
+        {
+            // Get an array of plugins to remove
+            var dataValidationPluginsToRemove =
+                BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
 
-			// remove each entry found
-			foreach (var plugin in dataValidationPluginsToRemove)
-			{
-				BindingPlugins.DataValidators.Remove(plugin);
-			}
-		}
-	}
+            // remove each entry found
+            foreach (var plugin in dataValidationPluginsToRemove)
+            {
+                BindingPlugins.DataValidators.Remove(plugin);
+            }
+        }
+    }
 }

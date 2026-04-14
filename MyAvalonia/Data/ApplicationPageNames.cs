@@ -6,16 +6,12 @@ using System.Threading.Tasks;
 
 namespace MyAvalonia.Data
 {
-	public enum ApplicationPageNames
-	{
-		Unknown,
-		WeatherForecast,
-		Seismology,
-		Process,
-		Macros,
-		Actions,
-		Reporter,
-		History,
-		Settings
-	}
+    public enum ApplicationPageNames
+    {
+        Unknown,
+        WeatherForecast,
+        Seismology,
+        OepnSky,
+        Settings
+    }
 }

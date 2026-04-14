@@ -38,40 +38,17 @@
 					</Button>
 					<Button Classes.active="{Binding Path=SeismologyPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToSeismologyCommand}">
 						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE2C2;"> </Label>
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xEAA0;"> </Label>
 							<Label Content="Seismology" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
 						</StackPanel>
 					</Button>
-					<Button Classes.active="{Binding Path=ProcessPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToProcessCommand}">
+					<Button Classes.active="{Binding Path=OepnSkyPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToOepnSkyCommand}">
 						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"  Classes="icon" Content="&#xe346;" > </Label>
-							<Label Content="Process" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"  Classes="icon" Content="&#xE002;" > </Label>
+							<Label Content="Air traffic" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
 						</StackPanel>
 					</Button>
-					<Button Classes.active="{Binding Path=ActionsPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToActionsCommand}">
-						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE7F2;"> </Label>
-							<Label Content="Actions" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
-						</StackPanel>
-					</Button>
-					<Button Classes.active="{Binding Path=MacrosPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToMacrosCommand}">
-						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE3EE;"> </Label>
-							<Label Content="Macros" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
-						</StackPanel>
-					</Button>
-					<Button Classes.active="{Binding Path=ReporterPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToReporterCommand}">
-						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xEB7A;"> </Label>
-							<Label Content="Reporter" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
-						</StackPanel>
-					</Button>
-					<Button Classes.active="{Binding Path=HistoryPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToHistoryCommand}">
-						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE03A;"> </Label>
-							<Label Content="History" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
-						</StackPanel>
-					</Button>
+
 				</StackPanel>
 				<Button Grid.Row="1" Classes.active="{Binding Path=SettingsPageIsActive}" Command="{Binding GoToSettingsCommand}" FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE270;"/>
 
