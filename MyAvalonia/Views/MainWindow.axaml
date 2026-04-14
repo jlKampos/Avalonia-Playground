@@ -4,8 +4,9 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="600"
-		Width="1024" Height="700"
-		MinWidth="1024" MinHeight="700"
+		Width="1024" Height="760"
+		MinWidth="1024" MinHeight="750"
+		MaxWidth="1024" MaxHeight="750"
 		x:Class="MyAvalonia.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		xmlns:view="clr-namespace:MyAvalonia"
@@ -35,10 +36,10 @@
 							<Label Content="Weather" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
 						</StackPanel>
 					</Button>
-					<Button Classes.active="{Binding Path=HomePageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToHomeCommand}">
+					<Button Classes.active="{Binding Path=SeismologyPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToSeismologyCommand}">
 						<StackPanel Orientation="Horizontal">
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE2C2;"> </Label>
-							<Label Content="Home" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+							<Label Content="Seismology" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
 						</StackPanel>
 					</Button>
 					<Button Classes.active="{Binding Path=ProcessPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToProcessCommand}">

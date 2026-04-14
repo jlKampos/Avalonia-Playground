@@ -18,7 +18,7 @@ namespace MyAvalonia.ViewModels
 
 		[ObservableProperty]
 		[NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
-		[NotifyPropertyChangedFor(nameof(HomePageIsActive))]
+		[NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
 		[NotifyPropertyChangedFor(nameof(ProcessPageIsActive))]
 		[NotifyPropertyChangedFor(nameof(MacrosPageIsActive))]
 		[NotifyPropertyChangedFor(nameof(ActionsPageIsActive))]
@@ -28,7 +28,7 @@ namespace MyAvalonia.ViewModels
 		private PageViewModel _currentPage;
 
 		public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
-		public bool HomePageIsActive => CurrentPage.PageName == ApplicationPageNames.Home;
+		public bool SeismologyPageIsActive => CurrentPage.PageName == ApplicationPageNames.Seismology;
 		public bool ProcessPageIsActive => CurrentPage.PageName == ApplicationPageNames.Process;
 		public bool MacrosPageIsActive => CurrentPage.PageName == ApplicationPageNames.Macros;
 		public bool ActionsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Actions;
@@ -65,9 +65,9 @@ namespace MyAvalonia.ViewModels
 		}
 
 		[RelayCommand]
-		private void GoToHome()
+		private void GoToSeismology()
 		{
-			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Home);
+			CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Seismology);
 		}
 
 		[RelayCommand]

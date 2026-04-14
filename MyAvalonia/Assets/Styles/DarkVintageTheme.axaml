@@ -194,4 +194,41 @@
 		<Setter Property="FontSize" Value="15"/>
 	</Style>
 
+
+	<!--Calendar-->
+	<!-- Estilo para o Calendar -->
+	<Style Selector="Calendar">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+	</Style>
+
+	<!-- Estilo para os dias do calendário -->
+<Style Selector="CalendarDayButton">
+    <Setter Property="Foreground" Value="White"/>
+    <Setter Property="Background" Value="{StaticResource ButtonGradient}"/>
+    <Setter Property="BorderBrush" Value="Gray"/>
+    <Setter Property="BorderThickness" Value="1"/>
+    <Setter Property="Template">
+        <ControlTemplate TargetType="CalendarDayButton">
+            <Border Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+                <ContentPresenter HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+            </Border>
+        </ControlTemplate>
+    </Setter>
+</Style>
+
+	<!-- Estilo para os dias ao passar o mouse -->
+	<Style Selector="CalendarDayButton:pointerover /template/ Border#Background">
+		<Setter Property="Background" Value="{DynamicResource DarkAccentSoft}" />
+	</Style>
+
+	<!-- Estilo para o dia selecionado -->
+	<Style Selector="CalendarDayButton:selected /template/ Border#Background">
+		<Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+	</Style>
+
+
 </Styles>

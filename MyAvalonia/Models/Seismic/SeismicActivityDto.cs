@@ -9,40 +9,38 @@ namespace MyAvalonia.Models.Seismic
 {
 	public class SeismicActivityDto
 	{
-		public string GoogleMapRef { get; set; } = String.Empty;
-
-		public string Degree { get; set; } = String.Empty;
-
-		public string SismoId { get; set; } = String.Empty;
+		public string? GoogleMapRef { get; set; }
+		public string? Degree { get; set; }
+		public string? SismoId { get; set; }
+		public string? MagnitudeType { get; set; }
+		public string? ObservedRegion { get; set; }
+		public string? Source { get; set; }
+		public string? TensorRef { get; set; }
+		public string? Sensed { get; set; }
+		public string? ShakemapId { get; set; }
+		public string? ShakemapRef { get; set; }
+		public string? Local { get; set; }
 
 		public DateTime DataUpdate { get; set; }
-
-		public string MagnitudeType { get; set; } = String.Empty;
-
-		public string ObservedRegion { get; set; } = String.Empty;
-
-		public string Longitude { get; set; } = String.Empty;
-
-		public string Latitude { get; set; } = String.Empty;
-
-		public string Source { get; set; } = String.Empty;
-
+		public DateTime Time { get; set; }
 		public int Depth { get; set; }
 
-		public string TensorRef { get; set; } = String.Empty;
+		public string Longitude { get; set; } = "0";
+		public string Latitude { get; set; } = "0";
+		public string Magnitude { get; set; } = "0";
 
-		public string Sensed { get; set; } = String.Empty;
+		// Helpers para lógica de negócio e Mapsui
+		// Ignora o valor -99.0 que o IPMA usa para "sem dados"
+		public double? MagnitudeValue =>
+		double.TryParse(Magnitude, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v) && v != -99.0
+		? v : null;
 
-		public string ShakemapId { get; set; } = String.Empty;
+		public double Lon =>
+			double.TryParse(Longitude, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v)
+			? v : 0;
 
-		public DateTime Time { get; set; }
-
-		public string ShakemapRef { get; set; } = String.Empty;
-
-		public string Local { get; set; } = String.Empty;
-
-		public string Magnitude { get; set; } = String.Empty;
-
-		public double? MagnitudeValue => double.TryParse(Magnitude, out var v) ? v : null;
+		public double Lat =>
+			double.TryParse(Latitude, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var v)
+			? v : 0;
 	}
 }

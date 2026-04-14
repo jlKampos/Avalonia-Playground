@@ -49,7 +49,7 @@ namespace MyAvalonia
 			collection.AddSingleton<MainWindowViewModel>();
 			collection.AddSingleton<IMessageService, MessageService>();
 			collection.AddTransient<WeatherForecastPageViewModel>();
-			collection.AddTransient<HomePageViewModel>();
+			collection.AddTransient<SeismologyPageViewModel>();
 			collection.AddTransient<ProcessPageViewModel>();
 			collection.AddTransient<MacrosPageViewModel>();
 			collection.AddTransient<ActionsPageViewModel>();
@@ -62,7 +62,7 @@ namespace MyAvalonia
 			collection.AddSingleton<Func<ApplicationPageNames, PageViewModel>>(provider => name => name switch
 			{
 				ApplicationPageNames.WeatherForecast => provider.GetRequiredService<WeatherForecastPageViewModel>(),
-				ApplicationPageNames.Home => provider.GetRequiredService<HomePageViewModel>(),
+				ApplicationPageNames.Seismology => provider.GetRequiredService<SeismologyPageViewModel>(),
 				ApplicationPageNames.Process => provider.GetRequiredService<ProcessPageViewModel>(),
 				ApplicationPageNames.Macros => provider.GetRequiredService<MacrosPageViewModel>(),
 				ApplicationPageNames.Actions => provider.GetRequiredService<ActionsPageViewModel>(),

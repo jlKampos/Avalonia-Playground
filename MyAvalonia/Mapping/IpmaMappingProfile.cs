@@ -50,7 +50,8 @@ namespace MyAvalonia.Mapping
 			// =========================
 			// SEISMIC ACTIVITY
 			// =========================
-			CreateMap<SeismicItem, SeismicActivityDto>();
+			CreateMap<SeismicItem, SeismicActivityDto>()
+				.ForMember(dest => dest.Sensed, opt => opt.MapFrom(src => src.Sensed != null ? src.Sensed.ToString() : null));
 
 			// =========================
 			// AWARENESS

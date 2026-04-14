@@ -30,9 +30,18 @@
 		</PackageReference>
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
 		<PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
+		<PackageReference Include="HarfBuzzSharp" Version="8.3.1.3" />
+		<PackageReference Include="Mapsui.Avalonia" Version="4.1.8" />
 		<PackageReference Include="MessageBox.Avalonia" Version="3.3.1.1" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
 		<PackageReference Include="Svg.Controls.Avalonia" Version="11.3.9.5" />
+
+		<!--Maps-->
+		<PackageReference Include="HarfBuzzSharp" Version="8.3.1.3" />
+		<PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" Version="8.3.1.3" />
+		<PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="8.3.1.3" />
+		<PackageReference Include="SkiaSharp" Version="2.88.9" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="2.88.9" />
 	</ItemGroup>
 
 	<ItemGroup>

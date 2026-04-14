@@ -4,7 +4,7 @@
 	{
 		public HistoryPageViewModel()
 		{
-			PageName = Data.ApplicationPageNames.Home;
+			PageName = Data.ApplicationPageNames.Seismology;
 		}
 	}
 }

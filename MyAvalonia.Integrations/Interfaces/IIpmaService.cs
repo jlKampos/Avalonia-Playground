@@ -18,6 +18,6 @@ namespace MyAvalonia.Integrations.Interfaces
 		Task<ForecastResponse> GetForecastByCityAsync(int globalId);
 		Task<ForecastByDayResponse> GetForecastByDayAsync(int day);
 		Task<WindSpeedResponse> GetWindAsync();
-		Task<SeismicResponse> GetSeismicAsync(string date);
+		Task<SeismicResponse> GetSeismicAsync(int idArea);
 	}
 }

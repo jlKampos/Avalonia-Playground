@@ -10,7 +10,7 @@ namespace MyAvalonia.Data
 	{
 		Unknown,
 		WeatherForecast,
-		Home,
+		Seismology,
 		Process,
 		Macros,
 		Actions,

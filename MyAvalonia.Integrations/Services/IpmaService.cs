@@ -87,15 +87,15 @@ namespace MyAvalonia.Integrations.Services
 			}
 		}
 
-		public async Task<SeismicResponse> GetSeismicAsync(string date)
+		public async Task<SeismicResponse> GetSeismicAsync(int idArea)
 		{
 			try
 			{
-				return await _apiClient.GetAsync<SeismicResponse>($"observation/seismic/{date}.json").ConfigureAwait(false);
+				return await _apiClient.GetAsync<SeismicResponse>($"observation/seismic/{idArea}.json").ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
-				throw new ApiException($"Failed to load seismic data for date {date}", ex);
+				throw new ApiException($"Failed to load seismic data for area {idArea}", ex);
 			}
 		}
 

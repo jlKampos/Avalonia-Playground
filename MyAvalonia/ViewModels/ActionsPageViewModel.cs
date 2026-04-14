@@ -4,7 +4,7 @@
 	{
 		public ActionsPageViewModel()
 		{
-			PageName = Data.ApplicationPageNames.Home;
+			PageName = Data.ApplicationPageNames.Seismology;
 		}
 	}
 }

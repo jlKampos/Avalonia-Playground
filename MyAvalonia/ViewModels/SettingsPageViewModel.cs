@@ -4,7 +4,7 @@
 	{
 		public SettingsPageViewModel()
 		{
-			PageName = Data.ApplicationPageNames.Home;
+			PageName = Data.ApplicationPageNames.Seismology;
 		}
 	}
 }
