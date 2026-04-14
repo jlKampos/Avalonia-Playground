@@ -33,7 +33,7 @@ namespace MyAvalonia.ViewModels
         private TileLayer? _baseLayer;
         private TileLayer? _labelLayer;
 
-        private bool _isDarkTheme = false;
+        private bool _isDarkTheme = true;
 
         private List<SeismicActivityDto> SeismicActivities { get; set; } = new();
 
