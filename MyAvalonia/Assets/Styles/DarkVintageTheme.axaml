@@ -180,13 +180,13 @@
 	</Style>
 
 	<Style Selector="TabControl.modern TabItem:pointerover">
-		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentPurple}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkAccent}" />
 		<Setter Property="Background" Value="{StaticResource DarkPanel}" />
 	</Style>
 
 
 	<Style Selector="TabControl.modern TabItem:selected">
-		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentSoft}" />
 		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
 	</Style>
 
