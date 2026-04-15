@@ -9,8 +9,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Folder Include="Assets\Fonts\" />
-		<AvaloniaResource Include="Assets\**" />
+		<AvaloniaResource Include="Assets\Images\**" />
+		<AvaloniaResource Include="Assets\Fonts\**" />
+		<AvaloniaResource Include="Assets\Styles\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -55,7 +56,7 @@
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Images\OpenSky\airplane.png">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</AvaloniaResource>
 		<AvaloniaResource Update="Assets\Styles\DarkVintageTheme.axaml">
 			<SubType>Designer</SubType>
@@ -63,8 +64,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Views\OepnSkyPageView.axaml.cs">
-	    <DependentUpon>OepnSkyPageView.axaml</DependentUpon>
-	  </Compile>
+		<Compile Update="Views\OepnSkyPageView.axaml.cs">
+			<DependentUpon>OepnSkyPageView.axaml</DependentUpon>
+		</Compile>
 	</ItemGroup>
 </Project>

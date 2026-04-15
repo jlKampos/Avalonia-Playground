@@ -10,7 +10,6 @@ using Mapsui.Projections;
 using Mapsui.Styles;
 using Mapsui.Tiling.Layers;
 using MyAvalonia.Data;
-using MyAvalonia.Integrations.Exceptions;
 using MyAvalonia.Integrations.Interfaces;
 using MyAvalonia.Interfaces;
 using MyAvalonia.Models.OpenSky;
@@ -48,6 +47,7 @@ namespace MyAvalonia.ViewModels
         private TileLayer? _labelLayer;
         private MemoryLayer? _aircraftLayer;
 
+        private int? _aircraftBitmapId;
         #endregion
 
         #region Settings
@@ -120,6 +120,12 @@ namespace MyAvalonia.ViewModels
                 await LoadAllFlightStatesAsync();
 
                 _ = StartAutoRefreshAsync();
+
+                //// Testes
+                //var dummy = GenerateDummyFlights();
+                //AddAircraftLayerToMap(dummy);
+                //_ = StartDummyMovementAsync(dummy);
+                //// end Testes
             }
             catch (Exception ex)
             {
@@ -129,6 +135,68 @@ namespace MyAvalonia.ViewModels
             {
                 ProgressControl.IsVisible = false;
             }
+        }
+
+        private async Task StartDummyMovementAsync(List<StateVectorDto> aircraft)
+        {
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
+            var random = new Random();
+
+            while (!token.IsCancellationRequested)
+            {
+                foreach (var plane in aircraft)
+                {
+                    if (plane.Latitude == null || plane.Longitude == null)
+                        continue;
+
+                    var speedFactor = 0.05;
+
+                    var angleRad = (plane.TrueTrack ?? 0) * Math.PI / 180.0;
+
+                    plane.Latitude += Math.Cos(angleRad) * speedFactor;
+                    plane.Longitude += Math.Sin(angleRad) * speedFactor;
+
+                    // mudar ligeiramente direção
+                    plane.TrueTrack += random.Next(-5, 5);
+
+                    if (plane.TrueTrack < 0) plane.TrueTrack += 360;
+                    if (plane.TrueTrack > 360) plane.TrueTrack -= 360;
+                }
+
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    AddAircraftLayerToMap(aircraft);
+                });
+
+                await Task.Delay(1000, token); // suave 🔥
+            }
+        }
+
+        private List<StateVectorDto> GenerateDummyFlights()
+        {
+            var random = new Random();
+
+            var list = new List<StateVectorDto>();
+
+            for (int i = 0; i < 20; i++)
+            {
+                list.Add(new StateVectorDto
+                {
+                    Icao24 = $"DUMMY{i}",
+                    Callsign = $"TP{i:000}",
+                    Latitude = 36 + random.NextDouble() * 6,   // Portugal-ish
+                    Longitude = -10 + random.NextDouble() * 6,
+                    Altitude = random.Next(1000, 12000),
+                    Velocity = random.Next(100, 250),
+                    TrueTrack = random.Next(0, 360),
+                    OnGround = false,
+                    OriginCountry = "Portugal"
+                });
+            }
+
+            return list;
         }
 
         private async Task InitializeMapAsync()
@@ -210,71 +278,96 @@ namespace MyAvalonia.ViewModels
                 var origin = plane.OriginCountry ?? "Unknown";
                 var onGround = plane.OnGround == true ? "Yes" : "No";
 
+                var infoText =
+                 $"CallSign: {callsign}\n" +
+                 $"Origin: {origin}\n" +
+                 $"Alt: {altitude}\n" +
+                 $"Vel: {velocity}\n" +
+                 $"OnGround: {onGround}";
+
                 var color = plane.Altitude switch
                 {
-                    < 2000 => Color.Blue,
+                    < 2000 => Color.DodgerBlue,
                     < 8000 => Color.Gold,
-                    _ => Color.Red
+                    _ => Color.IndianRed
                 };
 
-                var infoText = $"CallSign: {callsign}\nOrigin: {origin}\nAlt: {altitude}\nVel: {velocity}\nOnGround: {onGround}\n";
+                // =========================
+                // AIRCRAFT
+                // =========================
+                var aircraftFeature = new PointFeature(point);
+                aircraftFeature.Styles.Clear();
 
                 if (plane.TrueTrack != null)
                 {
-                    var size = 25000.0;
-                    var angle = Math.PI * plane.TrueTrack.Value / 180.0;
 
-                    var front = new Coordinate(
-                        x + Math.Sin(angle) * size,
-                        y + Math.Cos(angle) * size);
-
-                    var left = new Coordinate(
-                        x + Math.Sin(angle + Math.PI - 0.3) * (size * 0.6),
-                        y + Math.Cos(angle + Math.PI - 0.3) * (size * 0.6));
-
-                    var right = new Coordinate(
-                        x + Math.Sin(angle + Math.PI + 0.3) * (size * 0.6),
-                        y + Math.Cos(angle + Math.PI + 0.3) * (size * 0.6));
-
-                    var geometry = new Polygon(new LinearRing(new[]
+                    aircraftFeature.Styles.Add(new SymbolStyle
                     {
-                        front, left, right, front
-                    }));
-
-                    var feature = new GeometryFeature { Geometry = geometry };
-
-                    feature.Styles.Add(new VectorStyle
-                    {
+                        SymbolType = SymbolType.Triangle,
+                        SymbolRotation = (float)plane.TrueTrack.Value,
+                        SymbolScale = 0.55f,
                         Fill = new Brush(color),
-                        Outline = new Pen(Color.White, 1)
+                        Outline = new Pen(Color.White, 3)
                     });
-
-                    features.Add(feature);
                 }
                 else
                 {
-                    var feature = new PointFeature(point);
 
-                    feature.Styles.Add(new SymbolStyle
+                    aircraftFeature.Styles.Add(new SymbolStyle
                     {
+                        SymbolType = SymbolType.Ellipse,
+                        SymbolScale = 0.40f,
                         Fill = new Brush(color),
-                        Outline = new Pen(Color.White, 2),
-                        SymbolScale = 0.7f
+                        Outline = new Pen(Color.White, 3)
                     });
-
-                    features.Add(feature);
                 }
 
+                features.Add(aircraftFeature);
+
+                // =========================
+                // DIREÇÃO
+                // =========================
+                if (plane.TrueTrack != null)
+                {
+                    var angle = Math.PI * plane.TrueTrack.Value / 180.0;
+                    var length = 25000.0;
+
+                    var line = new LineString(new[]
+                    {
+                        new Coordinate(x, y),
+                        new Coordinate(
+                            x + Math.Sin(angle) * length,
+                            y + Math.Cos(angle) * length)
+                    });
+
+                    var lineFeature = new GeometryFeature
+                    {
+                        Geometry = line
+                    };
+
+                    lineFeature.Styles.Add(new VectorStyle
+                    {
+                        Line = new Pen(new Color(color.R, color.G, color.B, 140), 2)
+                    });
+
+                    features.Add(lineFeature);
+                }
+
+                // =========================
+                // LABEL
+                // =========================
                 var label = new PointFeature(point);
 
                 label.Styles.Add(new LabelStyle
                 {
                     Text = infoText,
                     ForeColor = Color.Black,
-                    BackColor = new Brush(Color.FromArgb(200, 255, 255, 255)),
+                    BackColor = new Brush(Color.FromArgb(220, 255, 255, 255)),
                     Font = new Font { Size = 11 },
+
                     HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
                     VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
+
                     Offset = new Offset(20, 0),
                     CollisionDetection = true
                 });
@@ -282,20 +375,17 @@ namespace MyAvalonia.ViewModels
                 features.Add(label);
             }
 
-            if (_aircraftLayer == null)
-            {
-                _aircraftLayer = new MemoryLayer
-                {
-                    Name = "Aircraft",
-                    Features = features
-                };
+            var oldLayer = Map.Layers.FirstOrDefault(l => l.Name == "Aircraft");
+            if (oldLayer != null)
+                Map.Layers.Remove(oldLayer);
 
-                Map.Layers.Add(_aircraftLayer);
-            }
-            else
+
+            Map.Layers.Add(new MemoryLayer
             {
-                _aircraftLayer.Features = features;
-            }
+                Name = "Aircraft",
+                Features = features,
+                Style = null
+            });
 
             Map.RefreshGraphics();
         }
@@ -329,15 +419,17 @@ namespace MyAvalonia.ViewModels
                 {
                     var response = await _apiClient.GetAllFlightStatesAsync();
 
-                    if (response?.States == null)
-                        continue;
-
-                    var data = response.States?.Select(x => _mapper.Map<StateVectorDto>(x)).ToList() ?? new List<StateVectorDto>();
-
-                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    if (response?.States != null)
                     {
-                        AddAircraftLayerToMap(data);
-                    });
+                        var data = response.States
+                            .Select(x => _mapper.Map<StateVectorDto>(x))
+                            .ToList();
+
+                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            AddAircraftLayerToMap(data);
+                        });
+                    }
                 }
                 catch
                 {
@@ -346,7 +438,8 @@ namespace MyAvalonia.ViewModels
 
                 try
                 {
-                    await Task.Delay(5000, token);
+                    // IMPORTANTE: >= 10 to avoid 429
+                    await Task.Delay(10000, token);
                 }
                 catch
                 {
