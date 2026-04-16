@@ -21,7 +21,6 @@ namespace MyAvalonia
     public partial class App : Application
     {
         private IServiceProvider _serviceProvider;
-        private bool _isErrorWindowOpen;
 
         internal IServiceProvider ServiceProvider => _serviceProvider;
 

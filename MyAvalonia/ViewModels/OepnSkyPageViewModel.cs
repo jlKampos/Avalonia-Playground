@@ -1,5 +1,8 @@
 ﻿using AutoMapper;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using BruTile.Predefined;
 using BruTile.Web;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -17,6 +20,7 @@ using MyAvalonia.ViewModels.ProgressControl;
 using NetTopologySuite.Geometries;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,15 +43,21 @@ namespace MyAvalonia.ViewModels
         private OpenSkyDto FlightStates { get; set; } = new();
         private CancellationTokenSource? _cts;
 
+        // Toggle for dummy vs real data
+        [ObservableProperty]
+        private bool _useDummyData = true;
+
         #endregion
 
         #region Map Layers
 
+        private Bitmap? _airplaneBitmap;
         private TileLayer? _baseLayer;
         private TileLayer? _labelLayer;
         private MemoryLayer? _aircraftLayer;
 
-        private int? _aircraftBitmapId;
+        private Mapsui.Styles.Image? _airplaneImage;
+
         #endregion
 
         #region Settings
@@ -62,6 +72,12 @@ namespace MyAvalonia.ViewModels
                 if (SetProperty(ref _isDarkTheme, value))
                     ApplyMapTheme();
             }
+        }
+
+        // Triggered automatically when UseDummyData changes
+        partial void OnUseDummyDataChanged(bool value)
+        {
+            _ = ReloadAircraftAsync();
         }
 
         #endregion
@@ -117,15 +133,8 @@ namespace MyAvalonia.ViewModels
 
                 await InitializeMapAsync();
 
-                await LoadAllFlightStatesAsync();
-
-                _ = StartAutoRefreshAsync();
-
-                //// Testes
-                //var dummy = GenerateDummyFlights();
-                //AddAircraftLayerToMap(dummy);
-                //_ = StartDummyMovementAsync(dummy);
-                //// end Testes
+                // Load aircraft depending on toggle
+                await ReloadAircraftAsync();
             }
             catch (Exception ex)
             {
@@ -136,6 +145,31 @@ namespace MyAvalonia.ViewModels
                 ProgressControl.IsVisible = false;
             }
         }
+
+        /// <summary>
+        /// Reloads aircraft depending on whether dummy data is enabled.
+        /// </summary>
+        private async Task ReloadAircraftAsync()
+        {
+            _cts?.Cancel(); // stop previous movement or refresh
+
+            if (UseDummyData)
+            {
+                var dummy = GenerateDummyFlights();
+                AddAircraftLayerToMap(dummy);
+                _ = StartDummyMovementAsync(dummy);
+            }
+            else
+            {
+                await LoadAllFlightStatesAsync();
+                AddAircraftLayerToMap(FlightStates.States);
+                _ = StartAutoRefreshAsync();
+            }
+        }
+
+        #endregion
+
+        #region Dummy Movement
 
         private async Task StartDummyMovementAsync(List<StateVectorDto> aircraft)
         {
@@ -152,13 +186,13 @@ namespace MyAvalonia.ViewModels
                         continue;
 
                     var speedFactor = 0.05;
-
                     var angleRad = (plane.TrueTrack ?? 0) * Math.PI / 180.0;
 
+                    // Move aircraft
                     plane.Latitude += Math.Cos(angleRad) * speedFactor;
                     plane.Longitude += Math.Sin(angleRad) * speedFactor;
 
-                    // mudar ligeiramente direção
+                    // Slight random heading change
                     plane.TrueTrack += random.Next(-5, 5);
 
                     if (plane.TrueTrack < 0) plane.TrueTrack += 360;
@@ -170,14 +204,13 @@ namespace MyAvalonia.ViewModels
                     AddAircraftLayerToMap(aircraft);
                 });
 
-                await Task.Delay(1000, token); // suave 🔥
+                await Task.Delay(1000, token);
             }
         }
 
         private List<StateVectorDto> GenerateDummyFlights()
         {
             var random = new Random();
-
             var list = new List<StateVectorDto>();
 
             for (int i = 0; i < 20; i++)
@@ -186,7 +219,7 @@ namespace MyAvalonia.ViewModels
                 {
                     Icao24 = $"DUMMY{i}",
                     Callsign = $"TP{i:000}",
-                    Latitude = 36 + random.NextDouble() * 6,   // Portugal-ish
+                    Latitude = 36 + random.NextDouble() * 6,
                     Longitude = -10 + random.NextDouble() * 6,
                     Altitude = random.Next(1000, 12000),
                     Velocity = random.Next(100, 250),
@@ -198,6 +231,10 @@ namespace MyAvalonia.ViewModels
 
             return list;
         }
+
+        #endregion
+
+        #region Map Setup
 
         private async Task InitializeMapAsync()
         {
@@ -293,26 +330,36 @@ namespace MyAvalonia.ViewModels
                 };
 
                 // =========================
-                // AIRCRAFT
+                // AIRCRAFT ICON
                 // =========================
                 var aircraftFeature = new PointFeature(point);
                 aircraftFeature.Styles.Clear();
 
+                var imagePath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    "Assets",
+                    "Images",
+                    "OpenSky",
+                    "airplane.svg"
+                );
+
+                var imageUri = new Uri(imagePath).AbsoluteUri;
+
                 if (plane.TrueTrack != null)
                 {
-
-                    aircraftFeature.Styles.Add(new SymbolStyle
+                    aircraftFeature.Styles.Add(new ImageStyle
                     {
-                        SymbolType = SymbolType.Triangle,
-                        SymbolRotation = (float)plane.TrueTrack.Value,
-                        SymbolScale = 0.55f,
-                        Fill = new Brush(color),
-                        Outline = new Pen(Color.White, 3)
+                        Image = new Mapsui.Styles.Image
+                        {
+                            Source = imageUri
+                        },
+                        SymbolScale = 0.6,
+                        SymbolRotation = plane.TrueTrack ?? 0,
+                        Offset = new Offset(0, 0)
                     });
                 }
                 else
                 {
-
                     aircraftFeature.Styles.Add(new SymbolStyle
                     {
                         SymbolType = SymbolType.Ellipse,
@@ -325,16 +372,22 @@ namespace MyAvalonia.ViewModels
                 features.Add(aircraftFeature);
 
                 // =========================
-                // DIREÇÃO
+                // HEADING LINE
                 // =========================
                 if (plane.TrueTrack != null)
                 {
                     var angle = Math.PI * plane.TrueTrack.Value / 180.0;
-                    var length = 25000.0;
+                    var length = 15000.0;
+
+                    // Offset so the line starts outside the icon
+                    var offset = 3000.0;
+
+                    var startX = x + Math.Sin(angle) * offset;
+                    var startY = y + Math.Cos(angle) * offset;
 
                     var line = new LineString(new[]
                     {
-                        new Coordinate(x, y),
+                        new Coordinate(startX, startY),
                         new Coordinate(
                             x + Math.Sin(angle) * length,
                             y + Math.Cos(angle) * length)
@@ -347,7 +400,7 @@ namespace MyAvalonia.ViewModels
 
                     lineFeature.Styles.Add(new VectorStyle
                     {
-                        Line = new Pen(new Color(color.R, color.G, color.B, 140), 2)
+                        Line = new Pen(new Color(color.R, color.G, color.B, 255), 1f)
                     });
 
                     features.Add(lineFeature);
@@ -378,7 +431,6 @@ namespace MyAvalonia.ViewModels
             var oldLayer = Map.Layers.FirstOrDefault(l => l.Name == "Aircraft");
             if (oldLayer != null)
                 Map.Layers.Remove(oldLayer);
-
 
             Map.Layers.Add(new MemoryLayer
             {
@@ -433,12 +485,11 @@ namespace MyAvalonia.ViewModels
                 }
                 catch
                 {
-                    // opcional: log
+                    // optional logging
                 }
 
                 try
                 {
-                    // IMPORTANTE: >= 11 to avoid 429
                     await Task.Delay(11000, token);
                 }
                 catch
