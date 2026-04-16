@@ -30,24 +30,66 @@
 
 
 	<Grid RowDefinitions="100,*">
-		<!-- Header with DatePicker -->
-		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=PanelGradient}" Padding="20">
-			<StackPanel Orientation="Horizontal" Spacing="20">
+		<!-- Header -->
+		<Border Grid.Row="0"
+				Background="{DynamicResource PanelGradient}"
+				Padding="20">
 
-				<TextBlock Text="Air traffic"
-						   Foreground="White"
-						   FontSize="20"
-						   VerticalAlignment="Center"/>
+			<Grid ColumnDefinitions="*, Auto">
 
-				<!-- THEME TOGGLE SWITCH -->
-				<ToggleSwitch Width="80"
-							  VerticalAlignment="Center"
-							  IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
-							  OffContentTemplate="{StaticResource LightIconTemplate}"
-							  OnContentTemplate="{StaticResource DarkIconTemplate}" />
+				<StackPanel Orientation="Vertical" Spacing="5" Grid.Column="0">
+					<!-- LEFT: Title -->
+					<TextBlock Text="Air traffic"
+							   Foreground="White"
+							   FontSize="20"
+							   VerticalAlignment="Center"/>
 
-			</StackPanel>
+					<!-- WARNING WHEN USING REAL DATA -->
+					<TextBlock Text="⚠ API requests to OpenSky are limited to one every 10 seconds to avoid IP blocking."
+							   Foreground="Orange"
+							   FontSize="12"
+							   Margin="0,5,0,0"
+							   IsVisible="{Binding UseDummyData, Converter={StaticResource InverseBoolConverter}}"/>
+				</StackPanel>
+
+
+				<!-- RIGHT: Toggles stacked vertically -->
+				<StackPanel Grid.Column="1"
+							Orientation="Vertical"
+							Spacing="10"
+							VerticalAlignment="Center">
+
+					<!-- THEME SWITCH -->
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<TextBlock Text="Theme"
+								   Foreground="White"
+								   VerticalAlignment="Center"
+								   Width="90"/> <!-- FIXED WIDTH -->
+
+								   <ToggleSwitch Width="80"
+												 IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
+												 OffContentTemplate="{StaticResource LightIconTemplate}"
+												 OnContentTemplate="{StaticResource DarkIconTemplate}" />
+					</StackPanel>
+
+					<!-- DATA TYPE SWITCH -->
+					<StackPanel Orientation="Horizontal" Spacing="10">
+						<TextBlock Text="Data type"
+								   Foreground="White"
+								   VerticalAlignment="Center"
+								   Width="90"/> <!-- SAME WIDTH -->
+
+								   <ToggleSwitch Width="120"
+												 OnContent="Dummy"
+												 OffContent="Real"
+												 IsChecked="{Binding UseDummyData}" />
+					</StackPanel>
+
+				</StackPanel>
+
+			</Grid>
 		</Border>
+
 
 		<!-- Progress Overlay -->
 		<Border  Padding="0" Grid.Row="1" IsVisible="{Binding ProgressControl.IsVisible}" ZIndex="10">
