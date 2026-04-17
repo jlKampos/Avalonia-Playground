@@ -82,14 +82,14 @@
 
 				</StackPanel>
 
-				<Button  HorizontalAlignment="Stretch"
-						 Classes.active="{Binding SettingsPageIsActive}"
-						 Command="{Binding GoToSettingsCommand}">
-					<StackPanel Grid.Row="1" Orientation="Horizontal">
+				<Button Grid.Row="1" HorizontalAlignment="Stretch"
+						Classes.active="{Binding SettingsPageIsActive}"
+						Command="{Binding GoToSettingsCommand}">
+					<StackPanel Orientation="Horizontal">
 						<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 							   Classes="icon"
 							   Content="&#xE270;" />
-						<Label Content="Settings "
+						<Label Content="Settings"
 							   IsVisible="{Binding SideMenuExpanded}" />
 					</StackPanel>
 				</Button>
