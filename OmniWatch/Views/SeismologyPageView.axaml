@@ -1,0 +1,69 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:OmniWatch.ViewModels"
+			 x:Name="SeismologyPage"
+			 xmlns:mapsui="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:Class="OmniWatch.Views.SeismologyPageView"
+			 x:DataType="vm:SeismologyPageViewModel">
+
+	<UserControl.Resources>
+
+		<!-- Light icon -->
+		<DataTemplate x:Key="LightIconTemplate">
+			<Label FontFamily="{DynamicResource PhosphorFill}"
+				   Classes="icon"
+				   Content="&#xE472;" />
+		</DataTemplate>
+
+		<!-- Dark icon -->
+		<DataTemplate x:Key="DarkIconTemplate">
+			<Label FontFamily="{DynamicResource PhosphorFill}"
+				   Classes="icon"
+				   Content="&#xE330;" />
+		</DataTemplate>
+
+	</UserControl.Resources>
+
+
+	<Grid RowDefinitions="100,*">
+		<!-- Header with DatePicker -->
+		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=PanelGradient}" Padding="20">
+			<StackPanel Orientation="Horizontal" Spacing="20">
+
+				<TextBlock Text="Seismic Activity"
+						   Foreground="White"
+						   FontSize="20"
+						   VerticalAlignment="Center"/>
+
+				<CalendarDatePicker SelectedDate="{Binding SelectedDate}"
+									DisplayDateStart="{Binding MinDate}"
+									DisplayDateEnd="{Binding MaxDate}"
+									HorizontalAlignment="Left"
+									Watermark="Select a date"
+									Width="250" />
+
+				<!-- THEME TOGGLE SWITCH -->
+				<ToggleSwitch Width="80"
+							  VerticalAlignment="Center"
+							  IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
+							  OffContentTemplate="{StaticResource LightIconTemplate}"
+							  OnContentTemplate="{StaticResource DarkIconTemplate}" />
+
+			</StackPanel>
+		</Border>
+
+		<!-- Progress Overlay -->
+		<Border  Padding="0" Grid.Row="1" IsVisible="{Binding ProgressControl.IsVisible}" ZIndex="10">
+			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
+		</Border>
+
+		<!-- Map Body -->
+		<Border Padding="0" IsVisible="{Binding !ProgressControl.IsVisible}" Grid.Row="1">
+			<mapsui:MapControl x:Name="MyMapControl" />
+		</Border>
+	</Grid>
+</UserControl>
