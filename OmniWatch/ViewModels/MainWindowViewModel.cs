@@ -3,6 +3,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OmniWatch.Data;
 using OmniWatch.Factory;
+using OmniWatch.Interfaces;
+using OmniWatch.ViewModels.ProgressControl;
+using System.Threading.Tasks;
 
 namespace OmniWatch.ViewModels
 {
@@ -14,9 +17,16 @@ namespace OmniWatch.ViewModels
         private bool _sideMenuExpanded = true;
 
         [ObservableProperty]
+        private bool _isLoadingPage;
+
+        [ObservableProperty]
+        private ProgressControlViewModel _progressControl = new();
+
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
         [NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
         [NotifyPropertyChangedFor(nameof(OepnSkyPageIsActive))]
+        [NotifyPropertyChangedFor(nameof(SettingsPageIsActive))]
         private PageViewModel _currentPage;
 
         public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
@@ -33,10 +43,25 @@ namespace OmniWatch.ViewModels
             }
         }
 
-        public MainWindowViewModel(PageFactory pageFactory)
+        public MainWindowViewModel(PageFactory pageFactory, ProgressControlViewModel progressControl)
         {
             _pageFactory = pageFactory;
-            GoToWeather();
+            ProgressControl = progressControl;
+            _ = LoadInitialPageAsync();
+
+        }
+
+        private async Task LoadInitialPageAsync()
+        {
+            IsLoadingPage = true;
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
         }
 
 
@@ -47,27 +72,64 @@ namespace OmniWatch.ViewModels
         }
 
         [RelayCommand]
-        private void GoToWeather()
+        private async Task GoToWeather()
         {
-            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
+            IsLoadingPage = true;
+            ProgressControl.Message = "Loading Weather Forecast page";
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
         }
 
         [RelayCommand]
-        private void GoToSeismology()
+        private async Task GoToSeismology()
         {
-            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Seismology);
+
+            IsLoadingPage = true;
+            ProgressControl.Message = "Loading Seismology page";
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.Seismology);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
         }
 
         [RelayCommand]
-        private void GoToOepnSky()
+        private async Task GoToOepnSky()
         {
-            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.OepnSky);
+            IsLoadingPage = true;
+            ProgressControl.Message = "Loading OpenSKy page";
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.OepnSky);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
         }
 
         [RelayCommand]
-        private void GoToSettings()
+        private async Task GoToSettings()
         {
-            CurrentPage = _pageFactory.GetPage(ApplicationPageNames.Settings);
+            IsLoadingPage = true;
+            ProgressControl.Message = "Loading OpenSKy page";
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.Settings);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
         }
     }
 }

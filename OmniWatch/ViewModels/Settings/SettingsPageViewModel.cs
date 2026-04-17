@@ -15,15 +15,24 @@ namespace OmniWatch.ViewModels.Settings
     public partial class SettingsPageViewModel : PageViewModel
     {
         private readonly ISettingsService _settingsService;
-        private readonly ProgressControlViewModel _progressControl;
+        [ObservableProperty]
+        private ProgressControlViewModel _progressControl = new();
         private readonly IMessageService _messageService;
 
-        [ObservableProperty] private string userName;
-        [ObservableProperty] private string password;
-        [ObservableProperty] private int refreshInterval;
-        [ObservableProperty] private bool useOpenSkyCredentials;
+        [ObservableProperty]
+        private string _userName;
 
-        public string Language { get; set; }
+        [ObservableProperty]
+        private string _password;
+
+        [ObservableProperty]
+        private string _language;
+
+        [ObservableProperty]
+        private int _refreshInterval;
+
+        [ObservableProperty]
+        private bool _useOpenSkyCredentials;
 
         public class LanguageItem
         {
@@ -55,7 +64,7 @@ namespace OmniWatch.ViewModels.Settings
             PageName = Data.ApplicationPageNames.Settings;
 
             _settingsService = settingsService;
-            _progressControl = progressControl;
+            ProgressControl = progressControl;
             _messageService = messageService;
 
             _ = Load();
@@ -65,6 +74,9 @@ namespace OmniWatch.ViewModels.Settings
         {
             try
             {
+                ProgressControl.IsVisible = true;
+                ProgressControl.Message = "Loading settings...";
+
                 var settings = _settingsService.Load();
 
                 UserName = settings.UserName;
@@ -79,6 +91,11 @@ namespace OmniWatch.ViewModels.Settings
             {
 
                 await _messageService.ShowAsync($"Failed to load settings: {ex.Message}", MessageDialogType.Error).ConfigureAwait(false);
+            }
+            finally
+            {
+
+                ProgressControl.IsVisible = false;
             }
 
         }
@@ -103,6 +120,17 @@ namespace OmniWatch.ViewModels.Settings
 
             try
             {
+                ProgressControl.IsVisible = true;
+                ProgressControl.Message = "Saving settings...";
+
+                if (!UseOpenSkyCredentials && RefreshInterval < 10)
+                {
+
+                    await _messageService.ShowAsync("Settings not saved .\nWarning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.", MessageDialogType.Warning).ConfigureAwait(false);
+                    return;
+                }
+
+
                 _settingsService.Save(new AppSettings
                 {
                     UserName = UserName,
@@ -111,11 +139,17 @@ namespace OmniWatch.ViewModels.Settings
                     RefreshInterval = RefreshInterval,
                     UseOpenSkyCredentials = UseOpenSkyCredentials
                 });
+
+                await _messageService.ShowAsync("Settings saved successfully.\nNote: Some settings are not active yet and will be implemented later.", MessageDialogType.Warning).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
 
                 await _messageService.ShowAsync($"Failed to save settings: {ex.Message}", MessageDialogType.Error).ConfigureAwait(false);
+            }
+            finally
+            {
+                ProgressControl.IsVisible = false;
             }
         }
     }

@@ -26,7 +26,7 @@ using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.ViewModels
 {
-    public partial class OepnSkyPageViewModel : PageViewModel
+    public partial class OepnSkyPageViewModel : PageViewModel, IAsyncPage
     {
         #region Dependencies
 
@@ -105,7 +105,6 @@ namespace OmniWatch.ViewModels
             _apiClient = apiClient;
 
             Map = new Mapsui.Map();
-            _ = InitializeAsync();
         }
 
         public OepnSkyPageViewModel()
@@ -121,14 +120,10 @@ namespace OmniWatch.ViewModels
 
         #region Initialization
 
-        private async Task InitializeAsync()
+        public async Task LoadAsync()
         {
             try
             {
-                ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Loading";
-                ProgressControl.Message = "Loading flight data...";
-
                 await InitializeMapAsync();
 
                 // Load aircraft depending on toggle
@@ -138,10 +133,7 @@ namespace OmniWatch.ViewModels
             {
                 await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
             }
-            finally
-            {
-                ProgressControl.IsVisible = false;
-            }
+
         }
 
         /// <summary>

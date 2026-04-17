@@ -3,57 +3,133 @@
 		xmlns:vm="using:OmniWatch.ViewModels"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="600"
-		Width="1024" Height="760"
-		MinWidth="1024" MinHeight="750"
-		MaxWidth="1024" MaxHeight="750"
+		xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+		xmlns:view="clr-namespace:OmniWatch"
+		mc:Ignorable="d"
+		d:DesignWidth="1024"
+		d:DesignHeight="600"
+		Width="1024"
+		Height="760"
+		MinWidth="1024"
+		MinHeight="750"
+		MaxWidth="1024"
+		MaxHeight="750"
 		x:Class="OmniWatch.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
-		xmlns:view="clr-namespace:OmniWatch"
 		Icon="/Assets/Images/w_icon.ico"
 		Title="OmniWatch"
-		Background="{StaticResource PrimaryBrush}">
+		Background="{StaticResource DarkPrimary}">
 
 	<Design.DataContext>
 		<vm:MainWindowViewModel/>
 	</Design.DataContext>
 
-	<Grid Background="{DynamicResource ResourceKey=PrimaryBrush}" ColumnDefinitions="Auto, *">
+	<Grid Background="{DynamicResource ResourceKey=PanelGradient}"
+		  ColumnDefinitions="Auto, *">
 
-		<ContentControl Grid.Column="1" Content="{Binding Path=CurrentPage}" />
-
-
-		<Border Grid.Column="0" Padding="20" Background="{DynamicResource ResourceKey=PanelGradient}">
+		<!-- MENU LATERAL -->
+		<Border Grid.Column="0"
+				Padding="20"
+				Background="{DynamicResource ResourceKey=CardGradient}">
 			<Grid RowDefinitions="*, Auto">
+
 				<StackPanel Grid.Row="0" Spacing="12">
 
-					<Image PointerPressed="Image_PointerPressed" IsVisible="{Binding Path=SideMenuExpanded}" Source="{SvgImage /Assets/Images/w_logo.svg}" />
-					<Image PointerPressed="Image_PointerPressed" IsVisible="{Binding Path=!SideMenuExpanded}" Source="{SvgImage /Assets/Images/w_icon.svg}" Width="22" />
+					<Image PointerPressed="Image_PointerPressed"
+						   IsVisible="{Binding SideMenuExpanded}"
+						   Source="{SvgImage /Assets/Images/w_logo.svg}" />
 
-					<Button Classes.active="{Binding Path=WeatherPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToWeatherCommand}">
+					<Image PointerPressed="Image_PointerPressed"
+						   IsVisible="{Binding !SideMenuExpanded}"
+						   Source="{SvgImage /Assets/Images/w_icon.svg}"
+						   Width="22" />
+
+					<Button Classes.active="{Binding WeatherPageIsActive}"
+							HorizontalAlignment="Stretch"
+							Command="{Binding GoToWeatherCommand}">
 						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE59A;"> </Label>
-							<Label Content="Weather" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
+								   Classes="icon"
+								   Content="&#xE59A;" />
+							<Label Content="Weather"
+								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
-					<Button Classes.active="{Binding Path=SeismologyPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToSeismologyCommand}">
+
+					<Button Classes.active="{Binding SeismologyPageIsActive}"
+							HorizontalAlignment="Stretch"
+							Command="{Binding GoToSeismologyCommand}">
 						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xEAA0;"> </Label>
-							<Label Content="Seismology" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
+								   Classes="icon"
+								   Content="&#xEAA0;" />
+							<Label Content="Seismology"
+								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
-					<Button Classes.active="{Binding Path=OepnSkyPageIsActive}" HorizontalAlignment="Stretch" Command="{Binding GoToOepnSkyCommand}">
+
+					<Button Classes.active="{Binding OepnSkyPageIsActive}"
+							HorizontalAlignment="Stretch"
+							Command="{Binding GoToOepnSkyCommand}">
 						<StackPanel Orientation="Horizontal">
-							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE002;" > </Label>
-							<Label Content="Air traffic" IsVisible="{Binding Path=SideMenuExpanded}"></Label>
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
+								   Classes="icon"
+								   Content="&#xE002;" />
+							<Label Content="Air traffic"
+								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
 
 				</StackPanel>
-				<Button Grid.Row="1" Classes.active="{Binding Path=SettingsPageIsActive}" Command="{Binding GoToSettingsCommand}" FontFamily="{DynamicResource ResourceKey=PhosphorFill}" Classes="icon" Content="&#xE270;"/>
+
+				<Button  HorizontalAlignment="Stretch"
+						 Classes.active="{Binding SettingsPageIsActive}"
+						 Command="{Binding GoToSettingsCommand}">
+					<StackPanel Grid.Row="1" Orientation="Horizontal">
+						<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
+							   Classes="icon"
+							   Content="&#xE270;" />
+						<Label Content="Settings "
+							   IsVisible="{Binding SideMenuExpanded}" />
+					</StackPanel>
+				</Button>
 
 			</Grid>
 		</Border>
+
+		<ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
+
+		<!-- Loader -->
+		<Grid Grid.Column="1" IsVisible="{Binding IsLoadingPage}"  RowDefinitions="100,*,Auto"
+			  Background="{StaticResource PanelBrush}">
+
+			<!-- HEADER -->
+			<Border Grid.Row="0"  Background="{DynamicResource ResourceKey=CardGradient}" Padding="0,10">
+				<Border  Background="{StaticResource DarkAccent}" Padding="10">
+
+					<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+						<Label FontFamily="{StaticResource PhosphorFill}"
+							   Content="&#xEE28;"
+							   FontSize="20"
+							   FontWeight="Bold"
+							   Foreground="{StaticResource DarkPrimary}"
+							   VerticalAlignment="Center"/>
+
+						<TextBlock Text="Preparing content"
+								   Foreground="{StaticResource DarkPrimary}"
+								   FontSize="18"
+								   FontWeight="Bold"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+
+				</Border>
+
+			</Border>
+			<Border Grid.Row="1" Background="{StaticResource PanelGradient}">
+				<pg:ProgressControl DataContext="{Binding ProgressControl}" />
+			</Border>
+		</Grid>
+
 	</Grid>
 
 </Window>

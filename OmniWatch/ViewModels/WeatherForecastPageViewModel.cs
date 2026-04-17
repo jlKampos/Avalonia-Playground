@@ -21,7 +21,7 @@ using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.ViewModels
 {
-    public partial class WeatherForecastPageViewModel : PageViewModel
+    public partial class WeatherForecastPageViewModel : PageViewModel, IAsyncPage
     {
         private readonly IMapper _mapper;
         private readonly IIpmaService _apiClient;
@@ -62,31 +62,22 @@ namespace OmniWatch.ViewModels
             _messageService = messageService;
             _mapper = mapper;
             _apiClient = apiClient;
-            _ = InitializeAsync();
         }
 
-        private async Task InitializeAsync()
+        public async Task LoadAsync()
         {
             try
             {
-                // 1. Setup and show the progress indicator
-                ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Loading";
-                ProgressControl.Message = "Initialising application data...";
-
-                // 2. Execute all initial data loads in parallel for better performance
                 await Task.WhenAll(
-                    LoadPrecipitationAsync(),
-                    LoadWindAsync(),
-                    LoadLocationsAsync(),
-                    LoadWeatherTypesAsync(),
-                    LoadAwarnessAsync()
-                );
+                 LoadPrecipitationAsync(),
+                 LoadWindAsync(),
+                 LoadLocationsAsync(),
+                 LoadWeatherTypesAsync(),
+                 LoadAwarnessAsync()
+             );
             }
             catch (ApiException ex)
             {
-                // 3. Catch any Api specific error
-
                 var exMsg = "Error loading data";
 
                 if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.InnerException.Message))
@@ -98,14 +89,9 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                // 3. Catch any error from the parallel tasks and notify the user
                 await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
             }
-            finally
-            {
-                // 4. Ensure the progress overlay is hidden regardless of success or failure
-                ProgressControl.IsVisible = false;
-            }
+
         }
 
         // =========================
