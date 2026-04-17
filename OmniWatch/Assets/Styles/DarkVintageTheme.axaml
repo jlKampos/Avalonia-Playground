@@ -28,6 +28,8 @@
 		<Color x:Key="DarkTextDim">#A0A0A0</Color>
 
 		<!-- BRUSHES -->
+		<SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource DarkAccentSoft}" />
+		<SolidColorBrush x:Key="TextSelectionForegroundBrush" Color="{StaticResource DarkPrimary}" />
 		<SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource DarkPrimary}" />
 		<SolidColorBrush x:Key="PanelBrush" Color="{StaticResource DarkPanel}" />
 		<SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource DarkSurface}" />
@@ -75,6 +77,11 @@
 	<!-- TEXTBLOCK -->
 	<Style Selector="TextBlock">
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+	</Style>
+
+	<Style Selector="TextBox">
+		<Setter Property="SelectionBrush" Value="{StaticResource TextSelectionBrush}" />
+		<Setter Property="SelectionForegroundBrush" Value="{StaticResource TextSelectionForegroundBrush}" />
 	</Style>
 
 	<!-- LABEL -->
@@ -292,5 +299,16 @@
 		<Setter Property="Opacity" Value="0.4" />
 	</Style>
 
+	<Style Selector="NumericUpDown TextBox">
+		<Setter Property="SelectionBrush" Value="{StaticResource TextSelectionBrush}" />
+		<Setter Property="SelectionForegroundBrush" Value="{StaticResource TextSelectionForegroundBrush}" />
+	</Style>
 
+	<Style Selector="NumericUpDown TextBox:focus">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+	</Style>
+
+	<Style Selector="NumericUpDown TextBox:focused">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+	</Style>
 </Styles>
