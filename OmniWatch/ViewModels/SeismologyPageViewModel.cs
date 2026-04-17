@@ -22,7 +22,7 @@ using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.ViewModels
 {
-    public partial class SeismologyPageViewModel : PageViewModel
+    public partial class SeismologyPageViewModel : PageViewModel, IAsyncPage
     {
         #region Fields
 
@@ -83,7 +83,6 @@ namespace OmniWatch.ViewModels
             _apiClient = apiClient;
 
             Map = new Mapsui.Map();
-            _ = InitializeAsync();
         }
 
         public SeismologyPageViewModel()
@@ -99,7 +98,7 @@ namespace OmniWatch.ViewModels
 
         #region Initialization
 
-        private async Task InitializeAsync()
+        public async Task LoadAsync()
         {
             try
             {

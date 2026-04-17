@@ -31,29 +31,31 @@
 
 	<Grid RowDefinitions="100,*">
 		<!-- Header -->
-		<Border Grid.Row="0"
-				Background="{DynamicResource PanelGradient}"
-				Padding="20">
+		<Border Grid.Row="0" Background="{DynamicResource PanelGradient}" Padding="20">
 
-			<Grid ColumnDefinitions="*, Auto">
+			<Grid ColumnDefinitions="*, Auto" ColumnSpacing="20">
 
-				<StackPanel Orientation="Vertical" Spacing="5" Grid.Column="0">
-					<!-- LEFT: Title -->
+				<!-- LEFT SIDE -->
+				<StackPanel Orientation="Vertical" Spacing="10" Grid.Column="0">
+
+					<!-- Title -->
 					<TextBlock Text="Air traffic"
 							   Foreground="White"
 							   FontSize="20"
 							   VerticalAlignment="Center"/>
 
-					<!-- WARNING WHEN USING REAL DATA -->
+					<!-- Fake spacer to match width of DatePicker/ComboBox in other pages -->
+					<Border Height="0" Width="250"/>
+
+					<!-- Warning -->
 					<TextBlock Text="⚠ API requests to OpenSky are limited to one every 10 seconds to avoid IP blocking."
 							   Foreground="Orange"
 							   FontSize="12"
-							   Margin="0,5,0,0"
 							   IsVisible="{Binding UseDummyData, Converter={StaticResource InverseBoolConverter}}"/>
 				</StackPanel>
 
 
-				<!-- RIGHT: Toggles stacked vertically -->
+				<!-- RIGHT SIDE -->
 				<StackPanel Grid.Column="1"
 							Orientation="Vertical"
 							Spacing="10"
@@ -64,12 +66,11 @@
 						<TextBlock Text="Theme"
 								   Foreground="White"
 								   VerticalAlignment="Center"
-								   Width="90"/> <!-- FIXED WIDTH -->
-
-								   <ToggleSwitch Width="80"
-												 IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
-												 OffContentTemplate="{StaticResource LightIconTemplate}"
-												 OnContentTemplate="{StaticResource DarkIconTemplate}" />
+								   Width="90"/>
+						<ToggleSwitch Width="80"
+									  IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
+									  OffContentTemplate="{StaticResource LightIconTemplate}"
+									  OnContentTemplate="{StaticResource DarkIconTemplate}" />
 					</StackPanel>
 
 					<!-- DATA TYPE SWITCH -->
@@ -77,18 +78,18 @@
 						<TextBlock Text="Data type"
 								   Foreground="White"
 								   VerticalAlignment="Center"
-								   Width="90"/> <!-- SAME WIDTH -->
-
-								   <ToggleSwitch Width="120"
-												 OnContent="Dummy"
-												 OffContent="Real"
-												 IsChecked="{Binding UseDummyData}" />
+								   Width="90"/>
+						<ToggleSwitch Width="120"
+									  OnContent="Dummy"
+									  OffContent="Real"
+									  IsChecked="{Binding UseDummyData}" />
 					</StackPanel>
 
 				</StackPanel>
 
 			</Grid>
 		</Border>
+
 
 
 		<!-- Progress Overlay -->

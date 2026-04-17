@@ -1,19 +1,40 @@
-﻿using OmniWatch.Data;
+﻿using Avalonia.Controls;
+using Microsoft.Extensions.DependencyInjection;
+using OmniWatch.Data;
 using OmniWatch.ViewModels;
+using OmniWatch.ViewModels.Settings;
+using OmniWatch.Views.Settings;
 using System;
 
 namespace OmniWatch.Factory
 {
     public class PageFactory
     {
-        private readonly Func<ApplicationPageNames, PageViewModel> _factory;
+        private readonly IServiceProvider _provider;
 
-        public PageFactory(Func<ApplicationPageNames, PageViewModel> factory)
+        public PageFactory(IServiceProvider provider)
         {
-            _factory = factory;
+            _provider = provider;
         }
 
-        public PageViewModel GetPage(ApplicationPageNames pageName) => _factory.Invoke(pageName);
+        public PageViewModel GetPage(ApplicationPageNames pageName)
+        {
+            return pageName switch
+            {
+                ApplicationPageNames.WeatherForecast =>
+                    _provider.GetRequiredService<WeatherForecastPageViewModel>(),
 
+                ApplicationPageNames.Seismology =>
+                    _provider.GetRequiredService<SeismologyPageViewModel>(),
+
+                ApplicationPageNames.OepnSky =>
+                    _provider.GetRequiredService<OepnSkyPageViewModel>(),
+
+                ApplicationPageNames.Settings =>
+                    _provider.GetRequiredService<SettingsPageViewModel>(),
+
+                _ => throw new ArgumentOutOfRangeException(nameof(pageName))
+            };
+        }
     }
 }

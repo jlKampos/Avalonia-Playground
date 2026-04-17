@@ -28,6 +28,8 @@
 		<Color x:Key="DarkTextDim">#A0A0A0</Color>
 
 		<!-- BRUSHES -->
+		<SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource DarkAccentSoft}" />
+		<SolidColorBrush x:Key="TextSelectionForegroundBrush" Color="{StaticResource DarkPrimary}" />
 		<SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource DarkPrimary}" />
 		<SolidColorBrush x:Key="PanelBrush" Color="{StaticResource DarkPanel}" />
 		<SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource DarkSurface}" />
@@ -72,24 +74,116 @@
 	</Styles.Resources>
 
 
-	<!-- TEXTBLOCK -->
-	<Style Selector="TextBlock">
+	<!-- TAB ITEM -->
+	<Style Selector="TabControl.modern TabItem">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="CornerRadius" Value="12" />
+		<Setter Property="Padding" Value="15" />
+		<Setter Property="Margin" Value="8" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkPanel}"/>
+		<Setter Property="BorderThickness" Value="1"/>
+	</Style>
+
+	<Style Selector="TabControl.modern TabItem:pointerover">
+		<Setter Property="BorderBrush" Value="{StaticResource DarkAccent}" />
+		<Setter Property="Background" Value="{StaticResource DarkPanel}" />
+	</Style>
+
+
+	<Style Selector="TabControl.modern TabItem:selected">
+		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentSoft}" />
+		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
+	</Style>
+
+	<Style Selector="TabControl.modern TabItem TextBlock">
+		<Setter Property="FontSize" Value="15"/>
+	</Style>
+
+	<Style Selector="TabControl.modern TabItem Label.icon">
+		<Setter Property="FontSize" Value="15"/>
+	</Style>
+
+
+	<!-- Calendar -->
+	<Style Selector="Calendar">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-	</Style>
-
-	<!-- LABEL -->
-	<Style Selector="Label">
-		<Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
-	</Style>
-
-	<!-- BORDER GLOBAL -->
-	<Style Selector="Border">
+		<Setter Property="CornerRadius" Value="10" />
 		<Setter Property="Padding" Value="10" />
 	</Style>
 
-	<Style Selector="Border.app">
-		<Setter Property="Background" Value="{StaticResource CardGradient}" />
-		<Setter Property="Padding" Value="10" />
+	<Style Selector="CalendarItem">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
+		<Setter Property="BorderThickness" Value="1" />
+		<Setter Property="CornerRadius" Value="10" />
+		<Setter Property="Padding" Value="12" />
+	</Style>
+
+	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+		<Setter Property="FontSize" Value="16" />
+		<Setter Property="FontWeight" Value="Bold" />
+		<Setter Property="CornerRadius" Value="6" />
+		<Setter Property="Padding" Value="8,4" />
+		<Setter Property="HorizontalAlignment" Value="Center" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
+		<Setter Property="BorderThickness" Value="1" />
+	</Style>
+
+	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton:pointerover">
+		<Setter Property="Background" Value="{StaticResource DarkSurface}" />
+		<Setter Property="Foreground" Value="{StaticResource AccentSoftBrush}" />
+	</Style>
+
+	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton:pressed">
+		<Setter Property="Background" Value="{StaticResource ButtonPressedGradient}" />
+		<Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
+	</Style>
+
+
+	<Style Selector="CalendarButton">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="Foreground" Value="{StaticResource AccentSoftBrush}" />
+		<Setter Property="CornerRadius" Value="6" />
+		<Setter Property="Padding" Value="4" />
+	</Style>
+
+	<Style Selector="CalendarButton:pointerover">
+		<Setter Property="Background" Value="{StaticResource DarkAccentSoft}" />
+		<Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
+	</Style>
+
+	<Style Selector="CalendarDayButton:dayofweek">
+		<Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+		<Setter Property="FontSize" Value="12" />
+		<Setter Property="FontWeight" Value="SemiBold" />
+		<Setter Property="Margin" Value="0,0,0,6" />
+	</Style>
+
+	<Style Selector="CalendarDayButton">
+		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+		<Setter Property="CornerRadius" Value="6" />
+		<Setter Property="Padding" Value="6" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkPrimary}" />
+		<Setter Property="BorderThickness" Value="1" />
+	</Style>
+
+	<Style Selector="CalendarDayButton:pointerover">
+		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
+	</Style>
+
+
+	<Style Selector="CalendarDayButton:today">
+		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+		<Setter Property="BorderThickness" Value="1.2" />
+	</Style>
+
+	<Style Selector="CalendarDayButton:inactive">
+		<Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+		<Setter Property="Opacity" Value="0.4" />
 	</Style>
 
 	<!-- BUTTON BASE -->
@@ -142,155 +236,117 @@
 		<Setter Property="Foreground" Value="{StaticResource DarkAccentSoft}" />
 	</Style>
 
-	<!-- COMBOBOX -->
+
+	<!-- =========================
+	COMBOBOX BASE
+	========================= -->
+
 	<Style Selector="ComboBox">
 		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
+		<Setter Property="BorderThickness" Value="1" />
 	</Style>
 
+	<!-- HOVER NO COMBOBOX -->
 	<Style Selector="ComboBox:pointerover /template/ Border#Background">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+		<Setter Property="Background" Value="{StaticResource DarkSurface}" />
 		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 	</Style>
 
-	<Style Selector="ComboBoxItem:pointerover /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource DarkAccentSoft}" />
-	</Style>
+	<!-- =========================
+	DROPDOWN (ITEMS)
+	========================= -->
 
-	<Style Selector="ComboBoxItem:pointerover TextBlock">
-		<Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
-	</Style>
-
-	<Style Selector="ComboBoxItem:selected /template/ ContentPresenter">
-		<Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
-	</Style>
-
-	<Style Selector="ComboBoxItem:selected TextBlock">
-		<Setter Property="Foreground" Value="{StaticResource DarkAccent}" />
-	</Style>
-
-	<!-- TAB ITEM = MESMO ESTILO DOS CARDS -->
-	<Style Selector="TabControl.modern TabItem">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="CornerRadius" Value="12" />
-		<Setter Property="Padding" Value="15" />
-		<Setter Property="Margin" Value="8" />
-		<Setter Property="BorderBrush" Value="{StaticResource DarkPanel}"/>
-		<Setter Property="BorderThickness" Value="1"/>
-	</Style>
-
-	<Style Selector="TabControl.modern TabItem:pointerover">
-		<Setter Property="BorderBrush" Value="{StaticResource DarkAccent}" />
-		<Setter Property="Background" Value="{StaticResource DarkPanel}" />
-	</Style>
-
-
-	<Style Selector="TabControl.modern TabItem:selected">
-		<Setter Property="BorderBrush" Value="{StaticResource DarkAccentSoft}" />
-		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
-	</Style>
-
-	<Style Selector="TabControl.modern TabItem TextBlock">
-		<Setter Property="FontSize" Value="15"/>
-	</Style>
-
-	<Style Selector="TabControl.modern TabItem Label.icon">
-		<Setter Property="FontSize" Value="15"/>
-	</Style>
-
-
-	<!--Calendar-->
-	<!-- CALENDAR ROOT -->
-	<Style Selector="Calendar">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
+	<!-- ITEM BASE -->
+	<Style Selector="ComboBoxItem">
 		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-		<Setter Property="CornerRadius" Value="10" />
-		<Setter Property="Padding" Value="10" />
+		<Setter Property="Background" Value="Transparent" />
 	</Style>
 
-	<!-- CALENDAR MAIN CONTAINER -->
-	<Style Selector="CalendarItem">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
-		<Setter Property="BorderThickness" Value="1" />
-		<Setter Property="CornerRadius" Value="10" />
-		<Setter Property="Padding" Value="12" />
-	</Style>
-
-	<!-- HEADER (Month / Year) -->
-	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
-		<Setter Property="FontSize" Value="16" />
-		<Setter Property="FontWeight" Value="Bold" />
-		<Setter Property="CornerRadius" Value="6" />
-		<Setter Property="Padding" Value="8,4" />
-		<Setter Property="HorizontalAlignment" Value="Center" />
-		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
-		<Setter Property="BorderThickness" Value="1" />
-	</Style>
-
-	<!-- HEADER HOVER (mais suave, sem ficar verde) -->
-	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton:pointerover">
-		<Setter Property="Background" Value="{StaticResource DarkSurface}" />
-		<Setter Property="Foreground" Value="{StaticResource AccentSoftBrush}" />
-	</Style>
-
-	<!-- HEADER PRESSED (igual ao botão pressionado) -->
-	<Style Selector="CalendarItem /template/ Button#PART_HeaderButton:pressed">
-		<Setter Property="Background" Value="{StaticResource ButtonPressedGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
-	</Style>
-
-
-	<!-- NAVIGATION BUTTONS -->
-	<Style Selector="CalendarButton">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource AccentSoftBrush}" />
-		<Setter Property="CornerRadius" Value="6" />
-		<Setter Property="Padding" Value="4" />
-	</Style>
-
-	<Style Selector="CalendarButton:pointerover">
+	<!-- HOVER ITEM -->
+	<Style Selector="ComboBoxItem:pointerover">
 		<Setter Property="Background" Value="{StaticResource DarkAccentSoft}" />
 		<Setter Property="Foreground" Value="{StaticResource DarkPrimary}" />
 	</Style>
 
-	<!-- DAY OF WEEK HEADER -->
-	<Style Selector="CalendarDayButton:dayofweek">
-		<Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-		<Setter Property="FontSize" Value="12" />
-		<Setter Property="FontWeight" Value="SemiBold" />
-		<Setter Property="Margin" Value="0,0,0,6" />
+	<!-- SELECTED ITEM (IMPORTANT) -->
+	<Style Selector="ComboBoxItem:selected">
+		<Setter Property="Background" Value="{StaticResource AccentBrush}" />
+		<Setter Property="Foreground" Value="White" />
 	</Style>
 
-	<!-- NORMAL DAY (looks like a button) -->
-	<Style Selector="CalendarDayButton">
-		<Setter Property="Background" Value="{StaticResource ButtonGradient}" />
-		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-		<Setter Property="CornerRadius" Value="6" />
-		<Setter Property="Padding" Value="6" />
-		<Setter Property="BorderBrush" Value="{StaticResource DarkPrimary}" />
-		<Setter Property="BorderThickness" Value="1" />
+	<!-- =========================
+	DROPDOWN PANEL
+	========================= -->
+	<Style Selector="ScrollViewer ComboBoxItem">
+		<Setter Property="Margin" Value="2" />
+		<Setter Property="CornerRadius" Value="4" />
+	</Style>
+	<!--TextBox-->
+
+	<!-- BASE -->
+	<Style Selector="TextBox /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
 	</Style>
 
 	<!-- HOVER -->
-	<Style Selector="CalendarDayButton:pointerover">
-		<Setter Property="Background" Value="{StaticResource DarkPrimary}" />
+	<Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+	</Style>
+
+	<!-- FOCUS -->
+	<Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
 	</Style>
 
 
-	<!-- TODAY -->
-	<Style Selector="CalendarDayButton:today">
+
+	<!-- =========================
+	NUMERICUPDOWN BASE
+	========================= -->
+
+	<Style Selector="NumericUpDown">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
+		<Setter Property="BorderThickness" Value="1" />
+	</Style>
+
+	<!-- HOVER (control inteiro) -->
+	<Style Selector="NumericUpDown:pointerover">
+		<Setter Property="BorderBrush" Value="{StaticResource AccentSoftBrush}" />
+	</Style>
+
+	<!-- =========================
+	TEXTBOX INTERNO (CRÍTICO)
+	========================= -->
+
+	<!-- base -->
+	<Style Selector="NumericUpDown TextBox /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+		<Setter Property="BorderBrush" Value="{StaticResource DarkSurface}" />
+	</Style>
+
+	<!-- HOVER -->
+	<Style Selector="NumericUpDown:pointerover TextBox /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource DarkSurface}" />
+	</Style>
+
+	<!-- FOCUS -->
+	<Style Selector="NumericUpDown TextBox:focus /template/ Border#PART_BorderElement">
+		<Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
 		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
-		<Setter Property="BorderThickness" Value="1.2" />
+		<Setter Property="BorderThickness" Value="1.5" />
 	</Style>
 
-	<!-- INACTIVE DAYS -->
-	<Style Selector="CalendarDayButton:inactive">
-		<Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
-		<Setter Property="Opacity" Value="0.4" />
-	</Style>
+	<!-- =========================
+	TEXTO (SEGURANÇA)
+	========================= -->
 
+	<Style Selector="NumericUpDown TextBox">
+		<Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+		<Setter Property="CaretBrush" Value="{StaticResource AccentBrush}" />
+	</Style>
 
 </Styles>

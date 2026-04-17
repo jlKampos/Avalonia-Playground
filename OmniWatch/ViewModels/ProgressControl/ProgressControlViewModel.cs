@@ -6,7 +6,7 @@ namespace OmniWatch.ViewModels.ProgressControl
     public partial class ProgressControlViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _title = string.Empty;
+        private string _title = "Loading";
 
         [ObservableProperty]
         private string _message = string.Empty;

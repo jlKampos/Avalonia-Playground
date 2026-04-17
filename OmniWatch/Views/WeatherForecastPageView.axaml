@@ -11,33 +11,33 @@
 			 x:Class="OmniWatch.Views.WeatherForecastPageView"
 			 x:DataType="vm:WeatherForecastPageViewModel"
 			 xmlns:local="clr-namespace:OmniWatch.Models.Forecast"
-			 xmlns:awarness="clr-namespace:OmniWatch.Models.Awarness"
-			 Background="{DynamicResource ResourceKey=PanelGradient}">
+			 xmlns:awarness="clr-namespace:OmniWatch.Models.Awarness">
+
 
 	<Grid RowDefinitions="100,*">
 		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=PanelGradient}" Padding="20">
-			<StackPanel Spacing="10">
+			<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
 
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="Weather Forecast!" FontSize="18" />
-				</StackPanel>
+				<!-- Title -->
+				<TextBlock Text="Select location"
+						   FontSize="20"
+						   Foreground="White"
+						   VerticalAlignment="Center"/>
 
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="Select location" FontSize="18" Margin="0,5,5,0" />
-					<ComboBox Width="200"
-							  ItemsSource="{Binding Locations}"
-							  SelectedItem="{Binding SelectedLocation}">
-						<ComboBox.ItemTemplate>
-							<DataTemplate>
-								<StackPanel>
-									<TextBlock Text="{Binding Name}"/>
-								</StackPanel>
-							</DataTemplate>
-						</ComboBox.ItemTemplate>
-					</ComboBox>
-				</StackPanel>
+				<!-- ComboBox with fixed width to match DatePicker proportions -->
+				<ComboBox Width="250"
+						  ItemsSource="{Binding Locations}"
+						  SelectedItem="{Binding SelectedLocation}">
+					<ComboBox.ItemTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding Name}" />
+						</DataTemplate>
+					</ComboBox.ItemTemplate>
+				</ComboBox>
+
 			</StackPanel>
 		</Border>
+
 		<Border Grid.Row="1" Padding="0" IsVisible="{Binding ProgressControl.IsVisible}">
 			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
 		</Border>
