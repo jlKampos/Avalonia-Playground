@@ -12,8 +12,9 @@ using Mapsui.Tiling.Layers;
 using NetTopologySuite.Geometries;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
-using OmniWatch.Integrations.Contracts.OpenSky;
+using OmniWatch.Helpers;
 using OmniWatch.Integrations.Enums;
+using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
@@ -49,6 +50,8 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         private bool _useRealData = true;
 
+        [ObservableProperty]
+        public bool _showRateLimitNonAuthUser = false;
 
         [ObservableProperty]
         public bool _showRateLimitOverlay = false;
@@ -86,10 +89,26 @@ namespace OmniWatch.ViewModels
         private int _updateInterval;
         partial void OnUseRealDataChanged(bool value)
         {
-            ShowRateLimitOverlay = value;
-            _ = ReloadAircraftAsync();
+            _ = HandleUseRealDataChangedAsync(value);
         }
 
+        private async Task HandleUseRealDataChangedAsync(bool value)
+        {
+            try
+            {
+                var settings = _settingsService.Load();
+                ShowRateLimitNonAuthUser = value && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
+                ShowRateLimitOverlay = value;
+
+                await ReloadAircraftAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _messageService.ShowAsync(
+                    $"Loading error: {ex.Message}",
+                    MessageDialogType.Error);
+            }
+        }
         #endregion
 
         #region Observable Properties
@@ -183,7 +202,14 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
+                var apiEx = ex.FindDeepestInner<ApiException>();
+
+                var exMsg = apiEx?.ResponseContent
+                            ?? ex.GetBaseException().Message;
+
+                await _messageService.ShowAsync(
+                    $"Startup Error: {exMsg}",
+                    MessageDialogType.Error);
             }
         }
 
@@ -326,6 +352,8 @@ namespace OmniWatch.ViewModels
 
         private void AddAircraftLayerToMap(List<StateVectorDto> aircraft)
         {
+
+            bool usingCircles = false;
             var features = new List<IFeature>();
 
             foreach (var plane in aircraft)
@@ -393,6 +421,7 @@ namespace OmniWatch.ViewModels
                 }
                 else
                 {
+                    usingCircles = true;
                     aircraftFeature.Styles.Add(new SymbolStyle
                     {
                         SymbolType = SymbolType.Ellipse,
@@ -404,7 +433,7 @@ namespace OmniWatch.ViewModels
 
                 features.Add(aircraftFeature);
 
-                if (plane.TrueTrack != null)
+                if (plane.TrueTrack != null && usingCircles)
                 {
                     var angle = Math.PI * plane.TrueTrack.Value / 180.0;
                     var length = 15000.0;
@@ -439,9 +468,18 @@ namespace OmniWatch.ViewModels
                 label.Styles.Add(new LabelStyle
                 {
                     Text = infoText,
-                    ForeColor = Color.Black,
-                    BackColor = new Brush(Color.FromArgb(220, 255, 255, 255)),
-                    Font = new Font { Size = 11 },
+
+                    BorderThickness = 1,
+                    BorderColor = Color.FromArgb(255, 60, 100, 0),
+
+                    ForeColor = Color.FromArgb(255, 25, 16, 0),
+                    BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
+
+                    Font = new Font
+                    {
+                        Size = 11,
+                        Bold = true
+                    },
 
                     HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
                     VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
@@ -449,6 +487,7 @@ namespace OmniWatch.ViewModels
                     Offset = new Offset(20, 0),
                     CollisionDetection = true
                 });
+
 
                 features.Add(label);
             }
@@ -477,6 +516,7 @@ namespace OmniWatch.ViewModels
             UpdateInterval = settings.RefreshInterval;
 
             ShowRateLimitOverlay = settings.UseOpenSkyCredentials;
+            ShowRateLimitNonAuthUser = UseRealData && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
 
             if (settings.UseOpenSkyCredentials)
             {
