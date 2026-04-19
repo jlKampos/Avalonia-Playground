@@ -5,6 +5,9 @@ on:
     branches: [ "overwatch-preview" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -31,25 +34,25 @@ jobs:
       run: dotnet restore
 
     # =========================
-    # Build
+    # Build solution
     # =========================
     - name: Build
       run: dotnet build -c Release --no-restore
 
     # =========================
-    # Publish (Avalonia app)
+    # Publish Avalonia app
     # =========================
     - name: Publish
       run: dotnet publish OmniWatch/OmniWatch.csproj -c Release -r win-x64 --self-contained true -o publish
 
     # =========================
-    # Zip output (download friendly)
+    # Create ZIP (download friendly)
     # =========================
     - name: Zip build
       run: Compress-Archive -Path publish\* -DestinationPath OmniWatch-Preview.zip
 
     # =========================
-    # Upload artifact (CI download)
+    # Upload artifact (GitHub Actions download)
     # =========================
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
