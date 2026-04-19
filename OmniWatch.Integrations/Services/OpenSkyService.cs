@@ -3,9 +3,9 @@ using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
-using System.Net.Http.Json;
 using System.Text.Json;
-
+using OmniWatch.Integrations.Helpers;
+using OmniWatch.Integrations.Exceptions;
 namespace OmniWatch.Integrations.Services
 {
     public class OpenSkyService : IOpenSkyService
