@@ -2,7 +2,7 @@ name: Preview Build
 
 on:
   push:
-    branches: [ "preview" ]
+    branches: [ "overwatch-preview" ]
 
 jobs:
   build:
