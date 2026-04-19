@@ -352,6 +352,8 @@ namespace OmniWatch.ViewModels
 
         private void AddAircraftLayerToMap(List<StateVectorDto> aircraft)
         {
+
+            bool usingCircles = false;
             var features = new List<IFeature>();
 
             foreach (var plane in aircraft)
@@ -419,6 +421,7 @@ namespace OmniWatch.ViewModels
                 }
                 else
                 {
+                    usingCircles = true;
                     aircraftFeature.Styles.Add(new SymbolStyle
                     {
                         SymbolType = SymbolType.Ellipse,
@@ -430,7 +433,7 @@ namespace OmniWatch.ViewModels
 
                 features.Add(aircraftFeature);
 
-                if (plane.TrueTrack != null)
+                if (plane.TrueTrack != null && usingCircles)
                 {
                     var angle = Math.PI * plane.TrueTrack.Value / 180.0;
                     var length = 15000.0;
@@ -465,9 +468,18 @@ namespace OmniWatch.ViewModels
                 label.Styles.Add(new LabelStyle
                 {
                     Text = infoText,
-                    ForeColor = Color.Black,
-                    BackColor = new Brush(Color.FromArgb(220, 255, 255, 255)),
-                    Font = new Font { Size = 11 },
+
+                    BorderThickness = 1,
+                    BorderColor = Color.FromArgb(255, 60, 100, 0),
+
+                    ForeColor = Color.FromArgb(255, 25, 16, 0),
+                    BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
+
+                    Font = new Font
+                    {
+                        Size = 11,
+                        Bold = true
+                    },
 
                     HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
                     VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
@@ -475,6 +487,7 @@ namespace OmniWatch.ViewModels
                     Offset = new Offset(20, 0),
                     CollisionDetection = true
                 });
+
 
                 features.Add(label);
             }
