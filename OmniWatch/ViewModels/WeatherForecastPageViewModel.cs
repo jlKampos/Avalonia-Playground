@@ -320,26 +320,6 @@ namespace OmniWatch.ViewModels
             }
         }
 
-        partial void OnSelectedTabChanged(ForecastItemDto? value)
-        {
-            if (value == null || SelectedLocation is not LocationDto selectedCity)
-                return;
-
-            var dayStart = value.Date.Date;
-            var dayEnd = value.Date.Date.AddDays(1).AddTicks(-1);
-
-            value.AwarnessInformation = AwarnessTypes
-                .Where(a =>
-                    a.StartTime <= dayEnd &&
-                    a.EndTime >= dayStart &&
-                    selectedCity.IdAreaAviso == a.Area)
-                .ToList();
-
-            OnPropertyChanged(nameof(SelectedTab));
-        }
-
-
-
         #endregion
     }
 }

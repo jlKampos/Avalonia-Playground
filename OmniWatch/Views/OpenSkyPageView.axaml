@@ -1,0 +1,222 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="using:OmniWatch.ViewModels"
+			 xmlns:conv="clr-namespace:OmniWatch.Helpers"
+			 xmlns:mapsui="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
+			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+			 x:DataType="vm:OpenSkyPageViewModel"
+			 x:Class="OmniWatch.Views.OpenSkyPageView">
+
+	<UserControl.Resources>
+
+		<conv:InverseBoolConverter x:Key="InverseBooleanConverter" />
+
+
+		<!-- Icon used when theme toggle is OFF (light mode) -->
+		<DataTemplate x:Key="LightIconTemplate">
+			<Label FontFamily="{DynamicResource PhosphorFill}"
+				   Classes="icon"
+				   Content="&#xE472;" />
+		</DataTemplate>
+
+		<!-- Icon used when theme toggle is ON (dark mode) -->
+		<DataTemplate x:Key="DarkIconTemplate">
+			<Label FontFamily="{DynamicResource PhosphorFill}"
+				   Classes="icon"
+				   Content="&#xE330;" />
+		</DataTemplate>
+
+	</UserControl.Resources>
+
+	<Grid RowDefinitions="100,50,*">
+
+		<!-- HEADER AREA -->
+		<Border Grid.Row="0" Background="{DynamicResource PanelGradient}" Padding="20">
+
+			<!-- Main header grid: left side grows, right side fixed width -->
+			<Grid ColumnDefinitions="*, Auto" ColumnSpacing="20">
+
+				<!-- LEFT SIDE CONTENT -->
+				<StackPanel Grid.Column="0"
+							Orientation="Vertical"
+							Spacing="6">
+
+					<StackPanel Orientation="Horizontal"
+								VerticalAlignment="Center"
+								Spacing="10">
+
+						<TextBlock Text="Air traffic"
+								   Foreground="White"
+								   FontSize="20"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+
+					<Border Background="#33FFA500"
+							CornerRadius="4"
+							Padding="7"
+							Margin="5,0,0,0"
+							VerticalAlignment="Center"
+							IsVisible="{Binding UseRealData, Converter={StaticResource InverseBooleanConverter}}">
+						<TextBlock Text="⚠ API requests to OpenSky are limited to one every 10 seconds to avoid IP blocking."
+								   Foreground="Orange"
+								   FontSize="10"
+								   TextWrapping="Wrap"/>
+					</Border>
+
+				</StackPanel>
+
+				<!-- RIGHT SIDE -->
+				<Grid Grid.Column="1"
+					  HorizontalAlignment="Right"
+					  VerticalAlignment="Center"
+					  RowDefinitions="Auto, Auto"
+					  RowSpacing="10">
+
+					<!-- Theme toggle -->
+					<StackPanel Orientation="Horizontal" Spacing="10" Grid.Row="0">
+						<TextBlock Text="Theme"
+								   Foreground="White"
+								   VerticalAlignment="Center"
+								   Width="90"/>
+						<ToggleSwitch Width="80"
+									  IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
+									  OffContentTemplate="{StaticResource LightIconTemplate}"
+									  OnContentTemplate="{StaticResource DarkIconTemplate}" />
+					</StackPanel>
+
+					<!-- Data type toggle -->
+					<StackPanel Orientation="Horizontal" Spacing="10" Grid.Row="1">
+						<TextBlock Text="Data type"
+								   Foreground="White"
+								   VerticalAlignment="Center"
+								   Width="90"/>
+						<ToggleSwitch Width="120"
+									  OnContent="Real"
+									  OffContent="Dummy"
+									  IsChecked="{Binding UseRealData}" />
+					</StackPanel>
+
+				</Grid>
+
+			</Grid>
+
+		</Border>
+
+		<Grid Grid.Row="1" HorizontalAlignment="Center" IsVisible="{Binding ShowRateLimitOverlay}" >
+			<!-- Rate‑limit information row -->
+			<StackPanel Orientation="Horizontal"
+						Spacing="15">
+
+				<!-- Remaining credits -->
+				<Border Background="#338FAA00"
+						CornerRadius="4"
+						Padding="7"
+						VerticalAlignment="Center">
+					<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+						<TextBlock Text="Rate limit remaining:"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding RateLimitRemaining}"
+								   Margin="5,0,0,0"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+				</Border>
+
+				<!-- Separator -->
+				<TextBlock Text="|"
+						   Foreground="Gray"
+						   FontSize="14"
+						   Margin="6,0"
+						   VerticalAlignment="Center"/>
+
+				<!-- Total credits -->
+				<Border Background="#338FAA00"
+						CornerRadius="4"
+						Padding="7"
+						VerticalAlignment="Center">
+					<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+						<TextBlock Text="Rate limit total:"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding RateLimitTotal}"
+								   Margin="5,0,0,0"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+				</Border>
+
+				<!-- Separator -->
+				<TextBlock Text="|"
+						   Foreground="Gray"
+						   FontSize="14"
+						   Margin="6,0"
+						   VerticalAlignment="Center"/>
+
+				<!-- Update Interval -->
+				<Border Background="#338FAA00"
+						CornerRadius="4"
+						Padding="7"
+						VerticalAlignment="Center">
+					<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+						<TextBlock Text="Update Interval:"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding UpdateInterval}"
+								   Margin="5,0,0,0"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+
+
+				</Border>
+
+				<!-- Separator -->
+				<TextBlock Text="|"
+						   Foreground="Gray"
+						   FontSize="14"
+						   Margin="6,0"
+						   VerticalAlignment="Center"/>
+
+				<!-- Reset timestamp -->
+				<Border Background="#338FAA00"
+						CornerRadius="4"
+						Padding="7"
+						VerticalAlignment="Center">
+					<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+						<TextBlock Text="Reset at:"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+						<TextBlock Text="{Binding RateLimitResetAt}"
+								   Margin="5,0,0,0"
+								   Foreground="{StaticResource DarkAccent}"
+								   FontSize="10"
+								   VerticalAlignment="Center"/>
+					</StackPanel>
+
+				</Border>
+			</StackPanel>
+		</Grid>
+
+		<!-- Progress overlay (loading indicator) -->
+		<Border Padding="0" Grid.Row="2" IsVisible="{Binding ProgressControl.IsVisible}" ZIndex="10">
+			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
+		</Border>
+
+		<!-- Main map area -->
+		<Border Padding="0" Grid.Row="2" IsVisible="{Binding !ProgressControl.IsVisible}" >
+			<mapsui:MapControl x:Name="MyMapControl" />
+		</Border>
+
+	</Grid>
+</UserControl>

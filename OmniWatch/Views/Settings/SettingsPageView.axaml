@@ -3,99 +3,74 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:settings="using:OmniWatch.ViewModels.Settings"
+			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 xmlns:vm="using:OmniWatch.Helpers"
 			 mc:Ignorable="d"
-			 d:DesignWidth="800"
-			 d:DesignHeight="500"
-			 x:DataType="settings:SettingsPageViewModel"
-			 x:Class="OmniWatch.Views.Settings.SettingsPageView">
+			 x:Class="OmniWatch.Views.Settings.SettingsPageView"
+			 x:DataType="settings:SettingsPageViewModel">
 
+	<UserControl.Resources>
+		<vm:BoolToPasswordCharConverter x:Key="BoolToPasswordCharConverter"/>
+	</UserControl.Resources>
 
 	<Grid RowDefinitions="100,*,Auto"
 		  Background="{StaticResource PanelBrush}">
 
 		<!-- HEADER -->
 		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=CardGradient}" Padding="0,10">
-			<Border  Background="{StaticResource DarkAccent}" Padding="10">
-
+			<Border Background="{StaticResource DarkAccent}" Padding="10">
 				<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 					<Label FontFamily="{StaticResource PhosphorFill}"
 						   Content="&#xE228;"
 						   FontSize="20"
 						   FontWeight="Bold"
-						   Foreground="{StaticResource DarkPrimary}"
-						   VerticalAlignment="Center"/>
+						   Foreground="{StaticResource DarkPrimary}"/>
 
 					<TextBlock Text="Settings"
 							   Foreground="{StaticResource DarkPrimary}"
 							   FontSize="18"
-							   FontWeight="Bold"
-							   VerticalAlignment="Center"/>
+							   FontWeight="Bold"/>
 				</StackPanel>
-
 			</Border>
 		</Border>
 
-
 		<!-- CONTENT -->
 		<Border Grid.Row="1" Background="{StaticResource PanelGradient}" Padding="15,20">
-			<Border  Padding="15,20">
+			<Border Padding="15,20">
 
-				<StackPanel  Orientation="Vertical" Spacing="15">
+				<StackPanel Orientation="Vertical" Spacing="15">
 
-					<!-- Language and OpenSky Settings -->
-
-					<Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="5">
+					<!-- Language + OpenSky Credentials + Refresh Interval -->
+					<Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto"
+						  ColumnSpacing="15" RowSpacing="5">
 
 						<!-- LANGUAGE LABEL -->
-						<StackPanel Grid.Row="0" Grid.Column="0"
-									Orientation="Horizontal"
-									VerticalAlignment="Center">
-
+						<StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
 							<Label FontFamily="{StaticResource PhosphorFill}"
 								   Content="&#xE752;"
-								   FontSize="20"
-								   VerticalAlignment="Center"/>
-
-							<Label Content="Language"
-								   VerticalAlignment="Center"
-								   Margin="8,0"/>
+								   FontSize="20"/>
+							<Label Content="Language" Margin="8,0"/>
 						</StackPanel>
 
 						<!-- OPEN SKY Credential Toggle label -->
-						<StackPanel Grid.Row="0" Grid.Column="1"
-									Orientation="Horizontal"
-									VerticalAlignment="Center">
-
+						<StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal">
 							<Label FontFamily="{StaticResource PhosphorFill}"
 								   Content="&#xE752;"
-								   FontSize="20"
-								   VerticalAlignment="Center"/>
-
-							<Label Content="Use OpenSky Credentials"
-								   VerticalAlignment="Center"
-								   Margin="8,0"/>
+								   FontSize="20"/>
+							<Label Content="Use OpenSky Credentials" Margin="8,0"/>
 						</StackPanel>
 
-						<!-- OPEN SKY Credential Refresh Interval label -->
-						<StackPanel Grid.Row="0" Grid.Column="2"
-									Orientation="Horizontal"
-									VerticalAlignment="Center">
-
+						<!-- OPEN SKY Refresh Interval label -->
+						<StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal">
 							<Label FontFamily="{StaticResource PhosphorFill}"
 								   Content="&#xE094;"
-								   FontSize="20"
-								   VerticalAlignment="Center"/>
-
-							<Label Content="OpenSky Refresh Interval"
-								   VerticalAlignment="Center"
-								   Margin="8,0"/>
+								   FontSize="20"/>
+							<Label Content="OpenSky Refresh Interval" Margin="8,0"/>
 						</StackPanel>
 
 						<!-- LANGUAGE COMBOBOX -->
 						<ComboBox Grid.Row="1" Grid.Column="0"
-								  Width="200"
-								  Height="40"
-								  VerticalAlignment="Center"
+								  Width="200" Height="40"
 								  ItemsSource="{Binding Languages}"
 								  SelectedItem="{Binding SelectedLanguage}">
 							<ComboBox.ItemTemplate>
@@ -107,79 +82,115 @@
 
 						<!-- TOGGLE -->
 						<ToggleSwitch Grid.Row="1" Grid.Column="1"
-									  VerticalAlignment="Center"
-									  HorizontalAlignment="Left"
-									  IsChecked="{Binding UseOpenSkyCredentials, Mode=TwoWay}" />
-
+									  IsChecked="{Binding UseOpenSkyCredentials, Mode=TwoWay}"
+									  VerticalAlignment="Center"/>
 
 						<!-- NUMERIC -->
 						<NumericUpDown Grid.Row="1" Grid.Column="2"
-									   Width="210"
-									   Height="40"
-									   VerticalAlignment="Center"
-									   Minimum="0"
-									   Maximum="50"
+									   Width="210" Height="40"
+									   Minimum="0" Maximum="50"
 									   Value="{Binding RefreshInterval}"
 									   Increment="1"
 									   ShowButtonSpinner="True"/>
-
 					</Grid>
-					<!-- End Language and OpenSky Settings -->
 
+					<!-- OPEN SKY CREDENTIALS SECTION -->
 
-					<!-- USERNAME -->
-					<StackPanel Orientation="Horizontal">
+					<StackPanel IsVisible="{Binding UseOpenSkyCredentials}" Margin="0,10,0,0">
 
-						<Label FontFamily="{StaticResource PhosphorFill}"
-							   Content="&#xE4C2;"
-							   FontSize="20"
-							   VerticalAlignment="Center"/>
+						<Grid RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
 
-						<Label Content="UserName"
-							   VerticalAlignment="Center"
-							   Margin="8,0"/>
+							<!-- CLIENT ID LABEL -->
+							<StackPanel Grid.Row="0" Orientation="Horizontal">
+								<Label FontFamily="{StaticResource PhosphorFill}"
+									   Content="&#xE4C2;"
+									   FontSize="20"/>
+								<Label Content="OpenSky Client ID" Margin="8,0"/>
+							</StackPanel>
+
+							<!-- CLIENT ID TEXTBOX -->
+							<TextBox Grid.Row="1"
+									 Background="{StaticResource SurfaceBrush}"
+									 Text="{Binding OpenSkyClientId}"
+									 VerticalAlignment="Center"/>
+
+							<!-- CLIENT SECRET LABEL -->
+							<StackPanel Grid.Row="2" Orientation="Horizontal">
+								<Label FontFamily="{StaticResource PhosphorFill}"
+									   Content="&#xE752;"
+									   FontSize="20"/>
+								<Label Content="OpenSky Client Secret" Margin="8,0"/>
+							</StackPanel>
+
+							<!-- CLIENT SECRET TEXTBOX + BUTTON -->
+							<Grid Grid.Row="3"
+								  ColumnDefinitions="*,Auto"
+								  ColumnSpacing="5">
+
+								<!-- SECRET TEXTBOX -->
+								<TextBox Grid.Column="0"
+										 Background="{StaticResource SurfaceBrush}"
+										 Text="{Binding OpenSkyClientSecret}"
+										 PasswordChar="{Binding IsSecretVisible, Converter={StaticResource BoolToPasswordCharConverter}}"
+										 VerticalAlignment="Center"
+										 MinWidth="200"/>
+
+								<!-- SHOW/HIDE BUTTON -->
+								<Button Grid.Column="1"
+										Width="40"
+										Background="{StaticResource DarkAccent}"
+										Foreground="{StaticResource DarkPrimary}"
+										Command="{Binding ToggleSecretVisibilityCommand}"
+										FontWeight="Bold"
+										HorizontalContentAlignment="Center">
+									<Label FontFamily="{StaticResource PhosphorFill}"
+										   Content="{Binding SecretVisibilityIcon}"
+										   FontSize="18"/>
+								</Button>
+
+							</Grid>
+
+						</Grid>
+
+						<!-- TEST CREDENTIALS BUTTON -->
+						<Button Content="Test Credentials"
+								Command="{Binding TestOpenSkyCredentialsCommand}"
+								Background="{StaticResource DarkAccent}"
+								Foreground="{StaticResource DarkPrimary}"
+								Margin="0,10,0,0"
+								HorizontalAlignment="Left"
+								HorizontalContentAlignment="Center"
+								FontWeight="Bold"
+								Width="160"/>
+
 					</StackPanel>
-
-					<TextBox Background="{StaticResource SurfaceBrush}"
-							 Text="{Binding UserName}"
-							 VerticalAlignment="Center"/>
-
-					<!-- PASSWORD -->
-					<StackPanel Orientation="Horizontal">
-						<Label FontFamily="{StaticResource PhosphorFill}"
-							   Content="&#xE752;"
-							   FontSize="20"
-							   VerticalAlignment="Center"/>
-
-						<Label Content="Password"
-							   VerticalAlignment="Center"
-							   Margin="8,0"/>
-					</StackPanel>
-
-
-					<TextBox PasswordChar="*"
-							 Background="{StaticResource SurfaceBrush}"
-							 Text="{Binding Password}"
-							 VerticalAlignment="Center"/>
 
 				</StackPanel>
 
 			</Border>
 		</Border>
 
+		<!-- Settings Actions -->
+		<Border Grid.Row="2" Padding="20" Background="{StaticResource PanelGradient}">
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
 
-		<!-- SAVE BUTTON -->
-		<Border Grid.Row="2" Padding="10" Background="{StaticResource PanelGradient}">
+				<Button Content="Reset"
+						Width="100"
+						Background="{StaticResource DarkAccent}"
+						Foreground="{StaticResource DarkPrimary}"
+						FontWeight="Bold"
+						HorizontalContentAlignment="Center"
+						Click="OnResetClick"/>
 
-			<Button Content="Save"
-					Width="100"
-					HorizontalAlignment="Right"
-					Background="{StaticResource DarkAccent}"
-					Foreground="{StaticResource DarkPrimary}"
-					FontWeight="Bold"
-					VerticalAlignment="Center"
-					HorizontalContentAlignment="Center"
-					Click="OnSaveClick"/>
+				<Button Content="Save"
+						Width="100"
+						Background="{StaticResource DarkAccent}"
+						Foreground="{StaticResource DarkPrimary}"
+						FontWeight="Bold"
+						HorizontalContentAlignment="Center"
+						Click="OnSaveClick"/>
+
+			</StackPanel>
 		</Border>
 
 	</Grid>

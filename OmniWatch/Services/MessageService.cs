@@ -10,7 +10,7 @@ namespace OmniWatch.Services
 {
     public class MessageService : IMessageService
     {
-        public async Task ShowAsync(string message, MessageDialogType type)
+        public async Task<MessageDialogResult> ShowAsync(string message, MessageDialogType type)
         {
             var title = type switch
             {
@@ -27,8 +27,10 @@ namespace OmniWatch.Services
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                await dialog.ShowDialog(desktop.MainWindow);
+                return await dialog.ShowDialog<MessageDialogResult>(desktop.MainWindow);
             }
+
+            return MessageDialogResult.Cancel;
         }
     }
 }

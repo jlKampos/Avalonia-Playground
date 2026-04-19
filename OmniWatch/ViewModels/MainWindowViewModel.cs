@@ -25,13 +25,13 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
         [NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
-        [NotifyPropertyChangedFor(nameof(OepnSkyPageIsActive))]
+        [NotifyPropertyChangedFor(nameof(OpenSkyPageIsActive))]
         [NotifyPropertyChangedFor(nameof(SettingsPageIsActive))]
         private PageViewModel _currentPage;
 
         public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
         public bool SeismologyPageIsActive => CurrentPage.PageName == ApplicationPageNames.Seismology;
-        public bool OepnSkyPageIsActive => CurrentPage.PageName == ApplicationPageNames.OepnSky;
+        public bool OpenSkyPageIsActive => CurrentPage.PageName == ApplicationPageNames.OpenSky;
         public bool SettingsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Settings;
 
         public MainWindowViewModel()
@@ -103,12 +103,12 @@ namespace OmniWatch.ViewModels
         }
 
         [RelayCommand]
-        private async Task GoToOepnSky()
+        private async Task GoToOpenSky()
         {
             IsLoadingPage = true;
-            ProgressControl.Message = "Loading OpenSKy page";
+            ProgressControl.Message = "Loading OpenSky page";
 
-            var page = _pageFactory.GetPage(ApplicationPageNames.OepnSky);
+            var page = _pageFactory.GetPage(ApplicationPageNames.OpenSky);
             CurrentPage = page;
 
             if (page is IAsyncPage asyncPage)

@@ -5,7 +5,7 @@
         Unknown,
         WeatherForecast,
         Seismology,
-        OepnSky,
+        OpenSky,
         Settings
     }
 }

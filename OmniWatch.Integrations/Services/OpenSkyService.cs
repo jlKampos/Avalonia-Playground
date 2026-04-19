@@ -1,47 +1,76 @@
-﻿using OmniWatch.Integrations.Contracts.OpenSky;
+﻿using OmniWatch.Core.Helpers;
+using OmniWatch.Core.Interfaces;
+using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Enums;
-using OmniWatch.Integrations.Exceptions;
-using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
+using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace OmniWatch.Integrations.Services
 {
     public class OpenSkyService : IOpenSkyService
     {
-        private readonly IApiClient _api;
+        private readonly IHttpClientFactory _factory;
+        private readonly IOpenSkyTokenManager _tokenManager;
+        private readonly ISettingsService _settingsService;
 
-        public OpenSkyService(IApiClient api)
+        public OpenSkyService(
+            IHttpClientFactory factory,
+            IOpenSkyTokenManager tokenManager,
+            ISettingsService settingsService)
         {
-            _api = api;
+            _factory = factory;
+            _tokenManager = tokenManager;
+            _settingsService = settingsService;
         }
 
-        public async Task<OpenSkyResponse> GetAllFlightStatesAsync()
+        public async Task<(OpenSkyRawResponse? Data, RateLimitInfo? RateLimit)> GetAllFlightStatesAsync()
         {
-            try
-            {
-                var raw = await _api.GetAsync<OpenSkyRawResponse>("states/all", ApiType.OpenSky);
+            var settings = _settingsService.Load();
+            var client = _factory.CreateClient(ApiType.OpenSky.ToString());
 
-                if (raw == null)
-                    return new OpenSkyResponse
-                    {
-                        Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                        States = new List<StateVectorItem>()
-                    };
-
-                return new OpenSkyResponse
-                {
-                    Time = raw.Time,
-                    States = raw.States?
-                        .Select(OpenSkyRawConverter.ConvertRaw)
-                        .ToList() ?? new List<StateVectorItem>()
-                };
-            }
-            catch (Exception ex)
+            // PUBLIC MODE
+            if (!settings.UseOpenSkyCredentials)
             {
-                throw new ApiException("Failed to load flight states data", ex);
+                client.DefaultRequestHeaders.Authorization = null;
+
+                var response = await client.GetAsync("states/all");
+                var json = await response.Content.ReadAsStringAsync();
+
+                var raw = JsonSerializer.Deserialize<OpenSkyRawResponse>(json);
+
+                return (raw, null);
             }
 
+            // AUTHENTICATED MODE
+            var token = await _tokenManager.GetTokenAsync();
+
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("OmniWatch/1.0");
+
+            var authResponse = await client.GetAsync("states/all");
+            var jsonAuth = await authResponse.Content.ReadAsStringAsync();
+
+            var rawAuth = JsonSerializer.Deserialize<OpenSkyRawResponse>(jsonAuth);
+
+            var rate = new RateLimitInfo();
+
+            // Remaining — único header garantido
+            if (authResponse.Headers.TryGetValues("X-Rate-Limit-Remaining", out var remaining))
+                rate.Remaining = int.Parse(remaining.First());
+
+            // Limit — inferido pelo role do token
+            var role = await _tokenManager.GetRoleAsync(); // método simples que extrai o claim "roles"
+            rate.Limit = OpenSkyRateLimitTable.GetDailyLimit(role);
+
+            // Reset — meia-noite UTC
+            rate.ResetAt = OpenSkyRateLimitTable.GetDailyResetUtc();
+
+            return (rawAuth, rate);
         }
+
+
     }
 }
-

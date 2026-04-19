@@ -1,17 +1,18 @@
 ﻿using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Settings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OmniWatch.Core.Startup
 {
     public class AppInitializer
     {
+        #region Fields
+
         private readonly ISettingsService _settingsService;
         private readonly ISecretService _secretService;
+
+        #endregion
+
+        #region Constructor
 
         public AppInitializer(
             ISettingsService settingsService,
@@ -21,23 +22,32 @@ namespace OmniWatch.Core.Startup
             _secretService = secretService;
         }
 
+        #endregion
+
+        #region Public API
+
         public void Initialize()
         {
             InitializeSettings();
             InitializeSecrets();
         }
 
+        #endregion
+
+        #region Internal Logic
+
         private void InitializeSettings()
         {
             var settings = _settingsService.Load();
 
-            // se não existir ficheiro ou estiver vazio, cria defaults
-            if (settings == null || string.IsNullOrWhiteSpace(settings.UserName))
+            // If file missing or invalid → create defaults
+            if (settings == null)
             {
                 _settingsService.Save(new AppSettings
                 {
-                    UserName = "",
-                    Password = "",
+                    UseOpenSkyCredentials = false,
+                    OpenSkyClientId = "",
+                    RefreshInterval = 10,
                     Language = "en-US"
                 });
             }
@@ -45,12 +55,16 @@ namespace OmniWatch.Core.Startup
 
         private void InitializeSecrets()
         {
+            // Secret file stores ONLY the OpenSkyClientSecret
             var secret = _secretService.Load();
 
             if (string.IsNullOrEmpty(secret))
             {
+                // Save empty encrypted secret
                 _secretService.Save("");
             }
         }
+
+        #endregion
     }
 }

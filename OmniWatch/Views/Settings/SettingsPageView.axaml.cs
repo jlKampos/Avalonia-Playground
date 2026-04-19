@@ -38,4 +38,10 @@ public partial class SettingsPageView : UserControl, IAsyncPage
         }
 
     }
+
+    private void OnResetClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsPageViewModel vm)
+            vm.Reset();
+    }
 }

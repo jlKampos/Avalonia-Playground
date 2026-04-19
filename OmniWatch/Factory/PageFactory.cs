@@ -27,8 +27,8 @@ namespace OmniWatch.Factory
                 ApplicationPageNames.Seismology =>
                     _provider.GetRequiredService<SeismologyPageViewModel>(),
 
-                ApplicationPageNames.OepnSky =>
-                    _provider.GetRequiredService<OepnSkyPageViewModel>(),
+                ApplicationPageNames.OpenSky =>
+                    _provider.GetRequiredService<OpenSkyPageViewModel>(),
 
                 ApplicationPageNames.Settings =>
                     _provider.GetRequiredService<SettingsPageViewModel>(),

@@ -26,6 +26,7 @@ namespace OmniWatch.Core.Services
             File.WriteAllBytes(_filePath, encrypted);
         }
 
+
         public string Load()
         {
             if (!File.Exists(_filePath))
@@ -37,5 +38,6 @@ namespace OmniWatch.Core.Services
 
             return Encoding.UTF8.GetString(decrypted);
         }
+
     }
 }

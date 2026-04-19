@@ -3,9 +3,12 @@
     public class AppSettings
     {
         public bool UseOpenSkyCredentials { get; set; } = false;
+
+        public string? OpenSkyClientId { get; set; }
+
         public int RefreshInterval { get; set; } = 10;
-        public string? UserName { get; set; }
-        public string? Password { get; set; }
+
         public string Language { get; set; } = "en-US";
     }
+
 }

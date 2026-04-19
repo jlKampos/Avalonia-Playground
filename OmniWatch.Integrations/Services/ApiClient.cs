@@ -1,6 +1,7 @@
 ﻿using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace OmniWatch.Integrations.Services
@@ -14,24 +15,22 @@ namespace OmniWatch.Integrations.Services
             _factory = factory;
         }
 
-        public async Task<T> GetAsync<T>(string endpoint, ApiType api)
+        public async Task<T?> GetAsync<T>(string endpoint, ApiType type, string? bearerToken = null)
         {
-            try
+            var client = _factory.CreateClient(type.ToString());
+
+            if (type == ApiType.OpenSky && !string.IsNullOrWhiteSpace(bearerToken))
             {
-                var client = _factory.CreateClient(api.ToString());
-
-                var response = await client.GetAsync(endpoint);
-                response.EnsureSuccessStatusCode();
-
-                var json = await response.Content.ReadAsStringAsync();
-
-                return JsonSerializer.Deserialize<T>(json,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true })!;
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException($"API Error calling '{api}/{endpoint}'", ex);
-            }
+
+            var response = await client.GetAsync(endpoint);
+
+            if (!response.IsSuccessStatusCode)
+                return default;
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<T>(json);
         }
     }
 }

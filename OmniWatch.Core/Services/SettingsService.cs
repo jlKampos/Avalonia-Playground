@@ -21,16 +21,12 @@ namespace OmniWatch.Core.Services
         public AppSettings Load()
         {
             if (!File.Exists(_filePath))
-                return new AppSettings
-                {
-                    UserName = "",
-                    Password = "",
-                    Language = "en-US"
-                };
+                return new AppSettings();
 
             return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_filePath))
                    ?? new AppSettings();
         }
+
 
         public void Save(AppSettings settings)
         {
@@ -41,5 +37,6 @@ namespace OmniWatch.Core.Services
 
             File.WriteAllText(_filePath, json);
         }
+
     }
 }

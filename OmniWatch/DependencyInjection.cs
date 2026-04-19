@@ -20,7 +20,7 @@ namespace OmniWatch
             }, loggerFactory);
 
             var mapper = config.CreateMapper();
-
+            services.AddSingleton<IMapper>(mapper);
             services.AddSingleton(mapper);
             services.AddTransient<ApiExceptionHandler>();
             return services;

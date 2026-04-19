@@ -11,4 +11,8 @@
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.5" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
+	</ItemGroup>
+
 </Project>

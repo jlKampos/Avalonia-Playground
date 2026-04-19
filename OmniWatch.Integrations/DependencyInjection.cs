@@ -20,7 +20,7 @@ namespace OmniWatch.Integrations
             services.AddTransient<IIpmaService, IpmaService>();
 
 
-            // OpenSky
+            // OpenSky API (public endpoints)
             services.AddHttpClient(ApiType.OpenSky.ToString(), client =>
             {
                 client.BaseAddress = new Uri("https://opensky-network.org/api/");
@@ -29,7 +29,16 @@ namespace OmniWatch.Integrations
             services.AddTransient<IOpenSkyService, OpenSkyService>();
 
 
+            // OpenSky OAuth2
+            services.AddHttpClient("OpenSkyAuth", client =>
+            {
+                client.BaseAddress = new Uri("https://auth.opensky-network.org/");
+            });
+
+            services.AddSingleton<IOpenSkyTokenManager, OpenSkyTokenManager>();
+
             return services;
         }
+
     }
 }

@@ -11,9 +11,9 @@
 		Width="1024"
 		Height="760"
 		MinWidth="1024"
-		MinHeight="750"
+		MinHeight="800"
 		MaxWidth="1024"
-		MaxHeight="750"
+		MaxHeight="800"
 		x:Class="OmniWatch.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		Icon="/Assets/Images/w_icon.ico"
@@ -68,9 +68,9 @@
 						</StackPanel>
 					</Button>
 
-					<Button Classes.active="{Binding OepnSkyPageIsActive}"
+					<Button Classes.active="{Binding OpenSkyPageIsActive}"
 							HorizontalAlignment="Stretch"
-							Command="{Binding GoToOepnSkyCommand}">
+							Command="{Binding GoToOpenSkyCommand}">
 						<StackPanel Orientation="Horizontal">
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 								   Classes="icon"

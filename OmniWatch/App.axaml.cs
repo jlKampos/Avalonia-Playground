@@ -53,25 +53,14 @@ namespace OmniWatch
             collection.AddSingleton<ISettingsService, SettingsService>();
 
 
-
             // ViewModels
             collection.AddSingleton<MainWindowViewModel>();
             collection.AddSingleton<IMessageService, MessageService>();
             collection.AddTransient<WeatherForecastPageViewModel>();
             collection.AddTransient<SeismologyPageViewModel>();
-            collection.AddTransient<OepnSkyPageViewModel>();
+            collection.AddTransient<OpenSkyPageViewModel>();
             collection.AddTransient<SettingsPageViewModel>();
             collection.AddTransient<ProgressControlViewModel>();
-
-            //// Factory
-            //collection.AddSingleton<Func<ApplicationPageNames, PageViewModel>>(provider => name => name switch
-            //{
-            //    ApplicationPageNames.WeatherForecast => provider.GetRequiredService<WeatherForecastPageViewModel>(),
-            //    ApplicationPageNames.Seismology => provider.GetRequiredService<SeismologyPageViewModel>(),
-            //    ApplicationPageNames.OepnSky => provider.GetRequiredService<OepnSkyPageViewModel>(),
-            //    ApplicationPageNames.Settings => provider.GetRequiredService<SettingsPageViewModel>(),
-            //    _ => throw new ArgumentOutOfRangeException(nameof(name), name, null)
-            //});
 
             // PageFactory
             collection.AddSingleton<PageFactory>();
