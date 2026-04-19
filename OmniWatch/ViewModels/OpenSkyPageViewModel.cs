@@ -12,8 +12,9 @@ using Mapsui.Tiling.Layers;
 using NetTopologySuite.Geometries;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
-using OmniWatch.Integrations.Contracts.OpenSky;
+using OmniWatch.Helpers;
 using OmniWatch.Integrations.Enums;
+using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
@@ -49,6 +50,8 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         private bool _useRealData = true;
 
+        [ObservableProperty]
+        public bool _showRateLimitNonAuthUser = false;
 
         [ObservableProperty]
         public bool _showRateLimitOverlay = false;
@@ -86,10 +89,26 @@ namespace OmniWatch.ViewModels
         private int _updateInterval;
         partial void OnUseRealDataChanged(bool value)
         {
-            ShowRateLimitOverlay = value;
-            _ = ReloadAircraftAsync();
+            _ = HandleUseRealDataChangedAsync(value);
         }
 
+        private async Task HandleUseRealDataChangedAsync(bool value)
+        {
+            try
+            {
+                var settings = _settingsService.Load();
+                ShowRateLimitNonAuthUser = value && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
+                ShowRateLimitOverlay = value;
+
+                await ReloadAircraftAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _messageService.ShowAsync(
+                    $"Loading error: {ex.Message}",
+                    MessageDialogType.Error);
+            }
+        }
         #endregion
 
         #region Observable Properties
@@ -183,7 +202,14 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
+                var apiEx = ex.FindDeepestInner<ApiException>();
+
+                var exMsg = apiEx?.ResponseContent
+                            ?? ex.GetBaseException().Message;
+
+                await _messageService.ShowAsync(
+                    $"Startup Error: {exMsg}",
+                    MessageDialogType.Error);
             }
         }
 
@@ -477,6 +503,7 @@ namespace OmniWatch.ViewModels
             UpdateInterval = settings.RefreshInterval;
 
             ShowRateLimitOverlay = settings.UseOpenSkyCredentials;
+            ShowRateLimitNonAuthUser = UseRealData && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
 
             if (settings.UseOpenSkyCredentials)
             {
