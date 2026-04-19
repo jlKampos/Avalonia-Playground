@@ -8,6 +8,10 @@ Project created for learning Avalonia
     - Full working API CLient for IPMA data gathering
 * Work in progress
 
+
+https://github.com/user-attachments/assets/072676d2-6f82-44b8-8937-5a5f1913a80c
+
+
 https://github.com/user-attachments/assets/7c19e87b-f19f-4b34-be80-9c9ec726b354
 
 
