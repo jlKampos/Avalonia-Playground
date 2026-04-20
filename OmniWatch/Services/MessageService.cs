@@ -27,7 +27,15 @@ namespace OmniWatch.Services
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                return await dialog.ShowDialog<MessageDialogResult>(desktop.MainWindow);
+                var owner = desktop.MainWindow;
+
+                if (owner != null && owner.IsVisible)
+                {
+                    return await dialog.ShowDialog<MessageDialogResult>(owner);
+                }
+
+                // fallback seguro
+                return await dialog.ShowDialog<MessageDialogResult>(null);
             }
 
             return MessageDialogResult.Cancel;

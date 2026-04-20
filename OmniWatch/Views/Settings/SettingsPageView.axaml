@@ -14,10 +14,10 @@
 	</UserControl.Resources>
 
 	<Grid RowDefinitions="100,*,Auto"
-		  Background="{StaticResource PanelBrush}">
+		  Background="{StaticResource PanelGradient}">
 
 		<!-- HEADER -->
-		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=CardGradient}" Padding="0,10">
+		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=CardGradient}" Padding="0,5">
 			<Border Background="{StaticResource DarkAccent}" Padding="10">
 				<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 					<Label FontFamily="{StaticResource PhosphorFill}"
@@ -35,7 +35,7 @@
 		</Border>
 
 		<!-- CONTENT -->
-		<Border Grid.Row="1" Background="{StaticResource PanelGradient}" Padding="15,20">
+		<Border Grid.Row="1" Background="{StaticResource PanelGradient}" Margin="5,0,5,0" Padding="15,20">
 			<Border Padding="15,20">
 
 				<StackPanel Orientation="Vertical" Spacing="15">

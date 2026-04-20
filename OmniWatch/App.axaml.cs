@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Services;
@@ -10,13 +11,16 @@ using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Integrations;
 using OmniWatch.Interfaces;
+using OmniWatch.Logging;
 using OmniWatch.Services;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.ProgressControl;
 using OmniWatch.ViewModels.Settings;
 using OmniWatch.Views;
+using OmniWatch.Views.Splash;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace OmniWatch
 {
@@ -36,22 +40,25 @@ namespace OmniWatch
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                AppLogger.Logger.Fatal(e.ExceptionObject as Exception, "UI DOMAIN ERROR");
+            };
         }
 
         public override void OnFrameworkInitializationCompleted()
         {
-
             var collection = new ServiceCollection();
 
             // IPMA
             collection.AddApplicationServices();
             collection.AddIntegrations();
 
-            // Settings 
+            // Settings / Core
             collection.AddSingleton<AppInitializer>();
             collection.AddSingleton<ISecretService, SecretService>();
             collection.AddSingleton<ISettingsService, SettingsService>();
-
 
             // ViewModels
             collection.AddSingleton<MainWindowViewModel>();
@@ -67,35 +74,40 @@ namespace OmniWatch
 
             _serviceProvider = collection.BuildServiceProvider();
 
-            // Settings initialization
-            var initializer = _serviceProvider.GetRequiredService<AppInitializer>();
-            initializer.Initialize();
-
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                DisableAvaloniaDataAnnotationValidation();
+                var splash = new SplashWindow();
+                splash.Show();
 
-                desktop.MainWindow = new MainWindow
+                Dispatcher.UIThread.Post(async () =>
                 {
-                    DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
-                };
+                    _serviceProvider.GetRequiredService<AppInitializer>().Initialize();
+
+                    var main = new MainWindow
+                    {
+                        DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
+                    };
+
+                    main.Show();
+                    desktop.MainWindow = main;
+
+                    await Task.Delay(50);
+                    splash.Close();
+                });
             }
 
             base.OnFrameworkInitializationCompleted();
         }
+        //private void DisableAvaloniaDataAnnotationValidation()
+        //{
+        //    var plugins = BindingPlugins.DataValidators
+        //        .OfType<DataAnnotationsValidationPlugin>()
+        //        .ToArray();
 
-
-        private void DisableAvaloniaDataAnnotationValidation()
-        {
-            // Get an array of plugins to remove
-            var dataValidationPluginsToRemove =
-                BindingPlugins.DataValidators.OfType<DataAnnotationsValidationPlugin>().ToArray();
-
-            // remove each entry found
-            foreach (var plugin in dataValidationPluginsToRemove)
-            {
-                BindingPlugins.DataValidators.Remove(plugin);
-            }
-        }
+        //    foreach (var plugin in plugins)
+        //    {
+        //        BindingPlugins.DataValidators.Remove(plugin);
+        //    }
+        //}
     }
 }

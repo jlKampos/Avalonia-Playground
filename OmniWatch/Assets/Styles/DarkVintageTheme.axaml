@@ -214,7 +214,7 @@
 
 	<!-- ACTIVE -->
 	<Style Selector="Button.active">
-		<Setter Property="Background" Value="{StaticResource DarkAccentSoft}" />
+		<Setter Property="Background" Value="{StaticResource DarkAccent}" />
 		<Setter Property="BorderBrush" Value="{StaticResource AccentBrush}" />
 		<Setter Property="BorderThickness" Value="0.5" />
 	</Style>

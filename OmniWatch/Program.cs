@@ -1,33 +1,44 @@
 ﻿using Avalonia;
+using OmniWatch.Logging;
 using System;
+using System.Threading.Tasks;
 
 namespace OmniWatch
 {
     internal sealed class Program
     {
-        // Initialization code. Don't use any Avalonia, third-party APIs or any
-        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-        // yet and stuff might break.
         [STAThread]
         public static void Main(string[] args)
         {
-            // Escreve um ficheiro de log logo no primeiro milissegundo
-            System.IO.File.WriteAllText("debug_log.txt", "App iniciada...");
+            AppLogger.Init();
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                AppLogger.Logger.Fatal(e.ExceptionObject as Exception,
+                    "UNHANDLED DOMAIN EXCEPTION");
+            };
+
+            TaskScheduler.UnobservedTaskException += (s, e) =>
+            {
+                AppLogger.Logger.Fatal(e.Exception,
+                    "UNOBSERVED TASK EXCEPTION");
+                e.SetObserved();
+            };
+
             try
             {
                 BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             }
             catch (Exception ex)
             {
-                System.IO.File.AppendAllText("debug_log.txt", "\nERRO: " + ex.ToString());
+                AppLogger.Logger.Fatal(ex, "FATAL APP CRASH");
+                throw;
             }
         }
 
-        // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .WithInterFont()
-                .LogToTrace();
+                .UsePlatformDetect();
     }
 }
+
