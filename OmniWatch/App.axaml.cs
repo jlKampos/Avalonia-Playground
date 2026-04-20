@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Services;
@@ -10,6 +11,7 @@ using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Integrations;
 using OmniWatch.Interfaces;
+using OmniWatch.Logging;
 using OmniWatch.Services;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.ProgressControl;
@@ -38,6 +40,11 @@ namespace OmniWatch
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
+
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                AppLogger.Logger.Fatal(e.ExceptionObject as Exception, "UI DOMAIN ERROR");
+            };
         }
 
         public override void OnFrameworkInitializationCompleted()
@@ -70,15 +77,11 @@ namespace OmniWatch
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 var splash = new SplashWindow();
+                splash.Show();
 
-                desktop.MainWindow = splash;
-
-                splash.Opened += async (_, __) =>
+                Dispatcher.UIThread.Post(async () =>
                 {
-                    await Task.Run(() =>
-                    {
-                        _serviceProvider.GetRequiredService<AppInitializer>().Initialize();
-                    });
+                    _serviceProvider.GetRequiredService<AppInitializer>().Initialize();
 
                     var main = new MainWindow
                     {
@@ -87,22 +90,24 @@ namespace OmniWatch
 
                     main.Show();
                     desktop.MainWindow = main;
+
+                    await Task.Delay(50);
                     splash.Close();
-                };
+                });
             }
 
             base.OnFrameworkInitializationCompleted();
         }
-        private void DisableAvaloniaDataAnnotationValidation()
-        {
-            var plugins = BindingPlugins.DataValidators
-                .OfType<DataAnnotationsValidationPlugin>()
-                .ToArray();
+        //private void DisableAvaloniaDataAnnotationValidation()
+        //{
+        //    var plugins = BindingPlugins.DataValidators
+        //        .OfType<DataAnnotationsValidationPlugin>()
+        //        .ToArray();
 
-            foreach (var plugin in plugins)
-            {
-                BindingPlugins.DataValidators.Remove(plugin);
-            }
-        }
+        //    foreach (var plugin in plugins)
+        //    {
+        //        BindingPlugins.DataValidators.Remove(plugin);
+        //    }
+        //}
     }
 }
