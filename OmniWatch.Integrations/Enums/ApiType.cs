@@ -5,6 +5,6 @@
         Ipma,
         OpenSky,
         Meteo,
-        Custom
+        Noaa
     }
 }

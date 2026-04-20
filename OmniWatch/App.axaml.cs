@@ -66,6 +66,7 @@ namespace OmniWatch
             collection.AddTransient<WeatherForecastPageViewModel>();
             collection.AddTransient<SeismologyPageViewModel>();
             collection.AddTransient<OpenSkyPageViewModel>();
+            collection.AddTransient<NoaaPageViewModel>();
             collection.AddTransient<SettingsPageViewModel>();
             collection.AddTransient<ProgressControlViewModel>();
 

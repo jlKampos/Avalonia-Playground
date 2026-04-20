@@ -30,6 +30,9 @@ namespace OmniWatch.Factory
                 ApplicationPageNames.OpenSky =>
                     _provider.GetRequiredService<OpenSkyPageViewModel>(),
 
+                ApplicationPageNames.Noaa =>
+               _provider.GetRequiredService<NoaaPageViewModel>(),
+
                 ApplicationPageNames.Settings =>
                     _provider.GetRequiredService<SettingsPageViewModel>(),
 

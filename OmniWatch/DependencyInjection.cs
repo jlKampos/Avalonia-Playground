@@ -16,7 +16,7 @@ namespace OmniWatch
 
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile<IpmaMappingProfile>();
+                cfg.AddProfile<OmniWatchMappingProfile>();
             }, loggerFactory);
 
             var mapper = config.CreateMapper();

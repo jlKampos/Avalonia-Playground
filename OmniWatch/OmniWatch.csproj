@@ -31,7 +31,7 @@
 
 	<!-- Compile fix -->
 	<ItemGroup>
-		<Compile Update="Views\OpenSkyPageView.axaml.cs">
+		<Compile Update="Views\OpenSky\OpenSkyPageView.axaml.cs">
 			<DependentUpon>OpenSkyPageView.axaml</DependentUpon>
 		</Compile>
 	</ItemGroup>
