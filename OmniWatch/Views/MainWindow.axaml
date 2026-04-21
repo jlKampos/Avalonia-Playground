@@ -12,8 +12,6 @@
 		Height="760"
 		MinWidth="1024"
 		MinHeight="800"
-		MaxWidth="1024"
-		MaxHeight="800"
 		x:Class="OmniWatch.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		Icon="/Assets/Images/w_icon.ico"

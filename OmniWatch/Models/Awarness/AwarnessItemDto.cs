@@ -14,33 +14,30 @@ namespace OmniWatch.Models.Awarness
 
         public string Text { get; set; } = string.Empty;
 
-        // Helpers para UI
         public string Period => $"{StartTime:dd/MM HH:mm} - {EndTime:dd/MM HH:mm}";
 
-        public string DisplayLevel
-        {
-            get
+        public string HasText => string.IsNullOrWhiteSpace(Text)
+            ? "Sem descrição"
+            : Text;
+
+        public string DisplayLevel =>
+           Level?.ToLower() switch
+           {
+               "green" => "Green",
+               "yellow" => "Yellow",
+               "orange" => "Orange",
+               "red" => "Red",
+               _ => Level
+           };
+
+        public SolidColorBrush LevelBrush =>
+            Level?.ToLower() switch
             {
-                return Level?.ToLower() switch
-                {
-                    "green" => "Green",
-                    "yellow" => "Yellow",
-                    "orange" => "Orange",
-                    "red" => "Red",
-                    _ => Level
-                };
-            }
-        }
-
-        public SolidColorBrush LevelBrush => Level?.ToLower() switch
-        {
-            "green" => new SolidColorBrush(Colors.Green),
-            "yellow" => new SolidColorBrush(Colors.Yellow),
-            "orange" => new SolidColorBrush(Colors.Orange),
-            "red" => new SolidColorBrush(Colors.Red),
-            _ => new SolidColorBrush(Colors.Gray)
-        };
-
-        public string HasText => string.IsNullOrWhiteSpace(Text) ? "Sem descrição" : Text;
+                "green" => new SolidColorBrush(Colors.Green),
+                "yellow" => new SolidColorBrush(Colors.Yellow),
+                "orange" => new SolidColorBrush(Colors.Orange),
+                "red" => new SolidColorBrush(Colors.Red),
+                _ => new SolidColorBrush(Colors.Gray)
+            };
     }
 }

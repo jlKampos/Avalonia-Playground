@@ -18,7 +18,6 @@ namespace OmniWatch.ViewModels
 {
     public partial class NoaaPageViewModel : PageViewModel, IAsyncPage
     {
-        private readonly IMapper _mapper;
         private readonly INoaaService _apiClient;
         private readonly IMessageService _messageService;
 
@@ -51,10 +50,9 @@ namespace OmniWatch.ViewModels
         #endregion
 
 
-        public NoaaPageViewModel(IMapper mapper, INoaaService noaaService, IMessageService messageService)
+        public NoaaPageViewModel(INoaaService noaaService, IMessageService messageService)
         {
             PageName = ApplicationPageNames.Noaa;
-            _mapper = mapper;
             _apiClient = noaaService;
             _messageService = messageService;
             Map = new Mapsui.Map();
@@ -68,7 +66,6 @@ namespace OmniWatch.ViewModels
             try
             {
                 await InitializeMapAsync();
-                //await ReloadAircraftAsync();
             }
             catch (Exception ex)
             {
@@ -87,21 +84,31 @@ namespace OmniWatch.ViewModels
         {
             try
             {
+                //ProgressControl.IsVisible = true;
+                //ProgressControl.Title = "Loading map...";
+                //ProgressControl.Message = "Preparing data layers...";
+
                 ApplyMapTheme();
 
-                // Center on Portugal
-                var portugalCenter = new Mapsui.MPoint(-770000, 4780000);
-                Map.Navigator.CenterOnAndZoomTo(portugalCenter, Map.Navigator.Resolutions[7]);
+                // =========================
+                // DEFAULT VIEW (NOAA ATLANTIC)
+                // =========================
 
-                // Pan limits
-                var portugalExtent = new Mapsui.MRect(-1500000, 4200000, -300000, 5400000);
-                Map.Navigator.OverridePanBounds = portugalExtent;
+                var atlanticCenter = new Mapsui.MPoint(-4000000, 5000000);
+
+                Map.Navigator.CenterOnAndZoomTo(
+                    atlanticCenter,
+                    Map.Navigator.Resolutions[4]);
+
+                Map.Navigator.OverridePanBounds = null;
 
                 Map.RefreshGraphics();
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Map Error: {ex.Message}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    $"Map Error: {ex.Message}",
+                    MessageDialogType.Error);
             }
         }
         #endregion
