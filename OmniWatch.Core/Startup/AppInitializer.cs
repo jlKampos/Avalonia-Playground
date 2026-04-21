@@ -1,4 +1,6 @@
-﻿using OmniWatch.Core.Interfaces;
+﻿using OmniWatch.Core.Enums;
+using OmniWatch.Core.Helpers;
+using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Settings;
 
 namespace OmniWatch.Core.Startup
@@ -29,7 +31,7 @@ namespace OmniWatch.Core.Startup
         public void Initialize()
         {
             InitializeSettings();
-            InitializeSecrets();
+            _ = InitializeSecrets();
         }
 
         #endregion
@@ -53,15 +55,17 @@ namespace OmniWatch.Core.Startup
             }
         }
 
-        private void InitializeSecrets()
+        private async Task InitializeSecrets()
         {
-            // Secret file stores ONLY the OpenSkyClientSecret
-            var secret = _secretService.Load();
+            var key = SecretKeys.ApiKey(ApiProvider.OpenSky);
 
-            if (string.IsNullOrEmpty(secret))
+            var secret = await _secretService
+                .GetAsync(key)
+                .ConfigureAwait(false);
+
+            if (secret is null)
             {
-                // Save empty encrypted secret
-                _secretService.Save("");
+                await _secretService.SetAsync(key, string.Empty).ConfigureAwait(false);
             }
         }
 

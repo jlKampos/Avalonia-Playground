@@ -28,6 +28,36 @@ namespace OmniWatch.Core.Helpers
             using var doc = JsonDocument.Parse(json);
             return doc.RootElement.Clone();
         }
+
+        public static bool IsExpired(string jwt)
+        {
+            try
+            {
+                var parts = jwt.Split('.');
+
+                if (parts.Length < 2)
+                    return true;
+
+                var payload = parts[1];
+
+                // fix base64 padding
+                payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+
+                var jsonBytes = Convert.FromBase64String(payload);
+                var json = JsonDocument.Parse(jsonBytes);
+
+                if (!json.RootElement.TryGetProperty("exp", out var exp))
+                    return true;
+
+                var expTime = DateTimeOffset.FromUnixTimeSeconds(exp.GetInt64());
+
+                return expTime <= DateTimeOffset.UtcNow;
+            }
+            catch
+            {
+                return true; // assume invalid if parsing fails
+            }
+        }
     }
 
 }

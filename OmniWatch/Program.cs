@@ -1,5 +1,7 @@
 ﻿using Avalonia;
+using Microsoft.Extensions.DependencyInjection;
 using OmniWatch.Logging;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
@@ -10,30 +12,7 @@ namespace OmniWatch
         [STAThread]
         public static void Main(string[] args)
         {
-            AppLogger.Init();
-
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
-            {
-                AppLogger.Logger.Fatal(e.ExceptionObject as Exception,
-                    "UNHANDLED DOMAIN EXCEPTION");
-            };
-
-            TaskScheduler.UnobservedTaskException += (s, e) =>
-            {
-                AppLogger.Logger.Fatal(e.Exception,
-                    "UNOBSERVED TASK EXCEPTION");
-                e.SetObserved();
-            };
-
-            try
-            {
-                BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
-            }
-            catch (Exception ex)
-            {
-                AppLogger.Logger.Fatal(ex, "FATAL APP CRASH");
-                throw;
-            }
+            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
         }
 
         public static AppBuilder BuildAvaloniaApp()
