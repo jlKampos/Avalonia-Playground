@@ -3,6 +3,7 @@ using OmniWatch.Helpers;
 using OmniWatch.Integrations.Contracts.Awarness;
 using OmniWatch.Integrations.Contracts.Forecast;
 using OmniWatch.Integrations.Contracts.Locations;
+using OmniWatch.Integrations.Contracts.NOA;
 using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Contracts.Precipitation;
 using OmniWatch.Integrations.Contracts.Seismic;
@@ -11,17 +12,21 @@ using OmniWatch.Integrations.Contracts.Wind;
 using OmniWatch.Models.Awarness;
 using OmniWatch.Models.Forecast;
 using OmniWatch.Models.Locations;
+using OmniWatch.Models.Noaa;
 using OmniWatch.Models.OpenSky;
 using OmniWatch.Models.Precipitation;
 using OmniWatch.Models.Seismic;
 using OmniWatch.Models.Weather;
 using OmniWatch.Models.Wind;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace OmniWatch.Mapping
 {
-    public class IpmaMappingProfile : Profile
+    public class OmniWatchMappingProfile : Profile
     {
-        public IpmaMappingProfile()
+        public OmniWatchMappingProfile()
         {
             // =========================
             // LOCATION
@@ -95,6 +100,56 @@ namespace OmniWatch.Mapping
                         ? (PositionSource)s.PositionSource.Value
                         : (PositionSource?)null
                 ));
+
+
+            // =========================
+            // NOAA
+            // =========================
+            CreateMap<NoaaStormItem, CycloneDto>()
+                .ForMember(dest => dest.Latitude,
+                    opt => opt.MapFrom(src => src.LatitudeValue))
+
+                .ForMember(dest => dest.Longitude,
+                    opt => opt.MapFrom(src => src.LongitudeValue))
+
+                .ForMember(dest => dest.Forecast,
+                    opt => opt.MapFrom(src => src.Forecast ?? new List<NoaaForecastItem>()))
+
+                .ForMember(dest => dest.Cone,
+                    opt => opt.MapFrom(src => src.Cone ?? new List<NoaaConeItem>()));
+
+
+            // =========================
+            // NOAA FORECAST
+            // =========================
+            CreateMap<NoaaForecastItem, CycloneForecastDto>()
+                .ForMember(dest => dest.Time,
+                    opt => opt.MapFrom(src => src.TimeValue))
+
+                .ForMember(dest => dest.Latitude,
+                    opt => opt.MapFrom(src => src.LatitudeValue))
+
+                .ForMember(dest => dest.Longitude,
+                    opt => opt.MapFrom(src => src.LongitudeValue));
+
+
+            // =========================
+            // NOAA CONE POINT
+            // =========================
+            CreateMap<NoaaConePoint, CyclonePointDto>()
+                .ForMember(dest => dest.Latitude,
+                    opt => opt.MapFrom(src => src.LatitudeValue))
+
+                .ForMember(dest => dest.Longitude,
+                    opt => opt.MapFrom(src => src.LongitudeValue));
+
+
+            // =========================
+            // NOAA CONE
+            // =========================
+            CreateMap<NoaaConeItem, CycloneConeDto>()
+                .ForMember(dest => dest.Points,
+                    opt => opt.MapFrom(src => src.Points ?? new List<NoaaConePoint>()));
 
         }
     }

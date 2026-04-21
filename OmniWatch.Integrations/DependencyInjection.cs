@@ -37,6 +37,15 @@ namespace OmniWatch.Integrations
 
             services.AddSingleton<IOpenSkyTokenManager, OpenSkyTokenManager>();
 
+            // NOAA
+            services.AddHttpClient(ApiType.Noaa.ToString(), client =>
+            {
+                client.BaseAddress = new Uri("https://www.nhc.noaa.gov/");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+            services.AddTransient<INoaaService, NoaaService>();
+
             return services;
         }
 

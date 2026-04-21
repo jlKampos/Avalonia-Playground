@@ -1,23 +1,22 @@
 ﻿using Serilog;
+using System.IO;
 
 namespace OmniWatch.Logging
 {
-    public static class AppLogger
+    public static class LoggingSetup
     {
-        public static ILogger Logger { get; private set; }
-
-        public static void Init()
+        public static ILogger CreateLogger()
         {
-            Logger = new LoggerConfiguration()
+            Directory.CreateDirectory("logs");
+
+            return new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.Console()
                 .WriteTo.File(
-                    "logs/omniwatch-.log",
+                    path: "logs/omniwatch-.log",
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 7)
                 .CreateLogger();
-
-            Logger.Information("Logger initialized");
         }
     }
 }

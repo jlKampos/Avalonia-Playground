@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OmniWatch.Core.Enums;
+using OmniWatch.Core.Helpers;
 using OmniWatch.Core.Interfaces;
+using OmniWatch.Core.Models;
 using OmniWatch.Core.Settings;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
@@ -22,6 +25,7 @@ namespace OmniWatch.ViewModels.Settings
 
         private readonly ISettingsService _settingsService;
         private readonly ISecretService _secretService;
+        private readonly ISecretResetService _secretResetService;
         private readonly IMessageService _messageService;
         private readonly IOpenSkyTokenManager _tokenManager;
 
@@ -87,6 +91,7 @@ namespace OmniWatch.ViewModels.Settings
         public SettingsPageViewModel(
             ISettingsService settingsService,
             ISecretService secretService,
+            ISecretResetService secretResetService,
             ProgressControlViewModel progressControl,
             IMessageService messageService,
             IOpenSkyTokenManager tokenManager)
@@ -96,6 +101,7 @@ namespace OmniWatch.ViewModels.Settings
             _tokenManager = tokenManager;
             _secretService = secretService;
             _settingsService = settingsService;
+            _secretResetService = secretResetService;
             _messageService = messageService;
             ProgressControl = progressControl;
 
@@ -114,22 +120,25 @@ namespace OmniWatch.ViewModels.Settings
                 ProgressControl.Message = "Loading settings...";
 
                 var settings = _settingsService.Load();
-                var secret = _secretService.Load();
 
-                OpenSkyClientId = settings.OpenSkyClientId ?? "";
-                OpenSkyClientSecret = secret ?? "";
+                var secret = await _secretService.GetAsync(SecretKeys.ApiKey(ApiProvider.OpenSky));
+
+                OpenSkyClientId = settings.OpenSkyClientId ?? string.Empty;
+                OpenSkyClientSecret = secret ?? string.Empty;
+
                 Language = settings.Language;
                 RefreshInterval = settings.RefreshInterval;
                 UseOpenSkyCredentials = settings.UseOpenSkyCredentials;
 
-                SelectedLanguage = Languages.FirstOrDefault(x => x.Code == settings.Language);
+                SelectedLanguage = Languages
+                    .FirstOrDefault(x => x.Code == settings.Language);
             }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
                     $"Failed to load settings: {ex.Message}",
                     MessageDialogType.Error
-                ).ConfigureAwait(false);
+                );
             }
             finally
             {
@@ -242,12 +251,12 @@ namespace OmniWatch.ViewModels.Settings
                     await _messageService.ShowAsync(
                         "Settings not saved.\nWarning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.",
                         MessageDialogType.Warning
-                    ).ConfigureAwait(false);
+                    );
 
                     return;
                 }
 
-                // Save non-sensitive settings
+                // 1. Save non-sensitive settings
                 _settingsService.Save(new AppSettings
                 {
                     UseOpenSkyCredentials = UseOpenSkyCredentials,
@@ -256,20 +265,26 @@ namespace OmniWatch.ViewModels.Settings
                     Language = Language
                 });
 
-                // Save sensitive secret encrypted
-                _secretService.Save(OpenSkyClientSecret ?? "");
+                // 2. Save secret securely (NEW MODEL)
+                if (!string.IsNullOrWhiteSpace(OpenSkyClientSecret))
+                {
+                    await _secretService.SetAsync(
+                        SecretKeys.ApiKey(ApiProvider.OpenSky),
+                        OpenSkyClientSecret
+                    );
+                }
 
                 await _messageService.ShowAsync(
                     "Settings saved successfully.",
                     MessageDialogType.Warning
-                ).ConfigureAwait(false);
+                );
             }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
                     $"Failed to save settings: {ex.Message}",
                     MessageDialogType.Error
-                ).ConfigureAwait(false);
+                );
             }
             finally
             {
@@ -292,32 +307,19 @@ namespace OmniWatch.ViewModels.Settings
                 ProgressControl.IsVisible = true;
                 ProgressControl.Message = "Resetting settings...";
 
-                // Delete settings.json
-                var folder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "OmniWatch");
-
-                var settingsPath = Path.Combine(folder, "settings.json");
-                var secretPath = Path.Combine(folder, "secret.dat");
-
-                if (File.Exists(settingsPath))
-                    File.Delete(settingsPath);
-
-                if (File.Exists(secretPath))
-                    File.Delete(secretPath);
-
-                // Recreate defaults
+                // 1. Reset settings (via service, não file system)
                 _settingsService.Save(new AppSettings
                 {
                     UseOpenSkyCredentials = false,
-                    OpenSkyClientId = "",
+                    OpenSkyClientId = string.Empty,
                     RefreshInterval = 10,
                     Language = "en-US"
                 });
 
-                _secretService.Save("");
+                // 2. Reset secrets (OpenSky scope completo)
+                await _secretResetService.ResetAsync(ApiProvider.OpenSky);
 
-                // Reload UI
+                // 3. Reload UI state
                 await Load();
 
                 await _messageService.ShowAsync(
@@ -337,8 +339,6 @@ namespace OmniWatch.ViewModels.Settings
                 ProgressControl.IsVisible = false;
             }
         }
-
-
         #endregion
     }
 }

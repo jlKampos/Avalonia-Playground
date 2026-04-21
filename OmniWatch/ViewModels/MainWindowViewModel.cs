@@ -26,12 +26,14 @@ namespace OmniWatch.ViewModels
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
         [NotifyPropertyChangedFor(nameof(SeismologyPageIsActive))]
         [NotifyPropertyChangedFor(nameof(OpenSkyPageIsActive))]
+        [NotifyPropertyChangedFor(nameof(NoaaPageIsActive))]
         [NotifyPropertyChangedFor(nameof(SettingsPageIsActive))]
         private PageViewModel _currentPage;
 
         public bool WeatherPageIsActive => CurrentPage.PageName == ApplicationPageNames.WeatherForecast;
         public bool SeismologyPageIsActive => CurrentPage.PageName == ApplicationPageNames.Seismology;
         public bool OpenSkyPageIsActive => CurrentPage.PageName == ApplicationPageNames.OpenSky;
+        public bool NoaaPageIsActive => CurrentPage.PageName == ApplicationPageNames.Noaa;
         public bool SettingsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Settings;
 
         public MainWindowViewModel()
@@ -109,6 +111,21 @@ namespace OmniWatch.ViewModels
             ProgressControl.Message = "Loading OpenSky page";
 
             var page = _pageFactory.GetPage(ApplicationPageNames.OpenSky);
+            CurrentPage = page;
+
+            if (page is IAsyncPage asyncPage)
+                await asyncPage.LoadAsync();
+
+            IsLoadingPage = false;
+        }
+
+        [RelayCommand]
+        private async Task GoToNoaa()
+        {
+            IsLoadingPage = true;
+            ProgressControl.Message = "Loading NOAA NHC page";
+
+            var page = _pageFactory.GetPage(ApplicationPageNames.Noaa);
             CurrentPage = page;
 
             if (page is IAsyncPage asyncPage)
