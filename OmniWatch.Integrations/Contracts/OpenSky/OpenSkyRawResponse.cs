@@ -9,7 +9,7 @@ namespace OmniWatch.Integrations.Contracts.OpenSky
         public long Time { get; set; }
 
         [JsonPropertyName("states")]
-        public List<List<JsonElement>>? States { get; set; }
+        public List<StateVectorItem> States { get; set; } = new();
     }
 }
 

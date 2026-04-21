@@ -31,69 +31,80 @@ namespace OmniWatch.Integrations.Services
                 var settings = _settingsService.Load();
                 var client = _factory.CreateClient(ApiType.OpenSky.ToString());
 
+                HttpResponseMessage response;
+
+                // =========================
                 // PUBLIC MODE
+                // =========================
                 if (!settings.UseOpenSkyCredentials)
                 {
                     client.DefaultRequestHeaders.Authorization = null;
-
-                    var response = await client.GetAsync("states/all");
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        var message = HttpErrorMessages.GetMessage(response.StatusCode);
-                        throw new ApiException(response.StatusCode, message);
-
-                    }
-                    var json = await response.Content.ReadAsStringAsync();
-
-                    var raw = JsonSerializer.Deserialize<OpenSkyRawResponse>(json);
-
-                    return (raw, null);
+                    response = await client.GetAsync("states/all");
                 }
-
-                // AUTHENTICATED MODE
-                var token = await _tokenManager.GetTokenAsync();
-
-                client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-                client.DefaultRequestHeaders.UserAgent.ParseAdd("OmniWatch/1.0");
-
-                var authResponse = await client.GetAsync("states/all");
-
-                if (!authResponse.IsSuccessStatusCode)
+                else
                 {
-                    var message = HttpErrorMessages.GetMessage(authResponse.StatusCode);
-                    throw new ApiException(authResponse.StatusCode, message);
+                    // =========================
+                    // AUTH MODE
+                    // =========================
+                    var token = await _tokenManager.GetTokenAsync();
+
+                    client.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+                    client.DefaultRequestHeaders.UserAgent.ParseAdd("OmniWatch/1.0");
+
+                    response = await client.GetAsync("states/all");
                 }
 
-                var jsonAuth = await authResponse.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var message = HttpErrorMessages.GetMessage(response.StatusCode);
+                    throw new ApiException(response.StatusCode, message);
+                }
 
-                var rawAuth = JsonSerializer.Deserialize<OpenSkyRawResponse>(jsonAuth);
+                var json = await response.Content.ReadAsStringAsync();
 
-                var rate = new RateLimitInfo();
+                // =========================
+                // MANUAL PARSING (CORRECTO PARA OPEN SKY)
+                // =========================
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
 
-                // Remaining — único header garantido
-                if (authResponse.Headers.TryGetValues("X-Rate-Limit-Remaining", out var remaining))
-                    rate.Remaining = int.Parse(remaining.First());
+                var result = new OpenSkyRawResponse
+                {
+                    Time = root.GetProperty("time").GetInt64(),
+                    States = root.GetProperty("states")
+                        .EnumerateArray()
+                        .Select(x => OpenSkyRawConverter.ConvertRaw(
+                            x.EnumerateArray().ToList()
+                        ))
+                        .ToList()
+                };
 
-                // Limit — inferido pelo role do token
-                var role = await _tokenManager.GetRoleAsync(); // método simples que extrai o claim "roles"
-                rate.Limit = OpenSkyRateLimitTable.GetDailyLimit(role);
+                // =========================
+                // RATE LIMIT
+                // =========================
+                RateLimitInfo? rate = null;
 
-                // Reset — meia-noite UTC
-                rate.ResetAt = OpenSkyRateLimitTable.GetDailyResetUtc();
+                if (settings.UseOpenSkyCredentials)
+                {
+                    rate = new RateLimitInfo();
 
-                return (rawAuth, rate);
+                    if (response.Headers.TryGetValues("X-Rate-Limit-Remaining", out var remaining))
+                        rate.Remaining = int.Parse(remaining.First());
+
+                    var role = await _tokenManager.GetRoleAsync();
+                    rate.Limit = OpenSkyRateLimitTable.GetDailyLimit(role);
+                    rate.ResetAt = OpenSkyRateLimitTable.GetDailyResetUtc();
+                }
+
+                return (result, rate);
             }
             catch (Exception ex)
             {
-
                 throw new ApiException("Failed to load flights", ex);
-
             }
         }
-
 
     }
 }

@@ -252,6 +252,17 @@ namespace OmniWatch.ViewModels.Settings
                         "Settings not saved.\nWarning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.",
                         MessageDialogType.Warning
                     );
+                    RefreshInterval = 10;
+                    return;
+                }
+                else if (UseOpenSkyCredentials && (string.IsNullOrWhiteSpace(OpenSkyClientId) || string.IsNullOrWhiteSpace(OpenSkyClientSecret)))
+                {
+                    await _messageService.ShowAsync(
+                          "Configuration not saved.\n\n" +
+                          "You selected OpenSky authentication, but the required credentials are missing.\n" +
+                          "Please provide both Client ID and Client Secret before saving.",
+                          MessageDialogType.Warning
+                      );
 
                     return;
                 }

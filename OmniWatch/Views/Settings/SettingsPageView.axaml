@@ -87,10 +87,13 @@
 
 						<!-- NUMERIC -->
 						<NumericUpDown Grid.Row="1" Grid.Column="2"
+									   ValueChanged="Numeric_ValueChanged"
 									   Width="210" Height="40"
-									   Minimum="0" Maximum="50"
+									   Minimum="1" Maximum="50"
 									   Value="{Binding RefreshInterval}"
 									   Increment="1"
+									   FormatString="0"
+									   ParsingNumberStyle="Integer"
 									   ShowButtonSpinner="True"/>
 					</Grid>
 

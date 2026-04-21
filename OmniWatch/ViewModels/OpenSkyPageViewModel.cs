@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Avalonia.Controls;
+﻿using Avalonia.Threading;
 using BruTile.Predefined;
 using BruTile.Web;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -12,12 +11,11 @@ using Mapsui.Tiling.Layers;
 using NetTopologySuite.Geometries;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
-using OmniWatch.Helpers;
 using OmniWatch.Integrations.Enums;
-using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Mapping.OpenSky;
 using OmniWatch.Models.OpenSky;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
@@ -34,7 +32,6 @@ namespace OmniWatch.ViewModels
     {
         #region Dependencies
 
-        private readonly IMapper _mapper;
         private readonly IOpenSkyService _apiClient;
         private readonly IMessageService _messageService;
         private readonly ISettingsService _settingsService;
@@ -58,6 +55,25 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
+        #region Map
+
+        [ObservableProperty]
+        private Map _map;
+
+        [ObservableProperty]
+        private ProgressControlViewModel _progressControl = new();
+
+        #endregion
+
+        #region Rate Limit
+
+        [ObservableProperty] private int _rateLimitRemaining;
+        [ObservableProperty] private int _rateLimitTotal;
+        [ObservableProperty] private DateTime _rateLimitResetAt;
+        [ObservableProperty] private int _updateInterval;
+
+        #endregion
+
         #region Map Layers
 
         private TileLayer? _baseLayer;
@@ -65,8 +81,7 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
-        #region Settings
-
+        #region Map theme
         private bool _isDarkTheme = true;
 
         public bool IsDarkTheme
@@ -78,48 +93,8 @@ namespace OmniWatch.ViewModels
                     ApplyMapTheme();
             }
         }
-
-        [ObservableProperty]
-        private int _rateLimitRemaining;
-        [ObservableProperty]
-        private int _rateLimitTotal;
-        [ObservableProperty]
-        private DateTime _rateLimitResetAt;
-        [ObservableProperty]
-        private int _updateInterval;
-        partial void OnUseRealDataChanged(bool value)
-        {
-            _ = HandleUseRealDataChangedAsync(value);
-        }
-
-        private async Task HandleUseRealDataChangedAsync(bool value)
-        {
-            try
-            {
-                var settings = _settingsService.Load();
-                ShowRateLimitNonAuthUser = value && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
-                ShowRateLimitOverlay = value;
-
-                await ReloadAircraftAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                await _messageService.ShowAsync(
-                    $"Loading error: {ex.Message}",
-                    MessageDialogType.Error);
-            }
-        }
         #endregion
 
-        #region Observable Properties
-
-        [ObservableProperty]
-        private Map _map;
-
-        [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
-
-        #endregion
 
         #region Constructor
 
@@ -127,7 +102,6 @@ namespace OmniWatch.ViewModels
             ProgressControlViewModel progressControl,
             IOpenSkyService apiClient,
             IMessageService messageService,
-            IMapper mapper,
             ISettingsService settingsService,
             IOpenSkyTokenManager tokenManager)
         {
@@ -136,62 +110,14 @@ namespace OmniWatch.ViewModels
             _settingsService = settingsService;
             _messageService = messageService;
             _tokenManager = tokenManager;
-            _mapper = mapper;
             _apiClient = apiClient;
 
             Map = new Mapsui.Map();
         }
 
-        public OpenSkyPageViewModel()
-        {
-            if (!Design.IsDesignMode)
-                return;
-
-            PageName = ApplicationPageNames.OpenSky;
-
-            Map = new Mapsui.Map
-            {
-                CRS = "EPSG:3857"
-            };
-
-            Map.Layers.Add(new MemoryLayer
-            {
-                Name = "Preview",
-                Features = new List<IFeature>()
-            });
-
-            var previewFeatures = new List<IFeature>
-            {
-                CreatePreviewLabel("TP001", 0, 0),
-                CreatePreviewLabel("TP002", 0, 50),
-                CreatePreviewLabel("TP003", 0, -50)
-            };
-
-            Map.Layers.Add(new MemoryLayer
-            {
-                Name = "PreviewPlanes",
-                Features = previewFeatures
-            });
-
-            UseRealData = false;
-        }
-
-        private IFeature CreatePreviewLabel(string text, double x, double y)
-        {
-            var f = new PointFeature(new MPoint(x, y));
-            f.Styles.Add(new LabelStyle
-            {
-                Text = text,
-                ForeColor = Color.Black,
-                BackColor = new Brush(Color.White),
-                Font = new Font { Size = 14 }
-            });
-            return f;
-        }
-
         #endregion
 
-        #region Initialization
+        #region Load
 
         public async Task LoadAsync()
         {
@@ -202,13 +128,8 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                var apiEx = ex.FindDeepestInner<ApiException>();
-
-                var exMsg = apiEx?.ResponseContent
-                            ?? ex.GetBaseException().Message;
-
                 await _messageService.ShowAsync(
-                    $"Startup Error: {exMsg}",
+                    $"Startup Error: {ex.Message}",
                     MessageDialogType.Error);
             }
         }
@@ -233,7 +154,126 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
-        #region Dummy Movement
+        #region Load Data
+
+        public async Task LoadAllFlightStatesAsync()
+        {
+            var settings = _settingsService.Load();
+            UpdateInterval = settings.RefreshInterval;
+
+            ShowRateLimitOverlay = settings.UseOpenSkyCredentials;
+            ShowRateLimitNonAuthUser =
+                UseRealData &&
+                !settings.UseOpenSkyCredentials &&
+                settings.RefreshInterval <= 10;
+
+            try
+            {
+                if (settings.UseOpenSkyCredentials)
+                {
+                    var auth = await _tokenManager.RefreshTokenAsync();
+
+                    if (auth.Status == OpenSkyAuthStatus.Unauthorized)
+                        await _messageService.ShowAsync("Invalid OpenSky credentials.", MessageDialogType.Warning);
+
+                    if (auth.Status == OpenSkyAuthStatus.Error)
+                        await _messageService.ShowAsync("OpenSky server error.", MessageDialogType.Error);
+                }
+
+                var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
+
+                if (rate != null)
+                {
+                    RateLimitRemaining = rate.Remaining;
+                    RateLimitTotal = rate.Limit;
+                    RateLimitResetAt = rate.ResetAt;
+                }
+
+                if (raw?.States == null)
+                    return;
+
+                _flightStates = raw.States
+                    .Select(x => x.ToDto())
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                await _messageService.ShowAsync(
+                    $"Failed to load flight states: {ex.Message}",
+                    MessageDialogType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Auto Refresh
+
+        private async Task StartAutoRefreshAsync()
+        {
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    var settings = _settingsService.Load();
+
+                    var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
+
+                    if (rate != null)
+                    {
+                        RateLimitRemaining = rate.Remaining;
+                        RateLimitTotal = rate.Limit;
+                        RateLimitResetAt = rate.ResetAt;
+                    }
+
+                    if (rate?.Remaining == 0)
+                    {
+                        var waitSeconds = (int)Math.Max((rate.ResetAt - DateTime.UtcNow).TotalSeconds, 1);
+
+                        await _messageService.ShowAsync(
+                            $"OpenSky API limit reached.\nNext reset at {rate.ResetAt:HH:mm:ss} UTC.",
+                            MessageDialogType.Warning);
+
+                        await Task.Delay(waitSeconds * 1000, token);
+                        continue;
+                    }
+
+                    if (raw?.States != null)
+                    {
+                        var mapped = raw.States
+                            .Select(x => x.ToDto())
+                            .ToList();
+
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            AddAircraftLayerToMap(mapped);
+                        });
+                    }
+                }
+                catch
+                {
+                    // ignore or log
+                }
+
+                try
+                {
+                    var settings = _settingsService.Load();
+                    await Task.Delay(settings.RefreshInterval * 1000, token);
+                }
+                catch
+                {
+                    break;
+                }
+            }
+        }
+
+        public void Stop() => _cts?.Cancel();
+
+        #endregion
+
+        #region Dummy
 
         private async Task StartDummyMovementAsync(List<StateVectorDto> aircraft)
         {
@@ -249,16 +289,13 @@ namespace OmniWatch.ViewModels
                     if (plane.Latitude == null || plane.Longitude == null)
                         continue;
 
-                    var speedFactor = 0.05;
-                    var angleRad = (plane.TrueTrack ?? 0) * Math.PI / 180.0;
+                    var speed = 0.05;
+                    var angle = (plane.TrueTrack ?? 0) * Math.PI / 180.0;
 
-                    plane.Latitude += Math.Cos(angleRad) * speedFactor;
-                    plane.Longitude += Math.Sin(angleRad) * speedFactor;
+                    plane.Latitude += Math.Cos(angle) * speed;
+                    plane.Longitude += Math.Sin(angle) * speed;
 
                     plane.TrueTrack += random.Next(-5, 5);
-
-                    if (plane.TrueTrack < 0) plane.TrueTrack += 360;
-                    if (plane.TrueTrack > 360) plane.TrueTrack -= 360;
                 }
 
                 await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -273,11 +310,9 @@ namespace OmniWatch.ViewModels
         private List<StateVectorDto> GenerateDummyFlights()
         {
             var random = new Random();
-            var list = new List<StateVectorDto>();
 
-            for (int i = 0; i < 20; i++)
-            {
-                list.Add(new StateVectorDto
+            return Enumerable.Range(0, 20)
+                .Select(i => new StateVectorDto
                 {
                     Icao24 = $"DUMMY{i}",
                     Callsign = $"TP{i:000}",
@@ -288,15 +323,13 @@ namespace OmniWatch.ViewModels
                     TrueTrack = random.Next(0, 360),
                     OnGround = false,
                     OriginCountry = "Portugal"
-                });
-            }
-
-            return list;
+                })
+                .ToList();
         }
 
         #endregion
 
-        #region Map Setup
+        #region Map
 
         private async Task InitializeMapAsync()
         {
@@ -312,8 +345,6 @@ namespace OmniWatch.ViewModels
 
             await Task.CompletedTask;
         }
-
-        #endregion
 
         #region Theme
 
@@ -348,7 +379,9 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
-        #region Aircraft Rendering
+        #endregion
+
+        #region Rendering
 
         private void AddAircraftLayerToMap(List<StateVectorDto> aircraft)
         {
@@ -504,126 +537,6 @@ namespace OmniWatch.ViewModels
             });
 
             Map.RefreshGraphics();
-        }
-
-        #endregion
-
-        #region Data Loading
-
-        public async Task LoadAllFlightStatesAsync()
-        {
-            var settings = _settingsService.Load();
-            UpdateInterval = settings.RefreshInterval;
-
-            ShowRateLimitOverlay = settings.UseOpenSkyCredentials;
-            ShowRateLimitNonAuthUser = UseRealData && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
-
-            if (settings.UseOpenSkyCredentials)
-            {
-                var auth = await _tokenManager.RefreshTokenAsync();
-
-                if (auth.Status == OpenSkyAuthStatus.Unauthorized)
-                    await _messageService.ShowAsync("Invalid OpenSky credentials.", MessageDialogType.Warning);
-
-                if (auth.Status == OpenSkyAuthStatus.Error)
-                    await _messageService.ShowAsync("OpenSky server error.", MessageDialogType.Error);
-            }
-
-            var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
-
-            if (rate != null)
-            {
-                RateLimitRemaining = rate.Remaining;
-                RateLimitTotal = rate.Limit;
-                RateLimitResetAt = rate.ResetAt;
-            }
-
-            if (raw?.States != null)
-            {
-                _flightStates = raw.States
-                 .Select(OpenSkyRawConverter.ConvertRaw)
-                 .Select(x => _mapper.Map<StateVectorDto>(x))
-                 .ToList();
-
-            }
-        }
-
-        #endregion
-
-        #region Auto Refresh
-
-        private async Task StartAutoRefreshAsync()
-        {
-            _cts = new CancellationTokenSource();
-            var token = _cts.Token;
-
-            while (!token.IsCancellationRequested)
-            {
-                try
-                {
-                    var settings = _settingsService.Load();
-                    var delaySeconds = settings.RefreshInterval;
-
-                    var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
-
-                    if (rate != null)
-                    {
-                        RateLimitRemaining = rate.Remaining;
-                        RateLimitTotal = rate.Limit;
-                        RateLimitResetAt = rate.ResetAt;
-                    }
-
-                    if (rate?.Remaining == 0)
-                    {
-                        var waitSeconds = (int)(rate.ResetAt - DateTime.UtcNow).TotalSeconds;
-                        if (waitSeconds < 1)
-                            waitSeconds = 1;
-
-                        await _messageService.ShowAsync(
-                            $"OpenSky API limit reached.\nNext reset at {rate.ResetAt:HH:mm:ss} UTC.",
-                            MessageDialogType.Warning);
-
-                        await Task.Delay(waitSeconds * 1000, token);
-                        continue;
-                    }
-
-                    if (raw?.States != null)
-                    {
-                        var mapped = raw.States
-                            .Select(OpenSkyRawConverter.ConvertRaw)
-                            .ToList();
-
-                        await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                        {
-                            var mapped = raw.States
-                            .Select(OpenSkyRawConverter.ConvertRaw)
-                            .Select(x => _mapper.Map<StateVectorDto>(x))
-                            .ToList();
-
-                            AddAircraftLayerToMap(mapped);
-
-                        });
-                    }
-                }
-                catch
-                {
-                }
-
-                try
-                {
-                    var settings = _settingsService.Load();
-                    await Task.Delay(settings.RefreshInterval * 1000, token);
-                }
-                catch
-                {
-                    break;
-                }
-            }
-        }
-
-        public void Stop()
-        {
-            _cts?.Cancel();
         }
 
         #endregion

@@ -12,6 +12,8 @@ using Mapsui.Tiling.Layers;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Mapping;
+using OmniWatch.Mapping.Seismic;
 using OmniWatch.Models.Seismic;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
@@ -26,7 +28,6 @@ namespace OmniWatch.ViewModels
     {
         #region Fields
 
-        private readonly IMapper _mapper;
         private readonly IIpmaService _apiClient;
         private readonly IMessageService _messageService;
 
@@ -73,13 +74,11 @@ namespace OmniWatch.ViewModels
         public SeismologyPageViewModel(
             ProgressControlViewModel progressControl,
             IMessageService messageService,
-            IIpmaService apiClient,
-            IMapper mapper)
+            IIpmaService apiClient)
         {
             PageName = ApplicationPageNames.Seismology;
             _progressControl = progressControl;
             _messageService = messageService;
-            _mapper = mapper;
             _apiClient = apiClient;
 
             Map = new Mapsui.Map();
@@ -313,12 +312,15 @@ namespace OmniWatch.ViewModels
         private async Task LoadSeismologyDataAsync()
         {
             SeismicActivities.Clear();
+
             var response = await _apiClient.GetSeismicAsync(7);
 
-            if (response?.Data != null)
+            if (response?.Data == null)
+                return;
+
+            foreach (var item in response.Data)
             {
-                var mapped = _mapper.Map<List<SeismicActivityDto>>(response.Data);
-                SeismicActivities.AddRange(mapped);
+                SeismicActivities.Add(item.ToDto());
             }
         }
 
