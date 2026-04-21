@@ -1,10 +1,18 @@
 ﻿using AutoMapper;
 using Avalonia.Controls;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Mapping;
+using OmniWatch.Mapping.Weather.Awarness;
+using OmniWatch.Mapping.Weather.Forecast;
+using OmniWatch.Mapping.Weather.Location;
+using OmniWatch.Mapping.Weather.Precipitation;
+using OmniWatch.Mapping.Weather.WeatherTypes;
+using OmniWatch.Mapping.Weather.Wind;
 using OmniWatch.Models.Awarness;
 using OmniWatch.Models.Forecast;
 using OmniWatch.Models.Locations;
@@ -23,7 +31,6 @@ namespace OmniWatch.ViewModels
 {
     public partial class WeatherForecastPageViewModel : PageViewModel, IAsyncPage
     {
-        private readonly IMapper _mapper;
         private readonly IIpmaService _apiClient;
         private readonly IMessageService _messageService;
 
@@ -55,12 +62,11 @@ namespace OmniWatch.ViewModels
         // =========================
         // RUNTIME CONSTRUCTOR
         // =========================
-        public WeatherForecastPageViewModel(ProgressControlViewModel progressControl, IMessageService messageService, IIpmaService apiClient, IMapper mapper)
+        public WeatherForecastPageViewModel(ProgressControlViewModel progressControl, IMessageService messageService, IIpmaService apiClient)
         {
             PageName = ApplicationPageNames.WeatherForecast;
             _progressControl = progressControl;
             _messageService = messageService;
-            _mapper = mapper;
             _apiClient = apiClient;
         }
 
@@ -205,119 +211,152 @@ namespace OmniWatch.ViewModels
         private async Task LoadAwarnessAsync()
         {
             AwarnessTypes.Clear();
+
             var response = await _apiClient.GetAwarnessAsync();
 
-            if (response != null)
+            if (response == null || response.Count == 0)
+                return;
+
+            var mapped = response
+                .Select(x => x.ToDto())
+                .ToList();
+
+            foreach (var item in mapped)
+                AwarnessTypes.Add(item);
+        }
+
+        public static SolidColorBrush GetLevelBrush(string level)
+        {
+            return level?.ToLower() switch
             {
-                var mapped = _mapper.Map<List<AwarnessItemDto>>(response);
-                foreach (var item in mapped) AwarnessTypes.Add(item);
-            }
+                "green" => new SolidColorBrush(Colors.Green),
+                "yellow" => new SolidColorBrush(Colors.Yellow),
+                "orange" => new SolidColorBrush(Colors.Orange),
+                "red" => new SolidColorBrush(Colors.Red),
+                _ => new SolidColorBrush(Colors.Gray)
+            };
         }
 
         private async Task LoadWindAsync()
         {
             WindSpeeds.Clear();
+
             var response = await _apiClient.GetWindAsync();
 
-            if (response?.Data != null)
-            {
-                var mapped = _mapper.Map<List<WindSpeedDto>>(response.Data);
-                foreach (var item in mapped) WindSpeeds.Add(item);
-            }
+            if (response?.Data == null)
+                return;
+
+            var mapped = response.Data
+                .Select(x => x.ToDto())
+                .ToList();
+
+            foreach (var item in mapped)
+                WindSpeeds.Add(item);
         }
 
         private async Task LoadPrecipitationAsync()
         {
-            WindSpeeds.Clear();
+            PrecepitationTypes.Clear();
+
             var response = await _apiClient.GetPrecipitationTypesAsync();
 
-            if (response?.Data != null)
-            {
-                var mapped = _mapper.Map<List<PrecipitationDto>>(response.Data);
-                foreach (var item in mapped) PrecepitationTypes.Add(item);
-            }
+            if (response?.Data == null)
+                return;
+
+            var mapped = response.Data
+                .Select(x => x.ToDto())
+                .ToList();
+
+            foreach (var item in mapped)
+                PrecepitationTypes.Add(item);
         }
 
         private async Task LoadLocationsAsync()
         {
             Locations.Clear();
+
             var response = await _apiClient.GetLocationsAsync();
 
-            if (response?.Data != null)
-            {
-                var mapped = _mapper.Map<List<LocationDto>>(response.Data);
+            if (response?.Data == null)
+                return;
 
-                // Ordena apenas por nome para ser fácil de encontrar
-                var ordered = mapped.OrderBy(x => x.Name).ToList();
+            var mapped = response.Data
+                .Select(x => x.ToDto())
+                .OrderBy(x => x.Name)
+                .ToList();
 
-                foreach (var item in ordered)
-                {
-                    Locations.Add(item);
-                }
-            }
+            foreach (var item in mapped)
+                Locations.Add(item);
         }
 
         private async Task LoadWeatherTypesAsync()
         {
             WeatherTypes.Clear();
+
             var response = await _apiClient.GetWeatherTypesAsync();
 
-            if (response?.Data != null)
-            {
-                var mapped = _mapper.Map<List<WeatherTypeDto>>(response.Data);
-                foreach (var item in mapped) WeatherTypes.Add(item);
-            }
+            if (response?.Data == null)
+                return;
+
+            var mapped = response.Data
+                .Select(x => x.ToDto())
+                .ToList();
+
+            foreach (var item in mapped)
+                WeatherTypes.Add(item);
         }
 
         private async Task LoadForecastAsync(int locationId)
         {
             Forecasts.Clear();
+
             var response = await _apiClient.GetForecastByCityAsync(locationId);
 
-            if (response?.Data != null)
+            if (response?.Data == null)
+                return;
+
+            var mapped = response.Data
+                .Select(x => x.ToDto())
+                .ToList();
+
+            var tempList = new List<ForecastItemDto>();
+
+            foreach (var item in mapped)
             {
-                var mapped = _mapper.Map<List<ForecastItemDto>>(response.Data);
-                var tempList = new List<ForecastItemDto>();
+                // Weather enrichment
+                item.WeatherInformation =
+                    WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId)
+                    ?? new WeatherTypeDto { DescriptionPT = "Unknown" };
 
-                foreach (var item in mapped)
-                {
-                    // Map metadata from previously loaded collections
-                    // Weather
-                    item.WeatherInformation = WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId)
-                        ?? new WeatherTypeDto { DescriptionPT = "Unknown" };
+                // Wind enrichment
+                item.WindInformation =
+                    WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass)
+                    ?? new WindSpeedDto { DescriptionPT = "N/A" };
 
-                    // Wind
-                    item.WindInformation = WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass)
-                        ?? new WindSpeedDto { DescriptionPT = "N/A" };
+                // Precipitation enrichment
+                item.PrecipitationInformation =
+                    PrecepitationTypes.FirstOrDefault(x => x.IntensityLevel == item.PrecipitationIntensityClass)
+                    ?? new PrecipitationDto { DescriptionPT = "---", IntensityLevel = -99 };
 
-                    // Precipitation
-                    item.PrecipitationInformation = PrecepitationTypes.FirstOrDefault(x => x.IntensityLevel == item.PrecipitationIntensityClass)
-                        ?? new PrecipitationDto { DescriptionPT = "---", IntensityLevel = -99 };
+                var dayStart = item.Date.Date;
+                var dayEnd = item.Date.Date.AddDays(1).AddTicks(-1);
 
-                    var dayStart = item.Date.Date;
-                    var dayEnd = item.Date.Date.AddDays(1).AddTicks(-1);
+                item.AwarnessInformation = AwarnessTypes
+                    .Where(a =>
+                        SelectedLocation != null &&
+                        a.StartTime <= dayEnd &&
+                        a.EndTime >= dayStart &&
+                        SelectedLocation.IdAreaAviso == a.Area
+                    )
+                    .ToList();
 
-                    item.AwarnessInformation = AwarnessTypes
-                        .Where(a =>
-                        {
-                            if (SelectedLocation is LocationDto selectedCity)
-                            {
-                                return a.StartTime <= dayEnd &&
-                                       a.EndTime >= dayStart &&
-                                       selectedCity.IdAreaAviso == a.Area;
-                            }
-                            return false;
-                        })
-                        .ToList();
-
-
-                    tempList.Add(item);
-                }
-
-                foreach (var item in tempList) Forecasts.Add(item);
-                SelectedTab = Forecasts.FirstOrDefault();
-
+                tempList.Add(item);
             }
+
+            foreach (var item in tempList)
+                Forecasts.Add(item);
+
+            SelectedTab = Forecasts.FirstOrDefault();
         }
 
         #endregion

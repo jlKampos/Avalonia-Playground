@@ -1,9 +1,8 @@
 ﻿using OmniWatch.Integrations.Contracts.OpenSky;
 using System.Text.Json;
-
 namespace OmniWatch.Integrations.Helpers
 {
-    public class OpenSkyRawConverter
+    public static class OpenSkyRawConverter
     {
         public static StateVectorItem ConvertRaw(List<JsonElement> raw)
         {
@@ -70,11 +69,11 @@ namespace OmniWatch.Integrations.Helpers
         private static int[]? TryGetIntArray(JsonElement el)
         {
             if (el.ValueKind != JsonValueKind.Array) return null;
-            return el.EnumerateArray()
-                     .Where(x => x.ValueKind == JsonValueKind.Number && x.TryGetInt32(out _))
-                     .Select(x => x.GetInt32())
-                     .ToArray();
-        }
 
+            return el.EnumerateArray()
+                .Where(x => x.ValueKind == JsonValueKind.Number && x.TryGetInt32(out _))
+                .Select(x => x.GetInt32())
+                .ToArray();
+        }
     }
 }

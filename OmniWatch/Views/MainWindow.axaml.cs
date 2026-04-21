@@ -1,10 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Threading;
-using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Input;
 using OmniWatch.ViewModels;
 using System;
-using System.Threading.Tasks;
 
 namespace OmniWatch.Views
 {
@@ -18,20 +16,17 @@ namespace OmniWatch.Views
             InitializeComponent();
         }
 
-        protected override async void OnOpened(EventArgs e)
+        protected override void OnOpened(EventArgs e)
         {
             base.OnOpened(e);
-
-            var initializer = App.Current.ServiceProvider
-                .GetRequiredService<OmniWatch.Core.Startup.AppInitializer>();
-
-            // corre sem bloquear UI
-            await Task.Run(() => initializer.Initialize());
         }
 
-        private void Image_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+        private void Image_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            ((MainWindowViewModel)DataContext).SideMenuResizeCommand?.Execute(null);
+            if (DataContext is MainWindowViewModel vm)
+            {
+                vm.SideMenuResizeCommand?.Execute(null);
+            }
         }
     }
 }

@@ -2,8 +2,9 @@
 {
     public enum PositionSource
     {
-        AdsB = 0,
-        Asterix = 1,
-        Mlat = 2
+        ADSB = 0,
+        ASTERIX = 1,
+        MLAT = 2,
+        FLARM = 3
     }
 }

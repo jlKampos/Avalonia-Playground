@@ -6,6 +6,7 @@
         WeatherForecast,
         Seismology,
         OpenSky,
+        Noaa,
         Settings
     }
 }

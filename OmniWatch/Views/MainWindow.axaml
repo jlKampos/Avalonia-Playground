@@ -12,8 +12,6 @@
 		Height="760"
 		MinWidth="1024"
 		MinHeight="800"
-		MaxWidth="1024"
-		MaxHeight="800"
 		x:Class="OmniWatch.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		Icon="/Assets/Images/w_icon.ico"
@@ -80,6 +78,18 @@
 						</StackPanel>
 					</Button>
 
+
+					<Button Classes.active="{Binding NoaaPageIsActive}"
+							HorizontalAlignment="Stretch"
+							Command="{Binding GoToNoaaCommand}">
+						<StackPanel Orientation="Horizontal">
+							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
+								   Classes="icon"
+								   Content="&#xE88E;" />
+							<Label Content="Hurricane Center"
+								   IsVisible="{Binding SideMenuExpanded}" />
+						</StackPanel>
+					</Button>
 				</StackPanel>
 
 				<Button Grid.Row="1" HorizontalAlignment="Stretch"

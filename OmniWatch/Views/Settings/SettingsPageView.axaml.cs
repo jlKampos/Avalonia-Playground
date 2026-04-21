@@ -18,6 +18,7 @@ public partial class SettingsPageView : UserControl, IAsyncPage
     {
         _messageService = messageService;
         InitializeComponent();
+
     }
     public SettingsPageView()
     {
@@ -44,4 +45,12 @@ public partial class SettingsPageView : UserControl, IAsyncPage
         if (DataContext is SettingsPageViewModel vm)
             vm.Reset();
     }
+
+    private void Numeric_ValueChanged(object? sender, NumericUpDownValueChangedEventArgs e)
+    {
+        if (sender is NumericUpDown num && num.Value is null)
+            num.Value = num.Minimum;
+    }
+
+
 }

@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,68 +17,80 @@ using OmniWatch.ViewModels.ProgressControl;
 using OmniWatch.ViewModels.Settings;
 using OmniWatch.Views;
 using OmniWatch.Views.Splash;
+using Serilog;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace OmniWatch
+namespace OmniWatch;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    private IServiceProvider _serviceProvider = null!;
+    internal IServiceProvider Services => _serviceProvider;
+
+    public static App Current { get; private set; } = null!;
+
+    public App()
     {
-        private IServiceProvider _serviceProvider;
+        Current = this;
+    }
 
-        internal IServiceProvider ServiceProvider => _serviceProvider;
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+    }
 
-        internal static App Current { get; private set; }
+    public override void OnFrameworkInitializationCompleted()
+    {
+        var services = new ServiceCollection();
 
-        public App()
+        // Logging
+        services.AddLoggingServices();
+
+        // Core
+        services.AddApplicationServices();
+        services.AddIntegrations();
+
+        services.AddSingleton<AppInitializer>();
+        services.AddSingleton<ISecretService, SecretService>();
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<ISecretResetService, SecretResetService>();
+
+        // ViewModels
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<IMessageService, MessageService>();
+        services.AddTransient<WeatherForecastPageViewModel>();
+        services.AddTransient<SeismologyPageViewModel>();
+        services.AddTransient<OpenSkyPageViewModel>();
+        services.AddTransient<NoaaPageViewModel>();
+        services.AddTransient<SettingsPageViewModel>();
+        services.AddTransient<ProgressControlViewModel>();
+
+        services.AddSingleton<PageFactory>();
+
+        _serviceProvider = services.BuildServiceProvider();
+
+        var logger = _serviceProvider.GetRequiredService<Serilog.ILogger>();
+
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
-            Current = this;
-        }
+            logger.Fatal(e.ExceptionObject as Exception, "UI DOMAIN ERROR");
+        };
 
-        public override void Initialize()
+        TaskScheduler.UnobservedTaskException += (s, e) =>
         {
-            AvaloniaXamlLoader.Load(this);
+            logger.Fatal(e.Exception, "UNOBSERVED TASK ERROR");
+            e.SetObserved();
+        };
 
-            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var splash = new SplashWindow();
+            splash.Show();
+
+            Dispatcher.UIThread.Post(async () =>
             {
-                AppLogger.Logger.Fatal(e.ExceptionObject as Exception, "UI DOMAIN ERROR");
-            };
-        }
-
-        public override void OnFrameworkInitializationCompleted()
-        {
-            var collection = new ServiceCollection();
-
-            // IPMA
-            collection.AddApplicationServices();
-            collection.AddIntegrations();
-
-            // Settings / Core
-            collection.AddSingleton<AppInitializer>();
-            collection.AddSingleton<ISecretService, SecretService>();
-            collection.AddSingleton<ISettingsService, SettingsService>();
-
-            // ViewModels
-            collection.AddSingleton<MainWindowViewModel>();
-            collection.AddSingleton<IMessageService, MessageService>();
-            collection.AddTransient<WeatherForecastPageViewModel>();
-            collection.AddTransient<SeismologyPageViewModel>();
-            collection.AddTransient<OpenSkyPageViewModel>();
-            collection.AddTransient<SettingsPageViewModel>();
-            collection.AddTransient<ProgressControlViewModel>();
-
-            // PageFactory
-            collection.AddSingleton<PageFactory>();
-
-            _serviceProvider = collection.BuildServiceProvider();
-
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                var splash = new SplashWindow();
-                splash.Show();
-
-                Dispatcher.UIThread.Post(async () =>
+                try
                 {
                     _serviceProvider.GetRequiredService<AppInitializer>().Initialize();
 
@@ -88,26 +99,20 @@ namespace OmniWatch
                         DataContext = _serviceProvider.GetRequiredService<MainWindowViewModel>()
                     };
 
-                    main.Show();
                     desktop.MainWindow = main;
+                    main.Show();
 
                     await Task.Delay(50);
                     splash.Close();
-                });
-            }
-
-            base.OnFrameworkInitializationCompleted();
+                }
+                catch (Exception ex)
+                {
+                    logger.Fatal(ex, "APP INITIALIZATION FAILED");
+                    throw;
+                }
+            });
         }
-        //private void DisableAvaloniaDataAnnotationValidation()
-        //{
-        //    var plugins = BindingPlugins.DataValidators
-        //        .OfType<DataAnnotationsValidationPlugin>()
-        //        .ToArray();
 
-        //    foreach (var plugin in plugins)
-        //    {
-        //        BindingPlugins.DataValidators.Remove(plugin);
-        //    }
-        //}
+        base.OnFrameworkInitializationCompleted();
     }
 }
