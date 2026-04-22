@@ -249,7 +249,8 @@ namespace OmniWatch.ViewModels.Settings
                 if (!UseOpenSkyCredentials && RefreshInterval < 10)
                 {
                     await _messageService.ShowAsync(
-                        "Settings not saved.\nWarning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.",
+                        "Settings not saved.\n\n" +
+                        "Warning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.",
                         MessageDialogType.Warning
                     );
                     RefreshInterval = 10;
