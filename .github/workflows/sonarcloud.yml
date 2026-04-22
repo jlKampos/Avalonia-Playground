@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout completo (importante para Sonar)
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0
 
-      # 3. Install SonarScanner for .NET
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      # 4. Start analysis (BEGIN)
-      - name: SonarCloud Begin
+      # ✅ RESTORE (ESTE É O QUE ESTÁ EM FALTA)
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Sonar Begin
         run: |
           dotnet sonarscanner begin \
             /k:"omniwatch" \
@@ -36,12 +36,10 @@ jobs:
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io"
 
-      # 5. Build solution (IMPORTANT: usa a tua .sln)
       - name: Build
         run: dotnet build --no-restore
 
-      # 6. End analysis (END)
-      - name: SonarCloud End
+      - name: Sonar End
         run: |
           dotnet sonarscanner end \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
