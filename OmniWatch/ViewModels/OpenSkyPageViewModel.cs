@@ -12,7 +12,6 @@ using NetTopologySuite.Geometries;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Enums;
-using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
 using OmniWatch.Mapping.OpenSky;
@@ -95,6 +94,30 @@ namespace OmniWatch.ViewModels
         }
         #endregion
 
+        #region Settings
+        partial void OnUseRealDataChanged(bool value)
+        {
+            _ = HandleUseRealDataChangedAsync(value);
+        }
+
+        private async Task HandleUseRealDataChangedAsync(bool value)
+        {
+            try
+            {
+                var settings = _settingsService.Load();
+                ShowRateLimitNonAuthUser = value && !settings.UseOpenSkyCredentials && settings.RefreshInterval <= 10;
+                ShowRateLimitOverlay = value;
+
+                await ReloadAircraftAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await _messageService.ShowAsync(
+                    $"Loading error: {ex.Message}",
+                    MessageDialogType.Error);
+            }
+        }
+        #endregion
 
         #region Constructor
 
