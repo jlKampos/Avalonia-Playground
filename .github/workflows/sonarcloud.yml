@@ -3,7 +3,7 @@ name: SonarCloud
 on:
   push:
     branches:
-      - main
+      - ow/sonarCloud
   pull_request:
 
 jobs:
@@ -11,29 +11,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout completo (importante para Sonar)
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0
 
+      # 3. Install SonarScanner for .NET
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Begin analysis
+      # 4. Start analysis (BEGIN)
+      - name: SonarCloud Begin
         run: |
           dotnet sonarscanner begin \
             /k:"omniwatch" \
             /o:"omniwatch" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.host.url="https://sonarcloud.io"
 
+      # 5. Build solution (IMPORTANT: usa a tua .sln)
       - name: Build
-        run: dotnet build
+        run: dotnet build --no-restore
 
-      - name: End analysis
+      # 6. End analysis (END)
+      - name: SonarCloud End
         run: |
           dotnet sonarscanner end \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
