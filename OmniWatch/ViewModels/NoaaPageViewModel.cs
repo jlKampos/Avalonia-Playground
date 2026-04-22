@@ -84,9 +84,9 @@ namespace OmniWatch.ViewModels
         {
             try
             {
-                //ProgressControl.IsVisible = true;
-                //ProgressControl.Title = "Loading map...";
-                //ProgressControl.Message = "Preparing data layers...";
+                ProgressControl.IsVisible = true;
+                ProgressControl.Title = "Work in progress";
+                ProgressControl.Message = "Out for some beer!";
 
                 ApplyMapTheme();
 
