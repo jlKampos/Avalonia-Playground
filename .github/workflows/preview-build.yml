@@ -2,14 +2,14 @@ name: Preview Build
 
 on:
   push:
-    branches: [ "overwatch-preview" ]
+    branches: [ "ci-preview" ]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  test:
     runs-on: windows-latest
 
     steps:
@@ -28,16 +28,47 @@ jobs:
         dotnet-version: '8.0.x'
 
     # =========================
-    # Restore dependencies
+    # Restore
     # =========================
     - name: Restore
       run: dotnet restore
 
     # =========================
-    # Build solution
+    # Build
     # =========================
     - name: Build
       run: dotnet build -c Release --no-restore
+
+    # =========================
+    # Tests (CI GATE)
+    # =========================
+    - name: Test
+      run: dotnet test -c Release --no-build
+
+  release:
+    needs: test
+    runs-on: windows-latest
+
+    steps:
+    # =========================
+    # Checkout repo
+    # =========================
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # =========================
+    # Setup .NET
+    # =========================
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    # =========================
+    # Restore
+    # =========================
+    - name: Restore
+      run: dotnet restore
 
     # =========================
     # Publish Avalonia app
@@ -46,13 +77,13 @@ jobs:
       run: dotnet publish OmniWatch/OmniWatch.csproj -c Release -r win-x64 --self-contained true -o publish
 
     # =========================
-    # Create ZIP (download friendly)
+    # Create ZIP
     # =========================
     - name: Zip build
       run: Compress-Archive -Path publish\* -DestinationPath OmniWatch-Preview.zip
 
     # =========================
-    # Upload artifact (GitHub Actions download)
+    # Upload artifact
     # =========================
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
@@ -61,13 +92,13 @@ jobs:
         path: OmniWatch-Preview.zip
 
     # =========================
-    # Create GitHub Release (homepage download)
+    # Create GitHub Release
     # =========================
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: preview-${{ github.run_number }}
-        name: Overwatch Preview ${{ github.run_number }}
+        name: OmniWatch Preview ${{ github.run_number }}
         files: OmniWatch-Preview.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

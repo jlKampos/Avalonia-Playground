@@ -1,13 +1,17 @@
-name: CI Feature Branch
+name: OverWatch Tests
 
 on:
   push:
     branches:
-      - "ci/feature/**"
+      - "master"
+      - "ci-bug/**"
+      - "ci-feature/**"
 
   pull_request:
     branches:
-      - "ci/feature/**"
+      - "master"
+      - "ci-bug/**"
+      - "ci-feature/**"
 
   workflow_dispatch:
 
