@@ -13,9 +13,9 @@ name: "CodeQL Advanced"
 
 on:
   push:
-    branches: [ "master", "overwatch-preview" ]
+    branches: [ "master", "ci/preview" ]
   pull_request:
-    branches: [ "master", "overwatch-preview" ]
+    branches: [ "master", "ci/preview" ]
   schedule:
     - cron: '16 2 * * 4'
 
