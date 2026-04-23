@@ -3,15 +3,12 @@ name: OverWatch Tests
 on:
   push:
     branches:
-      - "master"
-      - "ci/bug/**"
-      - "ci/feature/**"
+      - "ci/**"
 
   pull_request:
     branches:
       - "master"
-      - "ci/bug/**"
-      - "ci/feature/**"
+      - "ci/**"
 
   workflow_dispatch:
 
