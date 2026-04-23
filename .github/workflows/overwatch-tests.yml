@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - "master"
-      - "ci-bug/**"
-      - "ci-feature/**"
+      - "ci/bug/**"
+      - "ci/feature/**"
 
   pull_request:
     branches:
       - "master"
-      - "ci-bug/**"
-      - "ci-feature/**"
+      - "ci/bug/**"
+      - "ci/feature/**"
 
   workflow_dispatch:
 
