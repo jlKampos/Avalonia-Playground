@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - "ci/feature/**"
+
   pull_request:
-    branches:
-      - "ci/feature/**"
+
   workflow_dispatch:
 
 jobs:
