@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using OmniWatch.Data;
+using OmniWatch.Interfaces;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.Settings;
 using OmniWatch.Views.Settings;
@@ -8,7 +9,7 @@ using System;
 
 namespace OmniWatch.Factory
 {
-    public class PageFactory
+    public class PageFactory : IPageFactory
     {
         private readonly IServiceProvider _provider;
 
@@ -16,7 +17,6 @@ namespace OmniWatch.Factory
         {
             _provider = provider;
         }
-
         public PageViewModel GetPage(ApplicationPageNames pageName)
         {
             return pageName switch
@@ -31,7 +31,7 @@ namespace OmniWatch.Factory
                     _provider.GetRequiredService<OpenSkyPageViewModel>(),
 
                 ApplicationPageNames.Noaa =>
-               _provider.GetRequiredService<NoaaPageViewModel>(),
+                    _provider.GetRequiredService<NoaaPageViewModel>(),
 
                 ApplicationPageNames.Settings =>
                     _provider.GetRequiredService<SettingsPageViewModel>(),
