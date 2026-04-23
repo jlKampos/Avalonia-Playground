@@ -66,7 +66,7 @@ public partial class App : Application
         services.AddTransient<SettingsPageViewModel>();
         services.AddTransient<ProgressControlViewModel>();
 
-        services.AddSingleton<PageFactory>();
+        services.AddSingleton<IPageFactory, PageFactory>();
 
         _serviceProvider = services.BuildServiceProvider();
 

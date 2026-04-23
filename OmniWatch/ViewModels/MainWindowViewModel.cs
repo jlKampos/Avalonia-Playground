@@ -11,7 +11,7 @@ namespace OmniWatch.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase
     {
-        private PageFactory _pageFactory;
+        private IPageFactory _pageFactory;
 
         [ObservableProperty]
         private bool _sideMenuExpanded = true;
@@ -45,7 +45,7 @@ namespace OmniWatch.ViewModels
             }
         }
 
-        public MainWindowViewModel(PageFactory pageFactory, ProgressControlViewModel progressControl)
+        public MainWindowViewModel(IPageFactory pageFactory, ProgressControlViewModel progressControl)
         {
             _pageFactory = pageFactory;
             ProgressControl = progressControl;
