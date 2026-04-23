@@ -18,6 +18,11 @@ namespace OmniWatch.Core.Services
             _filePath = Path.Combine(folder, "settings.json");
         }
 
+        internal SettingsService(string filePath)
+        {
+            _filePath = filePath;
+        }
+
         public AppSettings Load()
         {
             if (!File.Exists(_filePath))

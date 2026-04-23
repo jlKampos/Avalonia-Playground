@@ -21,6 +21,11 @@ namespace OmniWatch.Core.Services
             _filePath = Path.Combine(folder, "secrets.dat");
         }
 
+        internal SecretService(string filePath)
+        {
+            _filePath = filePath;
+        }
+
         public Task SetAsync(SecretKey key, string value)
         {
             lock (_lock)
