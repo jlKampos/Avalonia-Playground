@@ -15,6 +15,11 @@ namespace OmniWatch.Integrations.Services
             _factory = factory;
         }
 
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         public async Task<T?> GetAsync<T>(string endpoint, ApiType type, string? bearerToken = null)
         {
             var client = _factory.CreateClient(type.ToString());
@@ -30,7 +35,7 @@ namespace OmniWatch.Integrations.Services
                 return default;
 
             var json = await response.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(json);
+            return JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
     }
 }
