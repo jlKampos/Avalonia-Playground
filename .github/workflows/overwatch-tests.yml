@@ -1,10 +1,6 @@
 name: OverWatch Tests
 
 on:
-  push:
-    branches:
-      - "ci/**"
-
   pull_request:
     branches:
       - "master"
