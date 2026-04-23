@@ -3,7 +3,7 @@ name: SonarCloud
 on:
   push:
     branches:
-      - ow/sonarcloud
+      - ci/**
   pull_request:
 
 jobs:
