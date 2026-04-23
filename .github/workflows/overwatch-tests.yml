@@ -1,0 +1,63 @@
+name: OverWatch Tests
+
+on:
+  push:
+    branches:
+      - "master"
+      - "ci/bug/**"
+      - "ci/feature/**"
+
+  pull_request:
+    branches:
+      - "master"
+      - "ci/bug/**"
+      - "ci/feature/**"
+
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+    # =========================
+    # Checkout
+    # =========================
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # =========================
+    # Setup .NET
+    # =========================
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: "8.0.x"
+
+    # =========================
+    # Restore
+    # =========================
+    - name: Restore
+      run: dotnet restore
+
+    # =========================
+    # Build
+    # =========================
+    - name: Build
+      run: dotnet build -c Release --no-restore
+
+    # =========================
+    # Tests (CI GATE)
+    # =========================
+    - name: Test
+      run: dotnet test -c Release --no-build --logger "trx" --results-directory TestResults
+
+    # =========================
+    # Upload test results
+    # =========================
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: TestResults
