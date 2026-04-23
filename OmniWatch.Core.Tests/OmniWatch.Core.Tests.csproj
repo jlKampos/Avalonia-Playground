@@ -19,10 +19,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Helpers\" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
 	</ItemGroup>
 

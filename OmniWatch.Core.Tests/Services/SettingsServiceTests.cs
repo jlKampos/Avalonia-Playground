@@ -6,34 +6,23 @@ namespace OmniWatch.Core.Tests.Services
 {
     public class SettingsServiceTests
     {
-        private SettingsService CreateSut()
+        private string CreateTempPath()
         {
-            return new SettingsService();
+            var dir = Path.Combine(Path.GetTempPath(), "OmniWatchTests", Guid.NewGuid().ToString());
+            Directory.CreateDirectory(dir);
+            return Path.Combine(dir, "settings.json");
         }
 
-        private string GetFilePath()
+        private SettingsService CreateSut(string path)
         {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "OmniWatch");
-
-            return Path.Combine(folder, "settings.json");
-        }
-
-        private void Cleanup()
-        {
-            var file = GetFilePath();
-
-            if (File.Exists(file))
-                File.Delete(file);
+            return new SettingsService(path); // usa o construtor interno
         }
 
         [Fact]
         public void Load_Should_Return_Default_When_File_Does_Not_Exist()
         {
-            Cleanup();
-
-            var sut = CreateSut();
+            var path = CreateTempPath();
+            var sut = CreateSut(path);
 
             var result = sut.Load();
 
@@ -43,9 +32,8 @@ namespace OmniWatch.Core.Tests.Services
         [Fact]
         public void Save_And_Load_Should_Persist_Settings()
         {
-            Cleanup();
-
-            var sut = CreateSut();
+            var path = CreateTempPath();
+            var sut = CreateSut(path);
 
             var settings = new AppSettings
             {
@@ -64,9 +52,8 @@ namespace OmniWatch.Core.Tests.Services
         [Fact]
         public void Save_Should_Overwrite_Previous_Settings()
         {
-            Cleanup();
-
-            var sut = CreateSut();
+            var path = CreateTempPath();
+            var sut = CreateSut(path);
 
             sut.Save(new AppSettings
             {
@@ -86,15 +73,12 @@ namespace OmniWatch.Core.Tests.Services
         [Fact]
         public void Load_Should_Return_Default_When_File_Is_Invalid()
         {
-            Cleanup();
+            var path = CreateTempPath();
 
-            var file = GetFilePath();
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, "INVALID_JSON");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-
-            File.WriteAllText(file, "INVALID_JSON");
-
-            var sut = CreateSut();
+            var sut = CreateSut(path);
 
             var result = sut.Load();
 

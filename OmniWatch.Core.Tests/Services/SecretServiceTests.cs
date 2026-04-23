@@ -1,7 +1,6 @@
 ﻿using OmniWatch.Core.Enums;
 using OmniWatch.Core.Models;
 using OmniWatch.Core.Services;
-using System.Reflection;
 
 namespace OmniWatch.Core.Tests.Services
 {
@@ -16,14 +15,7 @@ namespace OmniWatch.Core.Tests.Services
 
         private SecretService CreateSut(string path)
         {
-            var sut = new SecretService();
-
-            var field = typeof(SecretService)
-                .GetField("_filePath", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            field!.SetValue(sut, path);
-
-            return sut;
+            return new SecretService(path);
         }
 
         // ------------------------
