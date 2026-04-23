@@ -23,10 +23,24 @@ namespace OmniWatch.Core.Services
             if (!File.Exists(_filePath))
                 return new AppSettings();
 
-            return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(_filePath))
-                   ?? new AppSettings();
-        }
+            try
+            {
+                var json = File.ReadAllText(_filePath);
 
+                return JsonSerializer.Deserialize<AppSettings>(json)
+                       ?? new AppSettings();
+            }
+            catch (JsonException)
+            {
+                // ficheiro corrompido → fallback seguro
+                return new AppSettings();
+            }
+            catch
+            {
+                // qualquer outro erro (IO, etc.)
+                return new AppSettings();
+            }
+        }
 
         public void Save(AppSettings settings)
         {

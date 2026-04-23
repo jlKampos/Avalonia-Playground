@@ -1,5 +1,6 @@
 ﻿using OmniWatch.Integrations.Contracts.OpenSky;
 using System.Text.Json;
+
 namespace OmniWatch.Integrations.Helpers
 {
     public static class OpenSkyRawConverter
@@ -8,69 +9,145 @@ namespace OmniWatch.Integrations.Helpers
         {
             return new StateVectorItem
             {
-                Icao24 = raw[0].GetString(),
-                Callsign = raw[1].GetString()?.Trim(),
-                OriginCountry = raw[2].GetString(),
+                Icao24 = SafeGetString(raw, 0),
+                Callsign = SafeGetString(raw, 1)?.Trim(),
+                OriginCountry = SafeGetString(raw, 2),
 
-                TimePosition = TryGetLong(raw[3]),
-                LastContact = TryGetLong(raw[4]),
+                TimePosition = SafeGetLong(raw, 3),
+                LastContact = SafeGetLong(raw, 4),
 
-                Longitude = TryGetDouble(raw[5]),
-                Latitude = TryGetDouble(raw[6]),
-                BaroAltitude = TryGetDouble(raw[7]),
+                Longitude = SafeGetDouble(raw, 5),
+                Latitude = SafeGetDouble(raw, 6),
+                BaroAltitude = SafeGetDouble(raw, 7),
 
-                OnGround = TryGetBool(raw[8]),
-                Velocity = TryGetDouble(raw[9]),
-                TrueTrack = TryGetDouble(raw[10]),
-                VerticalRate = TryGetDouble(raw[11]),
+                OnGround = SafeGetBool(raw, 8),
+                Velocity = SafeGetDouble(raw, 9),
+                TrueTrack = SafeGetDouble(raw, 10),
+                VerticalRate = SafeGetDouble(raw, 11),
 
-                Sensors = TryGetIntArray(raw[12]),
+                Sensors = SafeGetIntArray(raw, 12),
 
-                GeoAltitude = TryGetDouble(raw[13]),
-                Squawk = raw[14].GetString(),
-                Spi = TryGetBool(raw[15]),
-                PositionSource = TryGetInt(raw[16])
+                GeoAltitude = SafeGetDouble(raw, 13),
+
+                Squawk = SafeGetString(raw, 14),
+                Spi = SafeGetBool(raw, 15),
+                PositionSource = SafeGetInt(raw, 16)
             };
         }
 
-        private static double? TryGetDouble(JsonElement el)
+        // =========================
+        // SAFE INDEX ACCESS
+        // =========================
+        private static JsonElement? SafeGet(List<JsonElement> raw, int index)
         {
-            if (el.ValueKind == JsonValueKind.Null) return null;
-            if (el.ValueKind == JsonValueKind.Number && el.TryGetDouble(out var d)) return d;
-            if (el.ValueKind == JsonValueKind.String && double.TryParse(el.GetString(), out var s)) return s;
+            return index >= 0 && index < raw.Count
+                ? raw[index]
+                : null;
+        }
+
+        // =========================
+        // STRING
+        // =========================
+        private static string? SafeGetString(List<JsonElement> raw, int index)
+        {
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
+
+            return el.Value.ValueKind == JsonValueKind.String
+                ? el.Value.GetString()
+                : null;
+        }
+
+        // =========================
+        // DOUBLE
+        // =========================
+        private static double? SafeGetDouble(List<JsonElement> raw, int index)
+        {
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
+
+            var value = el.Value;
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetDouble(out var d))
+                return d;
+
+            if (value.ValueKind == JsonValueKind.String && double.TryParse(value.GetString(), out var s))
+                return s;
+
             return null;
         }
 
-        private static long? TryGetLong(JsonElement el)
+        // =========================
+        // LONG
+        // =========================
+        private static long? SafeGetLong(List<JsonElement> raw, int index)
         {
-            if (el.ValueKind == JsonValueKind.Null) return null;
-            if (el.ValueKind == JsonValueKind.Number && el.TryGetInt64(out var d)) return d;
-            if (el.ValueKind == JsonValueKind.String && long.TryParse(el.GetString(), out var s)) return s;
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
+
+            var value = el.Value;
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out var l))
+                return l;
+
+            if (value.ValueKind == JsonValueKind.String && long.TryParse(value.GetString(), out var s))
+                return s;
+
             return null;
         }
 
-        private static bool? TryGetBool(JsonElement el)
+        // =========================
+        // BOOL
+        // =========================
+        private static bool? SafeGetBool(List<JsonElement> raw, int index)
         {
-            if (el.ValueKind == JsonValueKind.Null) return null;
-            if (el.ValueKind == JsonValueKind.True) return true;
-            if (el.ValueKind == JsonValueKind.False) return false;
-            if (el.ValueKind == JsonValueKind.String && bool.TryParse(el.GetString(), out var b)) return b;
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
+
+            var value = el.Value;
+
+            return value.ValueKind switch
+            {
+                JsonValueKind.True => true,
+                JsonValueKind.False => false,
+                JsonValueKind.String when bool.TryParse(value.GetString(), out var b) => b,
+                _ => null
+            };
+        }
+
+        // =========================
+        // INT
+        // =========================
+        private static int? SafeGetInt(List<JsonElement> raw, int index)
+        {
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
+
+            var value = el.Value;
+
+            if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var i))
+                return i;
+
+            if (value.ValueKind == JsonValueKind.String && int.TryParse(value.GetString(), out var s))
+                return s;
+
             return null;
         }
 
-        private static int? TryGetInt(JsonElement el)
+        // =========================
+        // INT ARRAY
+        // =========================
+        private static int[]? SafeGetIntArray(List<JsonElement> raw, int index)
         {
-            if (el.ValueKind == JsonValueKind.Null) return null;
-            if (el.ValueKind == JsonValueKind.Number && el.TryGetInt32(out var d)) return d;
-            if (el.ValueKind == JsonValueKind.String && int.TryParse(el.GetString(), out var s)) return s;
-            return null;
-        }
+            var el = SafeGet(raw, index);
+            if (el is null) return null;
 
-        private static int[]? TryGetIntArray(JsonElement el)
-        {
-            if (el.ValueKind != JsonValueKind.Array) return null;
+            var value = el.Value;
 
-            return el.EnumerateArray()
+            if (value.ValueKind != JsonValueKind.Array)
+                return null;
+
+            return value.EnumerateArray()
                 .Where(x => x.ValueKind == JsonValueKind.Number && x.TryGetInt32(out _))
                 .Select(x => x.GetInt32())
                 .ToArray();

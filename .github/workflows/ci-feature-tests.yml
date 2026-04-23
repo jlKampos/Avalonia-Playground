@@ -6,6 +6,8 @@ on:
       - "ci/feature/**"
 
   pull_request:
+    branches:
+      - "ci/feature/**"
 
   workflow_dispatch:
 
@@ -26,7 +28,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: "8.0.x"
 
     # =========================
     # Restore
@@ -44,4 +46,14 @@ jobs:
     # Tests (CI GATE)
     # =========================
     - name: Test
-      run: dotnet test -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test -c Release --no-build --logger "trx" --results-directory TestResults
+
+    # =========================
+    # Upload test results
+    # =========================
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: TestResults
