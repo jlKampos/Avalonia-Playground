@@ -3,22 +3,21 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.DataProtection;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Services;
 using OmniWatch.Core.Startup;
-using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Integrations;
 using OmniWatch.Interfaces;
-using OmniWatch.Logging;
 using OmniWatch.Services;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.ProgressControl;
 using OmniWatch.ViewModels.Settings;
 using OmniWatch.Views;
 using OmniWatch.Views.Splash;
-using Serilog;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace OmniWatch;
@@ -52,6 +51,8 @@ public partial class App : Application
         services.AddIntegrations();
 
         services.AddSingleton<AppInitializer>();
+        services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "OmniWatch-Keys")));
+
         services.AddSingleton<ISecretService, SecretService>();
         services.AddSingleton<ISettingsService, SettingsService>();
         services.AddSingleton<ISecretResetService, SecretResetService>();

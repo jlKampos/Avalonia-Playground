@@ -1,17 +1,18 @@
-﻿using OmniWatch.Core.Interfaces;
+﻿using Microsoft.AspNetCore.DataProtection;
+using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Models;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+
 namespace OmniWatch.Core.Services
 {
     public class SecretService : ISecretService
     {
-
         private readonly string _filePath;
         private readonly object _lock = new();
+        private readonly IDataProtector _protector;
 
-        public SecretService()
+        public SecretService(IDataProtectionProvider provider)
         {
             var folder = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -19,9 +20,11 @@ namespace OmniWatch.Core.Services
 
             Directory.CreateDirectory(folder);
             _filePath = Path.Combine(folder, "secrets.dat");
+
+            _protector = provider.CreateProtector("OmniWatch.SecretService.v1");
         }
 
-        internal SecretService(string filePath)
+        internal SecretService(string filePath, IDataProtectionProvider provider) : this(provider)
         {
             _filePath = filePath;
         }
@@ -34,7 +37,6 @@ namespace OmniWatch.Core.Services
                 all[key.ToStorageKey()] = value;
                 SaveAll(all);
             }
-
             return Task.CompletedTask;
         }
 
@@ -44,9 +46,7 @@ namespace OmniWatch.Core.Services
             {
                 var all = LoadAll();
                 return Task.FromResult(
-                    all.TryGetValue(key.ToStorageKey(), out var value)
-                        ? value
-                        : null
+                    all.TryGetValue(key.ToStorageKey(), out var value) ? value : null
                 );
             }
         }
@@ -59,41 +59,36 @@ namespace OmniWatch.Core.Services
                 if (all.Remove(key.ToStorageKey()))
                     SaveAll(all);
             }
-
             return Task.CompletedTask;
         }
-
-
-        // -------------------------
 
         private Dictionary<string, string> LoadAll()
         {
             if (!File.Exists(_filePath))
                 return new();
 
-            var encrypted = File.ReadAllBytes(_filePath);
+            try
+            {
+                var encryptedData = File.ReadAllText(_filePath);
+                var decryptedJson = _protector.Unprotect(encryptedData);
 
-            var decrypted = ProtectedData.Unprotect(
-                encrypted, null, DataProtectionScope.CurrentUser);
-
-            var json = Encoding.UTF8.GetString(decrypted);
-
-            return JsonSerializer.Deserialize<Dictionary<string, string>>(json)
-                   ?? new();
+                return JsonSerializer.Deserialize<Dictionary<string, string>>(decryptedJson) ?? new();
+            }
+            catch (Exception)
+            {
+                return new();
+            }
         }
 
         private void SaveAll(Dictionary<string, string> data)
         {
             var json = JsonSerializer.Serialize(data);
-            var bytes = Encoding.UTF8.GetBytes(json);
 
-            var encrypted = ProtectedData.Protect(
-                bytes, null, DataProtectionScope.CurrentUser);
+            var encrypted = _protector.Protect(json);
 
             var tempFile = _filePath + ".tmp";
-            File.WriteAllBytes(tempFile, encrypted);
+            File.WriteAllText(tempFile, encrypted);
             File.Move(tempFile, _filePath, true);
         }
     }
 }
-
