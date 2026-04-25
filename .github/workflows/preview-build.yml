@@ -6,10 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: windows-latest
-    permissions:
-      contents: read
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rid: [win-x64, linux-x64]
 
     steps:
     - uses: actions/checkout@v4
@@ -18,42 +20,43 @@ jobs:
       with:
         dotnet-version: '8.0.x'
 
-    - run: dotnet restore
-    - run: dotnet build -c Release --no-restore
-    - run: dotnet test -c Release --no-build --logger "trx" --results-directory TestResults
+    - name: Restore
+      run: dotnet restore
 
-    - name: Upload test results
-      if: always()
+    - name: Publish
+      run: dotnet publish OmniWatch/OmniWatch.csproj -c Release -r ${{ matrix.rid }} --self-contained true -o publish/${{ matrix.rid }}
+
+    - name: Package Linux
+      if: matrix.rid == 'linux-x64'
+      run: tar -czf OmniWatch-Preview-linux-x64.tar.gz -C publish/linux-x64 .
+
+    - name: Package Windows
+      if: matrix.rid == 'win-x64'
+      run: zip -r OmniWatch-Preview-win-x64.zip publish/win-x64
+
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: preview-test-results
-        path: TestResults
+        name: OmniWatch-${{ matrix.rid }}
+        path: |
+          OmniWatch-Preview-*.zip
+          OmniWatch-Preview-*.tar.gz
 
   release:
-    needs: test
-    runs-on: windows-latest
+    needs: build
+    runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-dotnet@v4
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
       with:
-        dotnet-version: '8.0.x'
+        path: artifacts
 
-    - run: dotnet restore
-
-    - run: dotnet publish OmniWatch/OmniWatch.csproj -c Release -r win-x64 --self-contained true -o publish
-
-    - run: Compress-Archive -Path publish\* -DestinationPath OmniWatch-Preview.zip
-
-    - uses: actions/upload-artifact@v4
-      with:
-        name: OmniWatch-Preview
-        path: OmniWatch-Preview.zip
-
-    - uses: softprops/action-gh-release@v2
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
       with:
         tag_name: preview-${{ github.run_number }}
         name: OmniWatch Preview ${{ github.run_number }}
-        files: OmniWatch-Preview.zip
+        files: artifacts/**/*
