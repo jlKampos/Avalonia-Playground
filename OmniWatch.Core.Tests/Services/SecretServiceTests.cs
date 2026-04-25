@@ -1,4 +1,5 @@
-﻿using OmniWatch.Core.Enums;
+﻿using Microsoft.AspNetCore.DataProtection;
+using OmniWatch.Core.Enums;
 using OmniWatch.Core.Models;
 using OmniWatch.Core.Services;
 
@@ -13,9 +14,13 @@ namespace OmniWatch.Core.Tests.Services
             return Path.Combine(dir, "secrets.dat");
         }
 
+
         private SecretService CreateSut(string path)
         {
-            return new SecretService(path);
+            var provider = DataProtectionProvider.Create(
+                new DirectoryInfo(Path.GetDirectoryName(path)!));
+
+            return new SecretService(path, provider);
         }
 
         // ------------------------
