@@ -10,6 +10,12 @@ Project created for learning Avalonia
 
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=omniwatch&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=omniwatch)
 
+
+
+https://github.com/user-attachments/assets/8cd1f348-36ec-47e0-a9db-0ce91badc928
+
+
+
 https://github.com/user-attachments/assets/072676d2-6f82-44b8-8937-5a5f1913a80c
 
 
