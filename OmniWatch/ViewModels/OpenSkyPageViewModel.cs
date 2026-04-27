@@ -157,9 +157,19 @@ namespace OmniWatch.ViewModels
             }
         }
 
+        public Task UnloadAsync()
+        {
+            // Ensures all running loops are stopped when navigating away
+            _cts?.Cancel();
+            _cts = null;
+            return Task.CompletedTask;
+        }
+
         private async Task ReloadAircraftAsync()
         {
+            // Cancel any previous loop
             _cts?.Cancel();
+            _cts = null;
 
             if (!UseRealData)
             {
@@ -238,10 +248,11 @@ namespace OmniWatch.ViewModels
 
             while (!token.IsCancellationRequested)
             {
+                var start = DateTime.UtcNow;
+
                 try
                 {
                     var settings = _settingsService.Load();
-
                     var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
 
                     if (rate != null)
@@ -280,19 +291,24 @@ namespace OmniWatch.ViewModels
                     // ignore or log
                 }
 
-                try
+                // Compensate drift
+                var elapsed = DateTime.UtcNow - start;
+                var settings2 = _settingsService.Load();
+                var delay = TimeSpan.FromSeconds(settings2.RefreshInterval) - elapsed;
+
+                if (delay > TimeSpan.Zero)
                 {
-                    var settings = _settingsService.Load();
-                    await Task.Delay(settings.RefreshInterval * 1000, token);
-                }
-                catch
-                {
-                    break;
+                    try { await Task.Delay(delay, token); }
+                    catch { break; }
                 }
             }
         }
 
-        public void Stop() => _cts?.Cancel();
+        public void Stop()
+        {
+            _cts?.Cancel();
+            _cts = null;
+        }
 
         #endregion
 
@@ -321,12 +337,13 @@ namespace OmniWatch.ViewModels
                     plane.TrueTrack += random.Next(-5, 5);
                 }
 
-                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     AddAircraftLayerToMap(aircraft);
                 });
 
-                await Task.Delay(1000, token);
+                try { await Task.Delay(1000, token); }
+                catch { break; }
             }
         }
 
@@ -408,7 +425,6 @@ namespace OmniWatch.ViewModels
 
         private void AddAircraftLayerToMap(List<StateVectorDto> aircraft)
         {
-
             bool usingCircles = false;
             var features = new List<IFeature>();
 
@@ -543,7 +559,6 @@ namespace OmniWatch.ViewModels
                     Offset = new Offset(20, 0),
                     CollisionDetection = true
                 });
-
 
                 features.Add(label);
             }
