@@ -30,6 +30,11 @@ public partial class SettingsPageView : UserControl, IAsyncPage
         return Task.CompletedTask;
     }
 
+    public Task UnloadAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     private void OnSaveClick(object? sender, RoutedEventArgs e)
     {
 

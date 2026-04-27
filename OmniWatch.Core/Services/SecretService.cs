@@ -29,6 +29,11 @@ namespace OmniWatch.Core.Services
             _filePath = filePath;
         }
 
+        internal SecretService(string filePath, IDataProtectionProvider provider) : this(provider)
+        {
+            _filePath = filePath;
+        }
+
         public Task SetAsync(SecretKey key, string value)
         {
             lock (_lock)

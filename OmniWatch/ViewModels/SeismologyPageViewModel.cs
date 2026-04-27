@@ -142,6 +142,14 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
+        #region Unload
+        public Task UnloadAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+        #endregion
+
         #region Theme
 
         private void ApplyMapTheme()

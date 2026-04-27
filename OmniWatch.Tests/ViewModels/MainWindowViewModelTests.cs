@@ -17,7 +17,6 @@ public class MainWindowViewModelTests
     private MainWindowViewModel CreateVM()
     {
         var progress = new ProgressControlViewModel();
-
         return new MainWindowViewModel(_factory.Object, progress);
     }
 
@@ -151,13 +150,51 @@ public class MainWindowViewModelTests
         Assert.True(fakePage.Loaded);
     }
 
+    // =========================
+    // NEW TEST: UnloadAsync is called on previous page
+    // =========================
+
+    [Fact]
+    public async Task Navigation_Should_Call_UnloadAsync_On_Previous_Page()
+    {
+        var oldPage = new FakeAsyncPage { PageName = ApplicationPageNames.WeatherForecast };
+        var newPage = new FakeAsyncPage { PageName = ApplicationPageNames.Seismology };
+
+        _factory.Setup(x => x.GetPage(ApplicationPageNames.WeatherForecast))
+                .Returns(oldPage);
+
+        _factory.Setup(x => x.GetPage(ApplicationPageNames.Seismology))
+                .Returns(newPage);
+
+        var vm = CreateVM();
+
+        // Load first page
+        await vm.GoToWeatherCommand.ExecuteAsync(null);
+
+        // Navigate to second page
+        await vm.GoToSeismologyCommand.ExecuteAsync(null);
+
+        Assert.True(oldPage.Unloaded);
+    }
+
+    // =========================
+    // Fake page for testing
+    // =========================
+
     private class FakeAsyncPage : PageViewModel, IAsyncPage
     {
         public bool Loaded { get; private set; }
+        public bool Unloaded { get; private set; }
 
         public Task LoadAsync()
         {
             Loaded = true;
+            return Task.CompletedTask;
+        }
+
+        public Task UnloadAsync()
+        {
+            Unloaded = true;
             return Task.CompletedTask;
         }
     }

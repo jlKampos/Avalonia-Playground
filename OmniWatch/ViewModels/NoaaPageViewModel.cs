@@ -79,6 +79,11 @@ namespace OmniWatch.ViewModels
             }
         }
 
+        public Task UnloadAsync()
+        {
+            return Task.CompletedTask;
+        }
+
         private async Task InitializeMapAsync()
         {
             try
