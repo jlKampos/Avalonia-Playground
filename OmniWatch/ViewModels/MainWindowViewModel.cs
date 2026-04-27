@@ -40,7 +40,7 @@ namespace OmniWatch.ViewModels
         {
             if (Design.IsDesignMode)
             {
-                // Página fake para preview
+                // Fake page for preview
                 CurrentPage = new WeatherForecastPageViewModel();
             }
         }
@@ -50,7 +50,6 @@ namespace OmniWatch.ViewModels
             _pageFactory = pageFactory;
             ProgressControl = progressControl;
             _ = LoadInitialPageAsync();
-
         }
 
         private async Task LoadInitialPageAsync()
@@ -66,6 +65,25 @@ namespace OmniWatch.ViewModels
             IsLoadingPage = false;
         }
 
+        // Centralized navigation logic (fixes loops not stopping)
+        private async Task NavigateToAsync(ApplicationPageNames pageName, string loadingMessage)
+        {
+            IsLoadingPage = true;
+            ProgressControl.Message = loadingMessage;
+
+            // 1. Unload previous page (IMPORTANT)
+            if (CurrentPage is IAsyncPage oldPage)
+                await oldPage.UnloadAsync();
+
+            // 2. Load new page
+            var page = _pageFactory.GetPage(pageName);
+            CurrentPage = page;
+
+            if (page is IAsyncPage newPage)
+                await newPage.LoadAsync();
+
+            IsLoadingPage = false;
+        }
 
         [RelayCommand]
         private void SideMenuResize()
@@ -73,80 +91,26 @@ namespace OmniWatch.ViewModels
             SideMenuExpanded = !SideMenuExpanded;
         }
 
-        [RelayCommand]
-        private async Task GoToWeather()
-        {
-            IsLoadingPage = true;
-            ProgressControl.Message = "Loading Weather Forecast page";
-
-            var page = _pageFactory.GetPage(ApplicationPageNames.WeatherForecast);
-            CurrentPage = page;
-
-            if (page is IAsyncPage asyncPage)
-                await asyncPage.LoadAsync();
-
-            IsLoadingPage = false;
-        }
+        // 🔥 All navigation commands now use NavigateToAsync()
 
         [RelayCommand]
-        private async Task GoToSeismology()
-        {
-
-            IsLoadingPage = true;
-            ProgressControl.Message = "Loading Seismology page";
-
-            var page = _pageFactory.GetPage(ApplicationPageNames.Seismology);
-            CurrentPage = page;
-
-            if (page is IAsyncPage asyncPage)
-                await asyncPage.LoadAsync();
-
-            IsLoadingPage = false;
-        }
+        private Task GoToWeather() =>
+            NavigateToAsync(ApplicationPageNames.WeatherForecast, "Loading Weather Forecast page");
 
         [RelayCommand]
-        private async Task GoToOpenSky()
-        {
-            IsLoadingPage = true;
-            ProgressControl.Message = "Loading OpenSky page";
-
-            var page = _pageFactory.GetPage(ApplicationPageNames.OpenSky);
-            CurrentPage = page;
-
-            if (page is IAsyncPage asyncPage)
-                await asyncPage.LoadAsync();
-
-            IsLoadingPage = false;
-        }
+        private Task GoToSeismology() =>
+            NavigateToAsync(ApplicationPageNames.Seismology, "Loading Seismology page");
 
         [RelayCommand]
-        private async Task GoToNoaa()
-        {
-            IsLoadingPage = true;
-            ProgressControl.Message = "Loading NOAA NHC page";
-
-            var page = _pageFactory.GetPage(ApplicationPageNames.Noaa);
-            CurrentPage = page;
-
-            if (page is IAsyncPage asyncPage)
-                await asyncPage.LoadAsync();
-
-            IsLoadingPage = false;
-        }
+        private Task GoToOpenSky() =>
+            NavigateToAsync(ApplicationPageNames.OpenSky, "Loading OpenSky page");
 
         [RelayCommand]
-        private async Task GoToSettings()
-        {
-            IsLoadingPage = true;
-            ProgressControl.Message = "Loading OpenSKy page";
+        private Task GoToNoaa() =>
+            NavigateToAsync(ApplicationPageNames.Noaa, "Loading NOAA NHC page");
 
-            var page = _pageFactory.GetPage(ApplicationPageNames.Settings);
-            CurrentPage = page;
-
-            if (page is IAsyncPage asyncPage)
-                await asyncPage.LoadAsync();
-
-            IsLoadingPage = false;
-        }
+        [RelayCommand]
+        private Task GoToSettings() =>
+            NavigateToAsync(ApplicationPageNames.Settings, "Loading Settings page");
     }
 }

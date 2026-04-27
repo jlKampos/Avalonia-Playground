@@ -99,6 +99,12 @@ namespace OmniWatch.ViewModels
 
         }
 
+        public Task UnloadAsync()
+        {
+            return Task.CompletedTask;
+        }
+
+
         // =========================
         // DESIGN MODE CONSTRUCTOR
         // =========================

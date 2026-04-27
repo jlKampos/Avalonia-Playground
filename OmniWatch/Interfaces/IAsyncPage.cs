@@ -6,5 +6,6 @@ namespace OmniWatch.Interfaces
     public interface IAsyncPage
     {
         Task LoadAsync();
+        Task UnloadAsync();
     }
 }
