@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.DataProtection;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Models;
-using System.Text;
 using System.Text.Json;
 
 namespace OmniWatch.Core.Services
@@ -22,11 +21,6 @@ namespace OmniWatch.Core.Services
             _filePath = Path.Combine(folder, "secrets.dat");
 
             _protector = provider.CreateProtector("OmniWatch.SecretService.v1");
-        }
-
-        internal SecretService(string filePath, IDataProtectionProvider provider) : this(provider)
-        {
-            _filePath = filePath;
         }
 
         internal SecretService(string filePath, IDataProtectionProvider provider) : this(provider)

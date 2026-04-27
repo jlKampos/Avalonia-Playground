@@ -67,5 +67,8 @@
 		<ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
 		<ProjectReference Include="..\OmniWatch.Integrations\OmniWatch.Integrations.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Properties\PublishProfiles\" />
+	</ItemGroup>
 
 </Project>
