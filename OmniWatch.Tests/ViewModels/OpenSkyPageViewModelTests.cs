@@ -174,4 +174,30 @@ public class OpenSkyPageViewModelTests
 
         Assert.True(true);
     }
+
+    [Fact]
+    public async Task UnloadAsync_Should_Cancel_And_Clear_CancellationToken()
+    {
+        var vm = CreateVM();
+
+        // Força o início do loop
+        vm.UseRealData = true;
+        await vm.LoadAsync();
+
+        // Act
+        await vm.UnloadAsync();
+
+        // Assert
+        var cts = GetPrivateCts(vm);
+        Assert.Null(cts);
+    }
+
+    private CancellationTokenSource? GetPrivateCts(OpenSkyPageViewModel vm)
+    {
+        var field = typeof(OpenSkyPageViewModel)
+            .GetField("_cts", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        return (CancellationTokenSource?)field?.GetValue(vm);
+    }
+
 }
