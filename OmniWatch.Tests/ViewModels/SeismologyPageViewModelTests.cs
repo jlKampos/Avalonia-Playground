@@ -1,4 +1,5 @@
 ﻿using Moq;
+using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Contracts.Seismic;
 using OmniWatch.Integrations.Exceptions;
@@ -19,11 +20,12 @@ public class SeismologyPageViewModelTests
 {
     private readonly Mock<IIpmaService> _api = new();
     private readonly Mock<IMessageService> _message = new();
+    private readonly Mock<IGlobalProgressService> _globalProgress = new();
 
     private SeismologyPageViewModel CreateVM()
     {
         return new SeismologyPageViewModel(
-            new ProgressControlViewModel(),
+            new ProgressControlViewModel(_globalProgress.Object),
             _message.Object,
             _api.Object
         );

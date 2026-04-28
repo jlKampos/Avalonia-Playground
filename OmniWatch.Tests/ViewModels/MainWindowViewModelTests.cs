@@ -1,4 +1,5 @@
 ﻿using Moq;
+using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Interfaces;
@@ -13,10 +14,11 @@ public class MainWindowViewModelTests
 {
     private readonly Mock<IPageFactory> _factory = new();
     private readonly Mock<PageViewModel> _page = new();
+    private readonly Mock<IGlobalProgressService> _globalProgress = new();
 
     private MainWindowViewModel CreateVM()
     {
-        var progress = new ProgressControlViewModel();
+        var progress = new ProgressControlViewModel(_globalProgress.Object);
         return new MainWindowViewModel(_factory.Object, progress);
     }
 
@@ -151,7 +153,7 @@ public class MainWindowViewModelTests
     }
 
     // =========================
-    // NEW TEST: UnloadAsync is called on previous page
+    // UnloadAsync on previous page
     // =========================
 
     [Fact]
@@ -168,18 +170,11 @@ public class MainWindowViewModelTests
 
         var vm = CreateVM();
 
-        // Load first page
         await vm.GoToWeatherCommand.ExecuteAsync(null);
-
-        // Navigate to second page
         await vm.GoToSeismologyCommand.ExecuteAsync(null);
 
         Assert.True(oldPage.Unloaded);
     }
-
-    // =========================
-    // Fake page for testing
-    // =========================
 
     private class FakeAsyncPage : PageViewModel, IAsyncPage
     {

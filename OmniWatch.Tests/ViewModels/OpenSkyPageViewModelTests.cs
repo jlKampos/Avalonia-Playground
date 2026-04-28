@@ -21,6 +21,7 @@ public class OpenSkyPageViewModelTests
     private readonly Mock<IMessageService> _message = new();
     private readonly Mock<ISettingsService> _settings = new();
     private readonly Mock<IOpenSkyTokenManager> _token = new();
+    private readonly Mock<IGlobalProgressService> _globalProgress = new();
 
     private OpenSkyPageViewModel CreateVM()
     {
@@ -32,7 +33,7 @@ public class OpenSkyPageViewModelTests
             });
 
         return new OpenSkyPageViewModel(
-            new ProgressControlViewModel(),
+            new ProgressControlViewModel(_globalProgress.Object),
             _api.Object,
             _message.Object,
             _settings.Object,
