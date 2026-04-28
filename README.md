@@ -12,6 +12,14 @@ Project created for learning Avalonia
 
 
 
+https://github.com/user-attachments/assets/0fb443d6-3365-43f3-8eb5-a8840220a28e
+
+
+
+https://github.com/user-attachments/assets/6d046e22-1215-4276-9825-a48b73aa25cb
+
+
+
 https://github.com/user-attachments/assets/8cd1f348-36ec-47e0-a9db-0ce91badc928
 
 
