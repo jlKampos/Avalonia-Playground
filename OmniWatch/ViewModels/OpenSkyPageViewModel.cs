@@ -60,7 +60,7 @@ namespace OmniWatch.ViewModels
         private Map _map;
 
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
 
         #endregion
 
@@ -129,7 +129,7 @@ namespace OmniWatch.ViewModels
             IOpenSkyTokenManager tokenManager)
         {
             PageName = ApplicationPageNames.OpenSky;
-
+            _progressControl = progressControl;
             _settingsService = settingsService;
             _messageService = messageService;
             _tokenManager = tokenManager;
