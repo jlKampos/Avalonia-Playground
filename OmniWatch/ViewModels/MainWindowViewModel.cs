@@ -94,7 +94,7 @@ namespace OmniWatch.ViewModels
             SideMenuExpanded = !SideMenuExpanded;
         }
 
-        // 🔥 All navigation commands now use NavigateToAsync()
+        // All navigation commands now use NavigateToAsync()
 
         [RelayCommand]
         private Task GoToWeather() =>

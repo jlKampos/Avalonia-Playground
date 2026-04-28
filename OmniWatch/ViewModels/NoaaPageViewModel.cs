@@ -204,15 +204,10 @@ namespace OmniWatch.ViewModels
             if (map == null || storm?.Track == null || storm.Track.Count < 2)
                 return;
 
-            // -----------------------------
-            // STOP TIMER
-            // -----------------------------
             _animationTimer?.Stop();
             _animationTimer = null;
 
-            // -----------------------------
-            // CLEAN LAYERS
-            // -----------------------------
+            // Limpeza de camadas anteriores
             var layersToRemove = map.Layers
                 .Where(l => l.Name == "Storm Track" ||
                             l.Name == "Storm Head" ||
@@ -222,9 +217,6 @@ namespace OmniWatch.ViewModels
             foreach (var layer in layersToRemove)
                 map.Layers.Remove(layer);
 
-            // -----------------------------
-            // PREP DATA
-            // -----------------------------
             var stormData = storm.Track
                 .Select(p =>
                 {
@@ -233,12 +225,12 @@ namespace OmniWatch.ViewModels
                     {
                         X = x,
                         Y = y,
-                        Wind = p.Wind,
-                        Pressure = p.Pressure,
-                        Category = p.Category,
-                        Time = p.Time,
-                        Basin = p.Basin,
-                        Nature = p.Nature
+                        p.Wind,
+                        p.Pressure,
+                        p.Category,
+                        p.Time,
+                        p.Basin,
+                        p.Nature
                     };
                 })
                 .ToList();
@@ -246,102 +238,59 @@ namespace OmniWatch.ViewModels
             _segmentIndex = 0;
             _t = 0;
 
-            // -----------------------------
-            // TRACK (FULL LINE)
-            // -----------------------------
-            var fullLine = new LineString(
-                stormData.Select(p => new Coordinate(p.X, p.Y)).ToArray()
-            );
-
+            // Layer da linha completa (caminho planeado)
+            var fullLine = new LineString(stormData.Select(p => new Coordinate(p.X, p.Y)).ToArray());
             var trackLayer = new MemoryLayer
             {
                 Name = "Storm Track",
-                Features = new List<IFeature>
-                {
-                    new GeometryFeature { Geometry = fullLine }
-                },
-                Style = new VectorStyle
-                {
-                    Line = new Pen(Color.FromArgb(180, 143, 170, 0), 4)
-                }
+                Features = new List<IFeature> { new GeometryFeature { Geometry = fullLine } },
+                Style = new VectorStyle { Line = new Pen(Color.FromArgb(180, 143, 170, 0), 4) }
             };
 
-            // -----------------------------
-            // TRAIL (PROGRESSIVE)
-            // -----------------------------
+            // Layer do rastro (o que já foi percorrido)
             var trailLayer = new MemoryLayer
             {
                 Name = "Storm Trail",
                 Features = new List<IFeature>(),
-                Style = new VectorStyle
-                {
-                    Line = new Pen(Color.FromArgb(120, 143, 170, 0), 4)
-                }
+                Style = new VectorStyle { Line = new Pen(Color.FromArgb(120, 143, 170, 0), 4) }
             };
 
-            // -----------------------------
-            // HEAD LAYER
-            // -----------------------------
+            // Layer da "cabeça" (ícone + label)
             _stormHeadLayer = new MemoryLayer
             {
                 Name = "Storm Head",
-                Features = new List<IFeature>()
+                Features = new List<IFeature>(),
+                Style = null // Importante: Garante que a layer não aplique estilos padrão
             };
 
             map.Layers.Add(trackLayer);
             map.Layers.Add(trailLayer);
             map.Layers.Add(_stormHeadLayer);
 
-            // -----------------------------
-            // ZOOM ONCE
-            // -----------------------------
             if (!_hasInitialZoom)
             {
                 map.Navigator.ZoomToBox(trackLayer.Extent?.Grow(5));
                 _hasInitialZoom = true;
             }
 
-            // -----------------------------
-            // IMAGE
-            // -----------------------------
-            var imagePath = Path.Combine(
-                AppContext.BaseDirectory,
-                "Assets",
-                "Images",
-                "Noaa",
-                "hurricane.svg");
+            var imagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Images", "Noaa", "hurricane.svg");
+            var hurricaneImage = new Mapsui.Styles.Image { Source = new Uri(imagePath).AbsoluteUri };
 
-            var hurricaneImage = new Mapsui.Styles.Image
-            {
-                Source = new Uri(imagePath).AbsoluteUri
-            };
-
-            // -----------------------------
-            // TIMER (SMOOTH 30 FPS)
-            // -----------------------------
-            _animationTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(33) // ~30 FPS
-            };
+            _animationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
 
             _animationTimer.Tick += (s, e) =>
             {
                 if (_segmentIndex >= stormData.Count - 1)
                 {
                     _animationTimer.Stop();
-
-                    if (reanimateProvider())
-                        StartCycloneAnimation(map, storm, reanimateProvider);
-
+                    if (reanimateProvider()) StartCycloneAnimation(map, storm, reanimateProvider);
                     return;
                 }
 
                 var a = stormData[_segmentIndex];
                 var b = stormData[_segmentIndex + 1];
 
-                // smooth interpolation
                 _t += 0.08;
-
                 if (_t >= 1)
                 {
                     _t = 0;
@@ -349,92 +298,70 @@ namespace OmniWatch.ViewModels
                     return;
                 }
 
-                var pos = Lerp(
-                    new MPoint(a.X, a.Y),
-                    new MPoint(b.X, b.Y),
-                    _t
-                );
+                var pos = Lerp(new MPoint(a.X, a.Y), new MPoint(b.X, b.Y), _t);
 
-                // -----------------------------
-                // WIND INTERPOLATION
-                // -----------------------------
+                // Cálculo de escala e rotação
                 float wind = (float)(a.Wind + (b.Wind - a.Wind) * _t);
-
-                float scale = 0.5f + (wind / 150f);
-                scale = Math.Clamp(scale, 0.5f, 1.8f);
-
+                float scale = Math.Clamp(0.5f + (wind / 150f), 0.5f, 1.8f);
                 _currentRotation = (_currentRotation + 6) % 360;
 
-                // -----------------------------
-                // HEAD
-                // -----------------------------
-                var headFeature = new PointFeature(pos);
-                headFeature.Styles.Add(new ImageStyle
+                // --- ÚNICO FEATURE PARA ÍCONE E LABEL ---
+                var stormFeature = new PointFeature(pos)
+                {
+                    Styles = new List<IStyle>()
+                };
+
+                // 1. Estilo da Imagem (Ícone Verde)
+                // Ao definir ImageStyle, o Mapsui ignora o círculo branco padrão
+                stormFeature.Styles.Add(new ImageStyle
                 {
                     Image = hurricaneImage,
                     SymbolScale = scale,
                     SymbolRotation = _currentRotation
                 });
 
-                // -----------------------------
-                // LABEL
-                // -----------------------------
+                // 2. Estilo da Label (Texto à direita)
                 var item = stormData[_segmentIndex];
-
-                var labelFeature = new PointFeature(pos);
-                labelFeature.Styles.Add(new LabelStyle
+                stormFeature.Styles.Add(new LabelStyle
                 {
-                    Text =
-                        $"{item.Time:yyyy-MM-dd HH:mm}\n" +
-                        $"Wind: {item.Wind} kt\n" +
-                        $"Pressure: {item.Pressure} hPa\n" +
-                        $"Cat: {item.Category}\n" +
-                        $"Basin: {item.Basin}\n" +
-                        $"Nature: {item.Nature}",
+                    Text = $"{item.Time:yyyy-MM-dd HH:mm}\n" +
+                           $"Wind: {item.Wind} kt\n" +
+                           $"Pressure: {item.Pressure} hPa\n" +
+                           $"Cat: {item.Category}\n" +
+                           $"Basin: {item.Basin}\n" +
+                           $"Nature: {item.Nature}",
 
-                    BorderThickness = 1,
-                    BorderColor = Color.FromArgb(255, 60, 100, 0),
-
-                    ForeColor = Color.FromArgb(255, 25, 16, 0),
                     BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
+                    BorderColor = Color.FromArgb(255, 60, 100, 0),
+                    BorderThickness = 1,
+                    ForeColor = Color.FromArgb(255, 25, 16, 0),
+                    Font = new Font { Size = 12, Bold = true },
 
-                    Font = new Font
-                    {
-                        Size = 12,
-                        Bold = true
-                    },
+                    HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
+                    VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
 
-                    Offset = new Offset(20, 0),
-                    CollisionDetection = true
+                    // Deslocamento em PIXELS: 35 para a direita, 0 para cima/baixo
+                    Offset = new Offset(35, 0),
+                    CollisionDetection = false
                 });
 
-                // -----------------------------
-                // TRAIL (incremental)
-                // -----------------------------
+                // Atualização do Rastro (Trail)
                 var coords = stormData
                     .Take(_segmentIndex + 1)
                     .Select(p => new Coordinate(p.X, p.Y))
-                    .ToArray();
+                    .ToList();
+                coords.Add(new Coordinate(pos.X, pos.Y)); // Adiciona a posição atual suavemente
 
-                if (coords.Length > 1)
+                if (coords.Count > 1)
                 {
                     trailLayer.Features = new List<IFeature>
                     {
-                        new GeometryFeature
-                        {
-                            Geometry = new LineString(coords)
-                        }
+                        new GeometryFeature { Geometry = new LineString(coords.ToArray()) }
                     };
                 }
 
-                // -----------------------------
-                // UPDATE LAYERS
-                // -----------------------------
-                _stormHeadLayer.Features = new List<IFeature>
-                {
-                    headFeature,
-                    labelFeature
-                };
+                // Atualiza a cabeça da tempestade
+                _stormHeadLayer.Features = new List<IFeature> { stormFeature };
 
                 map.RefreshGraphics();
             };

@@ -20,6 +20,9 @@
 		<None Update="Assets\Images\Noaa\hurricane.svg">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="Assets\Images\Noaa\hurricane.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<!-- Apenas ajustes específicos -->
