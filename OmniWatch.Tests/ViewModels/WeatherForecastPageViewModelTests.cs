@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using Moq;
+using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.Awarness;
 using OmniWatch.Integrations.Contracts.Forecast;
 using OmniWatch.Integrations.Contracts.Locations;
@@ -31,11 +32,12 @@ public class WeatherForecastPageViewModelTests
 {
     private readonly Mock<IIpmaService> _api = new();
     private readonly Mock<IMessageService> _message = new();
+    private readonly Mock<IGlobalProgressService> _globalProgress = new();
 
     private WeatherForecastPageViewModel CreateVM()
     {
         return new WeatherForecastPageViewModel(
-            new ProgressControlViewModel(),
+            new ProgressControlViewModel(_globalProgress.Object),
             _message.Object,
             _api.Object
         );
