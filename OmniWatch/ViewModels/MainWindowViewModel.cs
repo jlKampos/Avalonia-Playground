@@ -5,6 +5,7 @@ using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Interfaces;
 using OmniWatch.ViewModels.ProgressControl;
+using OmniWatch.Views.Progress;
 using System.Threading.Tasks;
 
 namespace OmniWatch.ViewModels
@@ -20,7 +21,8 @@ namespace OmniWatch.ViewModels
         private bool _isLoadingPage;
 
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
+
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
@@ -36,8 +38,9 @@ namespace OmniWatch.ViewModels
         public bool NoaaPageIsActive => CurrentPage.PageName == ApplicationPageNames.Noaa;
         public bool SettingsPageIsActive => CurrentPage.PageName == ApplicationPageNames.Settings;
 
-        public MainWindowViewModel()
+        public MainWindowViewModel(ProgressControlViewModel progressControl)
         {
+            ProgressControl = progressControl;
             if (Design.IsDesignMode)
             {
                 // Fake page for preview

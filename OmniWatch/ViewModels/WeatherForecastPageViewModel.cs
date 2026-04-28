@@ -39,7 +39,7 @@ namespace OmniWatch.ViewModels
         private List<PrecipitationDto> PrecepitationTypes { get; set; } = new();
 
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
 
         [ObservableProperty]
         private ForecastItemDto? _selectedTab;

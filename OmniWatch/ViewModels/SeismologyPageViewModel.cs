@@ -54,7 +54,7 @@ namespace OmniWatch.ViewModels
         private DateTime _selectedDate = DateTime.Now;
 
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
 
         public bool IsDarkTheme
         {

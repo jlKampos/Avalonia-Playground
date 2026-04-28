@@ -34,7 +34,7 @@ namespace OmniWatch.ViewModels.Settings
         #region Observable Properties
 
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
 
         [ObservableProperty]
         private string _openSkyClientId;

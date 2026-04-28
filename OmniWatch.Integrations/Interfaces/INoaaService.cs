@@ -4,8 +4,8 @@ namespace OmniWatch.Integrations.Interfaces
 {
     public interface INoaaService
     {
-        Task<List<CycloneItem>> GetActiveCyclonesAsync();
+        Task<List<StormTrack>> GetActiveStormTracksAsync();
 
-        Task<CycloneItem?> GetCycloneByIdAsync(string id);
+        Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, IProgress<string>? progress = null);
     }
 }

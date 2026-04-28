@@ -37,5 +37,17 @@ namespace OmniWatch.Integrations.Services
             var json = await response.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
+
+        public async Task<Stream> GetStreamAsync(string endpoint, ApiType type)
+        {
+            var client = _factory.CreateClient(type.ToString());
+
+            var response = await client.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead);
+
+            if (!response.IsSuccessStatusCode)
+                throw new ApiException($"Failed request: {response.StatusCode}");
+
+            return await response.Content.ReadAsStreamAsync();
+        }
     }
 }

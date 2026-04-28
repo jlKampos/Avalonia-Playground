@@ -6,6 +6,6 @@ namespace OmniWatch.ViewModels.Splash
     public partial class SplashViewModel : ViewModelBase
     {
         [ObservableProperty]
-        private ProgressControlViewModel _progressControl = new();
+        private ProgressControlViewModel _progressControl;
     }
 }
