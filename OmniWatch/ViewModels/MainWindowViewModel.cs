@@ -6,6 +6,7 @@ using OmniWatch.Factory;
 using OmniWatch.Interfaces;
 using OmniWatch.ViewModels.ProgressControl;
 using OmniWatch.Views.Progress;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace OmniWatch.ViewModels
@@ -23,6 +24,7 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         private ProgressControlViewModel _progressControl;
 
+        public string WindowTitle => $"OmniWatch {Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]

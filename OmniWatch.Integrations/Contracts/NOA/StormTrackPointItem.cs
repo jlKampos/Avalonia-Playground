@@ -2,6 +2,8 @@
 {
     public class StormTrackPointItem
     {
+        public int Id { get; set; }
+
         public DateTime Time { get; set; }
 
         public double Latitude { get; set; }

@@ -15,7 +15,7 @@
 		x:Class="OmniWatch.Views.MainWindow"
 		x:DataType="vm:MainWindowViewModel"
 		Icon="/Assets/Images/w_icon.ico"
-		Title="OmniWatch"
+		Title="{Binding WindowTitle}"
 		Background="{StaticResource DarkPrimary}">
 
 	<Design.DataContext>
