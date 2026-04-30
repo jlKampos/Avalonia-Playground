@@ -5,6 +5,12 @@ namespace OmniWatch.Core.Helpers
 {
     public static class JwtHelper
     {
+        private static string FixBase64(string input)
+        {
+            input = input.Replace('-', '+').Replace('_', '/');
+            return input.PadRight(input.Length + (4 - input.Length % 4) % 4, '=');
+        }
+
         public static JsonElement DecodePayload(string jwt)
         {
             var parts = jwt.Split('.');
@@ -12,15 +18,7 @@ namespace OmniWatch.Core.Helpers
             if (parts.Length != 3)
                 throw new ArgumentException("Invalid JWT format");
 
-            var payload = parts[1];
-
-            // Corrigir padding Base64
-            payload = payload.Replace('-', '+').Replace('_', '/');
-            switch (payload.Length % 4)
-            {
-                case 2: payload += "=="; break;
-                case 3: payload += "="; break;
-            }
+            var payload = FixBase64(parts[1]);
 
             var bytes = Convert.FromBase64String(payload);
             var json = Encoding.UTF8.GetString(bytes);
@@ -38,13 +36,10 @@ namespace OmniWatch.Core.Helpers
                 if (parts.Length < 2)
                     return true;
 
-                var payload = parts[1];
-
-                // fix base64 padding
-                payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
+                var payload = FixBase64(parts[1]);
 
                 var jsonBytes = Convert.FromBase64String(payload);
-                var json = JsonDocument.Parse(jsonBytes);
+                using var json = JsonDocument.Parse(jsonBytes);
 
                 if (!json.RootElement.TryGetProperty("exp", out var exp))
                     return true;
@@ -55,9 +50,8 @@ namespace OmniWatch.Core.Helpers
             }
             catch
             {
-                return true; // assume invalid if parsing fails
+                return true;
             }
         }
     }
-
 }
