@@ -1,8 +1,10 @@
-﻿using Microsoft.VisualBasic.FileIO;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.FileIO;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.NOA;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
+using OmniWatch.Integrations.Persistence;
 using System.Globalization;
 using System.Xml.Linq;
 
@@ -13,13 +15,15 @@ namespace OmniWatch.Integrations.Services
         private readonly HttpClient _client;
         private readonly IIbtracsClient _ibtracsClient;
         private readonly IGlobalProgressService _progress;
+        private readonly NoaaCacheContext _db;
         public NoaaService(
             IHttpClientFactory factory,
-            IIbtracsClient ibtracsClient, IGlobalProgressService progress)
+            IIbtracsClient ibtracsClient, IGlobalProgressService progress, NoaaCacheContext db)
         {
             _client = factory.CreateClient(ApiType.Noaa.ToString());
             _progress = progress;
             _ibtracsClient = ibtracsClient;
+            _db = db;
         }
 
         private void Report(string msg) => _progress.Report(msg);
@@ -33,16 +37,60 @@ namespace OmniWatch.Integrations.Services
         }
 
         // HISTORICAL STORMS (IBTrACS)
-        public async Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, IProgress<string>? progress = null)
+        public async Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, CancellationToken cancellationToken, IProgress<string>? progress = null)
         {
-            Report("Downloading CSV…");
-            var csvPath = await _ibtracsClient.GetLocalCsvPathAsync();
-            using var reader = new StreamReader(csvPath);
+            Report("Checking local data");
 
-            return await Task.Run(() =>
+            var startOfYear = new DateTime(year, 1, 1);
+            var endOfYear = new DateTime(year, 12, 31, 23, 59, 59);
+
+            var cached = await _db.StormTracks
+                 .AsNoTracking()
+                 .Include(s => s.Track)
+                 .Where(s => s.Track.Any(p => p.Time >= startOfYear && p.Time <= endOfYear))
+                 .ToListAsync(cancellationToken);
+
+            if (cached.Any()) return cached;
+
+            var csvPath = await _ibtracsClient.GetLocalCsvPathAsync();
+
+            var freshData = await Task.Run(() =>
             {
-                return ParseIbtracsStream(reader, year);
-            });
+                using var reader = new StreamReader(csvPath);
+                return ParseIbtracsStream(reader, year, cancellationToken);
+            }, cancellationToken);
+
+            if (freshData.Any() && !cancellationToken.IsCancellationRequested)
+            {
+                Report("Updating local database...");
+
+                var strategy = _db.Database.CreateExecutionStrategy();
+
+                await strategy.ExecuteAsync(async () =>
+                {
+                    using var transaction = await _db.Database.BeginTransactionAsync(cancellationToken);
+                    try
+                    {
+                        var idsToRemove = freshData.Select(x => x.Id).ToList();
+
+                        await _db.StormTracks
+                            .Where(s => idsToRemove.Contains(s.Id))
+                            .ExecuteDeleteAsync(cancellationToken);
+
+                        await _db.StormTracks.AddRangeAsync(freshData, cancellationToken);
+                        await _db.SaveChangesAsync(cancellationToken);
+
+                        await transaction.CommitAsync(cancellationToken);
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync(cancellationToken);
+                        throw;
+                    }
+                });
+            }
+
+            return freshData;
         }
 
         // =========================
@@ -115,9 +163,9 @@ namespace OmniWatch.Integrations.Services
         // =========================
         // IBTrACS PARSER (HISTORICAL)
         // =========================
-        private List<StormTrack> ParseIbtracsStream(StreamReader reader, int year)
+        private List<StormTrack> ParseIbtracsStream(StreamReader reader, int year, CancellationToken cancellationToken)
         {
-            Report("Parsing CSV…");
+            Report("Parsing CSV data...");
             var stormDict = new Dictionary<string, StormTrack>();
 
             using var parser = new TextFieldParser(reader)
@@ -125,24 +173,23 @@ namespace OmniWatch.Integrations.Services
                 TextFieldType = FieldType.Delimited,
                 HasFieldsEnclosedInQuotes = true
             };
-
             parser.SetDelimiters(",");
 
-            // =========================
+            // =========================================================
             // 1. FIND HEADER ROW
-            // =========================
+            // =========================================================
             string[]? headers = null;
 
             while (!parser.EndOfData)
             {
+                // Check for cancellation before processing the next line
+                if (cancellationToken.IsCancellationRequested) return [];
+
                 var row = parser.ReadFields();
+                if (row == null || row.Length < 5) continue;
 
-                if (row == null || row.Length < 5)
-                    continue;
-
-                if (row.Any(h =>
-                    h.Equals("LAT", StringComparison.OrdinalIgnoreCase) ||
-                    h.Equals("LON", StringComparison.OrdinalIgnoreCase)))
+                // Detect header by looking for the Latitude column
+                if (row.Any(h => h.Equals("LAT", StringComparison.OrdinalIgnoreCase)))
                 {
                     headers = row;
                     break;
@@ -150,126 +197,109 @@ namespace OmniWatch.Integrations.Services
             }
 
             if (headers == null)
-                return new List<StormTrack>();
+            {
+                Report("Error: CSV headers not found.");
+                return [];
+            }
 
-            // =========================
-            // 2. MAP COLUMNS
-            // =========================
+            // =========================================================
+            // 2. COLUMN MAPPING
+            // =========================================================
             int latIndex = FindColumn(headers, ["LAT", "LATITUDE"]);
             int lonIndex = FindColumn(headers, ["LON", "LONGITUDE"]);
             int idIndex = FindColumn(headers, ["SID"]);
             int nameIndex = FindColumn(headers, ["NAME"]);
             int seasonIndex = FindColumn(headers, ["SEASON", "YEAR"]);
-
             int timeIndex = FindColumn(headers, ["ISO_TIME", "TIME", "DATE"]);
-
             int windIndex = FindColumn(headers, ["USA_WIND", "WIND"]);
             int pressureIndex = FindColumn(headers, ["USA_PRES", "PRES"]);
             int categoryIndex = FindColumn(headers, ["USA_SSHS"]);
-
             int basinIndex = FindColumn(headers, ["BASIN"]);
             int natureIndex = FindColumn(headers, ["NATURE"]);
 
+            // Required columns validation
             if (latIndex < 0 || lonIndex < 0 || seasonIndex < 0)
-                return new List<StormTrack>();
+            {
+                Report("Error: Missing required columns (Lat/Lon/Season).");
+                return [];
+            }
 
-            // =========================
-            // 3. SANITIZER
-            // =========================
+            // =========================================================
+            // 3. INTERNAL SANITIZERS (Helpers)
+            // =========================================================
+
+            // Clean strings and handle null/empty/NA values
             static string Clean(string? v)
             {
                 if (string.IsNullOrWhiteSpace(v)) return null;
-                if (v == "-999" || v == "-99" || v == "NA") return null;
-                return v.Trim();
+                v = v.Trim();
+                return (v == "-999" || v == "-99" || v == "NA") ? null : v;
             }
 
-            static int SafeInt(string? v)
-            {
-                v = Clean(v);
-                return int.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out var i) ? i : 0;
-            }
+            static int SafeInt(string? v) =>
+                int.TryParse(Clean(v), NumberStyles.Any, CultureInfo.InvariantCulture, out var i) ? i : 0;
 
-            static double SafeDouble(string? v)
-            {
-                v = Clean(v);
-                return double.TryParse(v, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0;
-            }
+            static double SafeDouble(string? v) =>
+                double.TryParse(Clean(v), NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0;
 
-            static DateTime? SafeDate(string? v)
-            {
-                v = Clean(v);
-                if (v == null) return null;
+            static DateTime? SafeDate(string? v) =>
+                DateTime.TryParse(Clean(v), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var dt) ? dt : null;
 
-                return DateTime.TryParse(v, CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal, out var dt)
-                    ? dt
-                    : null;
-            }
-
-            // =========================
-            // 4. PARSE DATA
-            // =========================
+            // =========================================================
+            // 4. DATA EXTRACTION LOOP
+            // =========================================================
             while (!parser.EndOfData)
             {
+                // CRITICAL: Stop processing immediately if user cancels/leaves the page
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    Report("Parsing operation aborted by user.");
+                    return [];
+                }
+
                 var parts = parser.ReadFields();
-                if (parts == null)
+                if (parts == null || parts.Length <= Math.Max(latIndex, lonIndex))
                     continue;
 
-                if (parts.Length <= Math.Max(latIndex, lonIndex))
-                    continue;
-
+                // Filter by the requested year (Season)
                 if (!int.TryParse(parts[seasonIndex], out var season) || season != year)
                     continue;
 
                 var lat = SafeDouble(parts.ElementAtOrDefault(latIndex));
                 var lon = SafeDouble(parts.ElementAtOrDefault(lonIndex));
 
-                if (lat == 0 && lon == 0)
-                    continue;
+                // Skip records with invalid coordinates
+                if (lat == 0 && lon == 0) continue;
 
                 var id = Clean(parts.ElementAtOrDefault(idIndex)) ?? "UNKNOWN";
                 var name = Clean(parts.ElementAtOrDefault(nameIndex)) ?? "UNKNOWN";
 
+                // Group points by Storm ID (SID)
                 if (!stormDict.TryGetValue(id, out var storm))
                 {
-                    storm = new StormTrack
-                    {
-                        Id = id,
-                        Name = name
-                    };
-
+                    storm = new StormTrack { Id = id, Name = name };
                     stormDict[id] = storm;
                 }
 
-                var time = timeIndex >= 0 && timeIndex < parts.Length
-                    ? SafeDate(parts[timeIndex])
-                    : null;
-
-                var basin = basinIndex >= 0 ? Clean(parts.ElementAtOrDefault(basinIndex)) : null;
-                var nature = natureIndex >= 0 ? Clean(parts.ElementAtOrDefault(natureIndex)) : null;
-
+                // Parse and add point data
                 storm.Track.Add(new StormTrackPointItem
                 {
-                    Time = time ?? DateTime.MinValue,
-
+                    Time = (timeIndex >= 0 ? SafeDate(parts.ElementAtOrDefault(timeIndex)) : null) ?? DateTime.MinValue,
                     Latitude = lat,
-                    Longitude = NormalizeLon(lon),
+                    Longitude = NormalizeLon(lon), // Normalizes longitude to [-180, 180]
 
                     Wind = windIndex >= 0 ? SafeInt(parts.ElementAtOrDefault(windIndex)) : 0,
                     Pressure = pressureIndex >= 0 ? SafeInt(parts.ElementAtOrDefault(pressureIndex)) : 0,
                     Category = categoryIndex >= 0 ? SafeInt(parts.ElementAtOrDefault(categoryIndex)) : 0,
 
-                    Basin = basin ?? "UNKNOWN",
-                    Nature = nature ?? "UNKNOWN",
-
-                    DistanceToLand = 0 // opcional futuro cálculo
+                    Basin = (basinIndex >= 0 ? Clean(parts.ElementAtOrDefault(basinIndex)) : null) ?? "UNKNOWN",
+                    Nature = (natureIndex >= 0 ? Clean(parts.ElementAtOrDefault(natureIndex)) : null) ?? "UNKNOWN"
                 });
             }
 
-            Report("Parsing complete.");
+            Report($"Parsing complete. Found {stormDict.Count} storms for year {year}.");
             return stormDict.Values.ToList();
         }
-
 
 
         //// =========================

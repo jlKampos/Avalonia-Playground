@@ -6,6 +6,6 @@ namespace OmniWatch.Integrations.Interfaces
     {
         Task<List<StormTrack>> GetActiveStormTracksAsync();
 
-        Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, IProgress<string>? progress = null);
+        Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, CancellationToken cancellationToken, IProgress<string>? progress = null);
     }
 }

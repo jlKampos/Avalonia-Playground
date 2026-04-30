@@ -1,12 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
+		<InformationalVersion>1.0.0</InformationalVersion>
+		<IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<ApplicationIcon>Assets\Images\w_icon.ico</ApplicationIcon>
+
+		<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 	</PropertyGroup>
 
 	<!-- Avalonia Resources -->
@@ -14,46 +17,41 @@
 		<AvaloniaResource Include="Assets\Images\**\*" />
 		<AvaloniaResource Include="Assets\Fonts\**\*" />
 		<AvaloniaResource Include="Assets\Styles\**\*" />
+
 		<None Update="Assets\Images\OpenSky\airplane.svg">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Images\Noaa\hurricane.svg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Assets\Images\Noaa\hurricane.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 
-	<!-- Apenas ajustes específicos -->
 	<ItemGroup>
 		<AvaloniaResource Update="Assets\Fonts\Phosphor-Fill.ttf" />
 		<AvaloniaResource Update="Assets\Fonts\Phosphor.ttf" />
-
 		<AvaloniaResource Update="Assets\Styles\DarkVintageTheme.axaml">
 			<SubType>Designer</SubType>
 		</AvaloniaResource>
 	</ItemGroup>
 
-	<!-- Compile fix -->
 	<ItemGroup>
 		<Compile Update="Views\OpenSky\OpenSkyPageView.axaml.cs">
 			<DependentUpon>OpenSkyPageView.axaml</DependentUpon>
 		</Compile>
 	</ItemGroup>
 
-	<!-- Packages -->
 	<ItemGroup>
 		<PackageReference Include="Avalonia" Version="11.3.12" />
 		<PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.12" />
-
 		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.12">
 			<IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
 			<PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
 		</PackageReference>
-
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
 		<PackageReference Include="FluentAvalonia.ProgressRing" Version="1.69.2" />
 		<PackageReference Include="Mapsui.Avalonia" Version="5.0.2" />
@@ -68,17 +66,17 @@
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
 		<PackageReference Include="Svg.Controls.Avalonia" Version="11.3.9.5" />
-
 		<PackageReference Include="HarfBuzzSharp" Version="8.3.1.3" />
 		<PackageReference Include="HarfBuzzSharp.NativeAssets.Win32" Version="8.3.1.3" />
 		<PackageReference Include="HarfBuzzSharp.NativeAssets.WebAssembly" Version="8.3.1.3" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
 		<ProjectReference Include="..\OmniWatch.Integrations\OmniWatch.Integrations.csproj" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<Folder Include="Properties\PublishProfiles\" />
 	</ItemGroup>
-
 </Project>

@@ -2,8 +2,12 @@ name: Preview Build
 
 on:
   push:
-    branches: [ "ci/preview" ]
+    branches: ["ci/preview"]
   workflow_dispatch:
+
+concurrency:
+  group: preview-release
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -14,33 +18,57 @@ jobs:
         rid: [win-x64, linux-x64]
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Restore
-      run: dotnet restore
+      - name: Restore
+        run: dotnet restore
 
-    - name: Publish
-      run: dotnet publish OmniWatch/OmniWatch.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:DebugType=embedded -o publish/${{ matrix.rid }}
+      # -----------------------------
+      # PUBLISH (VERSION + UI VERSION)
+      # -----------------------------
+      - name: Publish
+        run: >
+          dotnet publish OmniWatch/OmniWatch.csproj
+          -c Release
+          -r ${{ matrix.rid }}
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:DebugType=embedded
+          -p:Version=1.0.${{ github.run_number }}
+          -p:VersionSuffix=preview
+          -p:InformationalVersion=1.0.${{ github.run_number }}-preview
+          -o publish/${{ matrix.rid }}
 
-    - name: Package Linux
-      if: matrix.rid == 'linux-x64'
-      run: tar -czf OmniWatch-Preview-linux-x64.tar.gz -C publish/linux-x64 .
+      # -----------------------------
+      # PACKAGE
+      # -----------------------------
+      - name: Package Linux
+        if: matrix.rid == 'linux-x64'
+        run: |
+          cd publish/linux-x64
+          tar -czf ../../OmniWatch-1.0.${{ github.run_number }}-preview-linux-x64.tar.gz .
 
-    - name: Package Windows
-      if: matrix.rid == 'win-x64'
-      run: zip -r OmniWatch-Preview-win-x64.zip publish/win-x64
+      - name: Package Windows
+        if: matrix.rid == 'win-x64'
+        run: |
+          cd publish/win-x64
+          zip -r ../../OmniWatch-1.0.${{ github.run_number }}-preview-win-x64.zip .
 
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: OmniWatch-${{ matrix.rid }}
-        path: |
-          OmniWatch-Preview-*.zip
-          OmniWatch-Preview-*.tar.gz
+      # -----------------------------
+      # UPLOAD ARTIFACTS
+      # -----------------------------
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniWatch-${{ matrix.rid }}
+          path: OmniWatch-1.0.${{ github.run_number }}-preview-${{ matrix.rid }}.*
+          if-no-files-found: error
 
   release:
     needs: build
@@ -49,14 +77,30 @@ jobs:
       contents: write
 
     steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
+      # -----------------------------
+      # DOWNLOAD
+      # -----------------------------
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
 
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: preview-${{ github.run_number }}
-        name: OmniWatch Preview ${{ github.run_number }}
-        files: artifacts/**/*
+      # -----------------------------
+      # CREATE PREVIEW RELEASE
+      # -----------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: preview-${{ github.run_number }}
+          name: OmniWatch 1.0.${{ github.run_number }}-preview
+          body: |
+            🧪 Preview Build
+
+            Version: 1.0.${{ github.run_number }}-preview
+            Branch: ci/preview
+
+            Auto-generated build for testing.
+
+          files: artifacts/**/*
+          prerelease: true
+          draft: false

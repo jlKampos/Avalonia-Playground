@@ -79,10 +79,16 @@
 		</Border>
 
 		<!-- Map Body -->
-		<Border Padding="0" IsVisible="{Binding !ProgressControl.IsVisible}" Grid.Row="1">
+		<Border Grid.Row="1"
+				Padding="0" IsVisible="{Binding !ProgressControl.IsVisible}"
+				Background="{DynamicResource ResourceKey=PanelGradient}">
 			<Grid>
 				<!-- Mapa -->
-				<mapsui:MapControl x:Name="MyMapControl" />
+				<mapsui:MapControl x:Name="MyMapControl"
+								   Background="Transparent"
+								   HorizontalAlignment="Stretch"
+								   VerticalAlignment="Stretch"
+								   Margin="0" />
 
 				<Grid RowDefinitions="Auto,*" HorizontalAlignment="Right"
 					  VerticalAlignment="Top"
