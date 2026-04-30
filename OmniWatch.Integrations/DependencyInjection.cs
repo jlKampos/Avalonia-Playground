@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Services;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
+using OmniWatch.Integrations.Persistence;
 using OmniWatch.Integrations.Services;
 
 namespace OmniWatch.Integrations
@@ -11,6 +13,39 @@ namespace OmniWatch.Integrations
     {
         public static IServiceCollection AddIntegrations(this IServiceCollection services)
         {
+
+            // --- SQLITE ---
+            var dbName = "omniwatch_cache.db";
+            var dbPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "OmniWatch",
+                dbName);
+
+            var directory = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            services.AddDbContext<NoaaCacheContext>(options =>
+            {
+                options.UseSqlite($"Data Source={dbPath}");
+            });
+
+            // Temp scope 
+            using (var serviceProvider = services.BuildServiceProvider())
+            {
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
+                    db.Database.EnsureCreated();
+                }
+            }
+            // ---------------------------
+
+            services.AddSingleton<IApiClient, ApiClient>();
+
+
+            // NOAA SERVICE (Agora vai receber o contexto via DI)
+            services.AddTransient<INoaaService, NoaaService>();
+
             services.AddSingleton<IApiClient, ApiClient>();
 
             // IPMA
