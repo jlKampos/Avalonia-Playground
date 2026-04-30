@@ -43,23 +43,33 @@ namespace OmniWatch.Integrations.Services
         public async Task<string> GetRoleAsync()
         {
             var token = await GetTokenAsync();
-
             if (string.IsNullOrWhiteSpace(token))
                 return "OPENSKY_API_DEFAULT";
 
             var payload = JwtHelper.DecodePayload(token);
 
-            if (payload.TryGetProperty("roles", out var rolesElement))
+            // 1) realm_access.roles
+            if (payload.TryGetProperty("realm_access", out var realm) &&
+                realm.TryGetProperty("roles", out var realmRoles) &&
+                realmRoles.ValueKind == JsonValueKind.Array &&
+                realmRoles.GetArrayLength() > 0)
             {
-                if (rolesElement.ValueKind == JsonValueKind.Array)
-                    return rolesElement[0].GetString() ?? "OPENSKY_API_DEFAULT";
+                return realmRoles[0].GetString() ?? "OPENSKY_API_DEFAULT";
+            }
 
-                if (rolesElement.ValueKind == JsonValueKind.String)
-                    return rolesElement.GetString() ?? "OPENSKY_API_DEFAULT";
+            // 2) roles (string ou array)
+            if (payload.TryGetProperty("roles", out var roles))
+            {
+                if (roles.ValueKind == JsonValueKind.Array && roles.GetArrayLength() > 0)
+                    return roles[0].GetString() ?? "OPENSKY_API_DEFAULT";
+
+                if (roles.ValueKind == JsonValueKind.String)
+                    return roles.GetString() ?? "OPENSKY_API_DEFAULT";
             }
 
             return "OPENSKY_API_DEFAULT";
         }
+
 
         public async Task<string?> GetTokenAsync()
         {
@@ -234,9 +244,7 @@ namespace OmniWatch.Integrations.Services
                     };
                 }
 
-                var data = JsonSerializer.Deserialize<OpenSkyTokenResponse>(
-                    json,
-                    _jsonOptions);
+                var data = JsonSerializer.Deserialize<OpenSkyTokenResponse>(json, _jsonOptions);
 
                 return new OpenSkyAuthResult
                 {
