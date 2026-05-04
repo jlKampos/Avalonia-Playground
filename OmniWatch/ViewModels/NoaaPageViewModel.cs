@@ -2,6 +2,7 @@
 using BruTile.Predefined;
 using BruTile.Web;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Mapsui;
 using Mapsui.Layers;
 using Mapsui.Limiting;
@@ -20,6 +21,7 @@ using OmniWatch.Mapping.Noaa;
 using OmniWatch.Models.Noaa;
 using OmniWatch.Models.Noaa.ActiveStorms;
 using OmniWatch.Models.Noaa.ArchiveStorms;
+using OmniWatch.ViewModels.MessageDialog;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
@@ -157,7 +159,6 @@ namespace OmniWatch.ViewModels
 
                 ApplyMapTheme();
 
-
                 // Initial zoom on Atlantic/Europe
                 var initialExtent = new MRect(-12000000, 0, 4000000, 8000000);
                 Map.Navigator.ZoomToBox(initialExtent);
@@ -209,7 +210,6 @@ namespace OmniWatch.ViewModels
         }
 
 
-
         private async Task LoadHistoricalStormsAsync(CancellationToken cancellationToken)
         {
             ProgressControl.IsVisible = true;
@@ -237,6 +237,7 @@ namespace OmniWatch.ViewModels
             {
                 _logger.LogError(ex, "Historical Load Error");
                 await _messageService.ShowAsync($"Error: {ex.Message}", MessageDialogType.Error);
+                ProgressControl.IsVisible = false;
             }
             finally
             {
@@ -282,7 +283,7 @@ namespace OmniWatch.ViewModels
                            $"Pres: {storm.Pressure} hPa\n" +
                            $"Mov: {storm.Movement}",
 
-                    BackColor = new Brush(Color.FromArgb(191, 255, 165, 0)), // Laranja #BFFFA500
+                    BackColor = new Brush(Color.FromArgb(191, 255, 165, 0)),
                     BorderColor = Color.FromArgb(255, 255, 140, 0),
                     BorderThickness = 1,
                     ForeColor = Color.FromArgb(255, 25, 16, 0),
@@ -307,7 +308,6 @@ namespace OmniWatch.ViewModels
             {
                 _activeRotation = (_activeRotation - 10) % 360;
 
-                // Atualiza a rotação de todas as features nesta camada
                 var layer = map.Layers.FirstOrDefault(l => l.Name == "Active Storms Layer") as MemoryLayer;
                 if (layer != null)
                 {
@@ -518,5 +518,40 @@ namespace OmniWatch.ViewModels
             if (value && _lastStorm != null && (_animationTimer == null || !_animationTimer.IsEnabled))
                 StartCycloneAnimation(Map, _lastStorm, () => Reanimate);
         }
+
+        [RelayCommand]
+        public async Task ForceRefreshAsync()
+        {
+            var result = await _messageService.ShowAsync(
+                "Do you want to clear your local cache and download the latest data from NOAA?",
+                MessageDialogType.Warning);
+
+            if (result == MessageDialogResult.Ok)
+            {
+                try
+                {
+                    ProgressControl.IsVisible = true;
+
+                    // Cancela operações atuais se houver
+                    _cts?.Cancel();
+                    _cts = new CancellationTokenSource();
+
+                    // Chama a limpeza
+                    await _apiClient.ClearCacheAsync(_cts.Token);
+
+                    // Recarrega os dados do ano atual automaticamente
+                    await LoadHistoricalStormsAsync(_cts.Token);
+                }
+                catch (Exception ex)
+                {
+                    await _messageService.ShowAsync($"Error clearing cache: {ex.Message}", MessageDialogType.Error);
+                }
+                finally
+                {
+                    ProgressControl.IsVisible = false;
+                }
+            }
+        }
+
     }
 }

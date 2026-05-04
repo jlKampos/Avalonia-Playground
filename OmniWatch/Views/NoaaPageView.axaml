@@ -68,6 +68,29 @@
 							  SelectedItem="{Binding SelectedHurricane}"
 							  Width="150"
 							  VerticalAlignment="Center"/>
+
+					<Button Command="{Binding ForceRefreshCommand}"
+							IsEnabled="{Binding !ProgressControl.IsVisible}"
+							ToolTip.Tip="Clear cache and update NOAA data."
+							Background="{StaticResource DarkAccent}"
+							Foreground="{StaticResource DarkPrimary}"
+							BorderThickness="0"
+							Width="35"
+							Height="35"
+							Padding="0"
+							HorizontalContentAlignment="Center"
+							VerticalContentAlignment="Center"
+							VerticalAlignment="Center">
+
+						<TextBlock FontFamily="{DynamicResource PhosphorFill}"
+
+								   FontSize="20"
+								   Text="&#xE75A;"
+								   HorizontalAlignment="Center"
+								   VerticalAlignment="Center"
+								   TextAlignment="Center"/>
+					</Button>
+
 				</StackPanel>
 
 			</Grid>

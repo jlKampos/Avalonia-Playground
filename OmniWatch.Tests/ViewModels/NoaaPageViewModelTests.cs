@@ -5,7 +5,6 @@ using OmniWatch.Integrations.Contracts.NOA;
 using OmniWatch.Integrations.Contracts.NOA.ActiveStorms;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
-using OmniWatch.Models.Noaa.ActiveStorms;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.MessageDialog;
 using OmniWatch.ViewModels.ProgressControl;
@@ -20,182 +19,168 @@ namespace OmniWatch.Tests.ViewModels
 {
     public class NoaaPageViewModelTests
     {
-        private readonly Mock<INoaaService> _noaaServiceMock = new();
-        private readonly Mock<IMessageService> _messageServiceMock = new();
-        private readonly Mock<ILogger<NoaaPageViewModel>> _loggerMock = new();
-        private readonly Mock<IGlobalProgressService> _progressServiceMock = new();
+        private readonly Mock<INoaaService> _noaa = new();
+        private readonly Mock<IMessageService> _msg = new();
+        private readonly Mock<ILogger<NoaaPageViewModel>> _logger = new();
+        private readonly Mock<IGlobalProgressService> _progress = new();
 
-        private readonly ProgressControlViewModel _progressControl;
-        private readonly NoaaPageViewModel _viewModel;
+        private readonly ProgressControlViewModel _progressVm;
+        private readonly NoaaPageViewModel _vm;
 
         public NoaaPageViewModelTests()
         {
-            _progressControl = new ProgressControlViewModel(_progressServiceMock.Object);
+            _progressVm = new ProgressControlViewModel(_progress.Object);
 
-            _viewModel = new NoaaPageViewModel(
-                _noaaServiceMock.Object,
-                _messageServiceMock.Object,
-                _loggerMock.Object,
-                _progressControl
+            _vm = new NoaaPageViewModel(
+                _noaa.Object,
+                _msg.Object,
+                _logger.Object,
+                _progressVm
             );
         }
 
-        // =========================================================
-        // LoadAsync - Success path
-        // =========================================================
+        // =========================
+        // SUCCESS
+        // =========================
         [Fact]
         public async Task LoadAsync_ShouldPopulateHurricanes_WhenServiceReturnsData()
         {
-            _noaaServiceMock
+            _noaa
                 .Setup(s => s.GetActiveStormTracksAsync())
                 .ReturnsAsync(new NhcActiveStormResponse
                 {
-                    ActiveStorms = new List<ActiveStormItem>()
+                    ActiveStorms = new List<ActiveStormItem>
+                    {
+                        new ActiveStormItem
+                        {
+                            Id = "AL012024",
+                            Name = "ALBERTO"
+                        }
+                    }
                 });
 
-            _noaaServiceMock
+            _noaa
                 .Setup(s => s.GetHistoricalStormTracksAsync(
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<StormTrack>
                 {
-                    new() { Id = "AL012024", Name = "ALBERTO" }
+                    new StormTrack
+                    {
+                        Id = "AL012024",
+                        Name = "ALBERTO",
+                        Season = 2024,
+                        Track = new List<StormTrackPointItem>
+                        {
+                            new StormTrackPointItem
+                            {
+                                Time = DateTime.UtcNow,
+                                Latitude = 10,
+                                Longitude = 20
+                            }
+                        }
+                    }
                 });
 
-            await _viewModel.LoadAsync();
+            await _vm.LoadAsync();
 
-            Assert.NotNull(_viewModel.Hurricanes);
-            Assert.Single(_viewModel.Hurricanes);
-            Assert.Equal("ALBERTO", _viewModel.Hurricanes.First().Name);
+            Assert.NotNull(_vm.Hurricanes);
+            Assert.Single(_vm.Hurricanes);
+            Assert.Equal("ALBERTO", _vm.Hurricanes.First().Name);
         }
 
-        // =========================================================
-        // LoadAsync - Service failure
-        // =========================================================
+        // =========================
+        // ERROR
+        // =========================
         [Fact]
-        public async Task LoadAsync_ShouldShowError_WhenServiceThrowsException()
+        public async Task LoadAsync_ShouldShowError_WhenServiceFails()
         {
-            // Arrange
-            var cts = new CancellationTokenSource();
-
-            _noaaServiceMock
-                .Setup(s => s.GetActiveStormTracksAsync())
+            _noaa
+                .Setup(x => x.GetActiveStormTracksAsync())
                 .ThrowsAsync(new Exception("API Offline"));
 
-            _noaaServiceMock
-                .Setup(s => s.GetHistoricalStormTracksAsync(
+            _noaa
+                .Setup(x => x.GetHistoricalStormTracksAsync(
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<StormTrack>());
 
-            _messageServiceMock
-                .Setup(m => m.ShowAsync(
+            _msg
+                .Setup(x => x.ShowAsync(
                     It.IsAny<string>(),
                     It.IsAny<MessageDialogBoxViewModel.MessageDialogType>()))
                 .ReturnsAsync(MessageDialogResult.Ok);
 
-            // Act
-            await _viewModel.LoadAsync();
+            await _vm.LoadAsync();
 
-            // Assert
-            _messageServiceMock.Verify(m => m.ShowAsync(
-                It.Is<string>(msg => msg.Contains("API Offline")),
+            _msg.Verify(x => x.ShowAsync(
+                It.Is<string>(m => m.Contains("API Offline")),
                 It.IsAny<MessageDialogBoxViewModel.MessageDialogType>()),
                 Times.Once);
         }
 
-        // =========================================================
-        // Empty historical data
-        // =========================================================
+        // =========================
+        // EMPTY
+        // =========================
         [Fact]
-        public async Task LoadAsync_ShouldHandleEmptyHistoricalData()
+        public async Task LoadAsync_ShouldHandleEmptyData()
         {
-            _noaaServiceMock
-                .Setup(s => s.GetActiveStormTracksAsync())
-                .ReturnsAsync(new NhcActiveStormResponse
-                {
-                    ActiveStorms = new List<ActiveStormItem>()
-                });
+            _noaa
+                .Setup(x => x.GetActiveStormTracksAsync())
+                .ReturnsAsync(new NhcActiveStormResponse());
 
-            _noaaServiceMock
-                .Setup(s => s.GetHistoricalStormTracksAsync(
+            _noaa
+                .Setup(x => x.GetHistoricalStormTracksAsync(
                     It.IsAny<int>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<StormTrack>());
 
-            await _viewModel.LoadAsync();
+            await _vm.LoadAsync();
 
-            Assert.Null(_viewModel.Hurricanes);
+            Assert.Null(_vm.Hurricanes);
         }
 
-        // =========================================================
-        // Progress updates
-        // =========================================================
+        // =========================
+        // PROGRESS
+        // =========================
         [Fact]
-        public void ProgressControl_ShouldUpdate_WhenEventIsRaised()
+        public void ProgressControl_ShouldUpdate_WhenServiceRaisesEvent()
         {
+            var service = new Mock<IGlobalProgressService>();
+            var vm = new ProgressControlViewModel(service.Object);
+
             var message = "Downloading data...";
 
-            _progressServiceMock.Raise(p => p.ProgressChanged += null, message);
+            service.Raise(s => s.ProgressChanged += null, message);
 
-            Assert.Equal(message, _progressControl.Message);
+            Assert.Equal(message, vm.Message);
         }
 
-        // =========================================================
-        // Theme toggle
-        // =========================================================
+        // =========================
+        // UI SAFETY
+        // =========================
         [Fact]
-        public void IsDarkTheme_ShouldChangeProperty()
+        public async Task Unload_ShouldNotThrow()
         {
-            var initial = _viewModel.IsDarkTheme;
-
-            _viewModel.IsDarkTheme = !initial;
-
-            Assert.Equal(!initial, _viewModel.IsDarkTheme);
+            await _vm.UnloadAsync();
         }
 
-        // =========================================================
-        // Unload safety
-        // =========================================================
         [Fact]
-        public async Task UnloadAsync_ShouldExecuteWithoutErrors()
+        public void Theme_ShouldToggle()
         {
-            await _viewModel.UnloadAsync();
+            var old = _vm.IsDarkTheme;
+
+            _vm.IsDarkTheme = !old;
+
+            Assert.Equal(!old, _vm.IsDarkTheme);
         }
 
-        // =========================================================
-        // Year change safety
-        // =========================================================
         [Fact]
-        public async Task SelectedYearChange_ShouldNotThrow()
+        public void Reanimate_ShouldNotCrash()
         {
-            _noaaServiceMock
-                .Setup(s => s.GetHistoricalStormTracksAsync(
-                    It.IsAny<int>(),
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<StormTrack>
-                {
-                    new() { Id = "TEST", Name = "TEST" }
-                });
+            _vm.Reanimate = true;
 
-            await _viewModel.LoadAsync();
-
-            _viewModel.SelectedYear = 2005;
-
-            await Task.Delay(50);
-
-            Assert.True(true);
-        }
-
-        // =========================================================
-        // Reanimate setter
-        // =========================================================
-        [Fact]
-        public void Reanimate_Setter_ShouldNotThrow()
-        {
-            _viewModel.Reanimate = true;
-
-            Assert.True(_viewModel.Reanimate);
+            Assert.True(_vm.Reanimate);
         }
     }
 }

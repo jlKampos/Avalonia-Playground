@@ -7,24 +7,49 @@ namespace OmniWatch.Integrations.Persistence
     {
         public DbSet<StormTrack> StormTracks { get; set; }
         public DbSet<StormTrackPointItem> StormPoints { get; set; }
+        public DbSet<DbMetadata> Metadata { get; set; }
 
-        public NoaaCacheContext(DbContextOptions<NoaaCacheContext> options) : base(options) { }
+        public NoaaCacheContext(DbContextOptions<NoaaCacheContext> options)
+            : base(options)
+        {
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // O ID do IBTrACS (SID) será a nossa chave primária
-            modelBuilder.Entity<StormTrack>().HasKey(s => s.Id);
+            // =========================
+            // METADATA
+            // =========================
+            modelBuilder.Entity<DbMetadata>()
+                .HasKey(m => m.Key);
 
-            modelBuilder.Entity<StormTrackPointItem>().HasKey("Id");
-
-            // Relacionamento: Um StormTrack tem muitos StormPoints
+            // =========================
+            // STORM TRACK
+            // =========================
             modelBuilder.Entity<StormTrack>()
-                .HasMany(s => s.Track)
-                .WithOne()
+                .HasKey(s => s.Id);
+
+            modelBuilder.Entity<StormTrack>()
+                .HasIndex(s => s.Season);
+
+            // =========================
+            // STORM POINTS
+            // =========================
+            modelBuilder.Entity<StormTrackPointItem>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<StormTrackPointItem>()
+                .HasIndex(p => p.Time);
+
+            // =========================
+            // RELATIONSHIP (EXPLÍCITA)
+            // =========================
+            modelBuilder.Entity<StormTrackPointItem>()
+                .HasOne<StormTrack>()
+                .WithMany(s => s.Track)
+                .HasForeignKey(p => p.StormTrackId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Indexar o tempo para buscas rápidas por ano
-            modelBuilder.Entity<StormTrackPointItem>().HasIndex(p => p.Time);
+            base.OnModelCreating(modelBuilder);
         }
     }
 }

@@ -2,6 +2,7 @@
 {
     public interface IIbtracsClient
     {
-        Task<string> GetLocalCsvPathAsync();
+        Task<(Stream Stream, DateTimeOffset LastModified)> GetRemoteStreamAsync(CancellationToken ct);
+        Task<DateTimeOffset?> GetRemoteLastModifiedAsync(CancellationToken ct);
     }
 }
