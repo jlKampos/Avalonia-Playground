@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace OmniWatch.Integrations.Contracts.NOA
+﻿namespace OmniWatch.Integrations.Contracts.NOA
 {
     public class StormTrack
     {

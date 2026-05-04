@@ -24,8 +24,8 @@
 		<None Update="Assets\Images\Noaa\hurricane.svg">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="Assets\Images\Noaa\hurricane.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<None Update="Assets\Images\Noaa\activeHurricane.svg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
 

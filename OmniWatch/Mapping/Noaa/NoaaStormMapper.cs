@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.NOA;
-using OmniWatch.Models.Noaa;
+using OmniWatch.Models.Noaa.ArchiveStorms;
 using System.Collections.Generic;
 using System.Linq;
 

@@ -90,6 +90,25 @@
 								   VerticalAlignment="Stretch"
 								   Margin="0" />
 
+				<Grid HorizontalAlignment="Left"
+					  VerticalAlignment="Top"
+					  Margin="10"
+					  RowSpacing="5">
+
+					<Border Background="#BFFFA500"
+							CornerRadius="4"
+							Padding="7"
+							Margin="5,0,0,0"
+							VerticalAlignment="Center"
+							IsVisible="{Binding AnyActiveStorms}">
+						<TextBlock Text="{Binding ActiveStormsMessage}"
+								   Foreground="#FF191000"
+								   FontSize="10"
+								   FontWeight="Bold"
+								   TextWrapping="Wrap"/>
+					</Border>
+				</Grid>
+
 				<Grid RowDefinitions="Auto,*" HorizontalAlignment="Right"
 					  VerticalAlignment="Top"
 					  Margin="10"

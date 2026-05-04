@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic.FileIO;
 using OmniWatch.Core.Interfaces;
+using OmniWatch.Integrations.Contracts.Locations;
 using OmniWatch.Integrations.Contracts.NOA;
+using OmniWatch.Integrations.Contracts.NOA.ActiveStorms;
 using OmniWatch.Integrations.Enums;
+using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Integrations.Persistence;
 using System.Globalization;
@@ -13,27 +16,39 @@ namespace OmniWatch.Integrations.Services
     public class NoaaService : INoaaService
     {
         private readonly HttpClient _client;
+        private readonly IApiClient _apiClient;
         private readonly IIbtracsClient _ibtracsClient;
         private readonly IGlobalProgressService _progress;
         private readonly NoaaCacheContext _db;
         public NoaaService(
             IHttpClientFactory factory,
-            IIbtracsClient ibtracsClient, IGlobalProgressService progress, NoaaCacheContext db)
+            IIbtracsClient ibtracsClient, IGlobalProgressService progress,
+            IApiClient apiClient, NoaaCacheContext db)
         {
             _client = factory.CreateClient(ApiType.Noaa.ToString());
             _progress = progress;
             _ibtracsClient = ibtracsClient;
+            _apiClient = apiClient;
             _db = db;
         }
 
         private void Report(string msg) => _progress.Report(msg);
 
         // ACTIVE STORMS (KML)
-        public async Task<List<StormTrack>> GetActiveStormTracksAsync()
+        public async Task<NhcActiveStormResponse> GetActiveStormTracksAsync()
         {
-            var kml = await _client.GetStringAsync("gis/kml/nhc_active.kml");
+            //var kml = await _client.GetStringAsync("gis/kml/nhc_active.kml");
 
-            return ParseKml(kml);
+            //return ParseKml(kml);
+
+            try
+            {
+                return await _apiClient.GetAsync<NhcActiveStormResponse>("productexamples/NHC_JSON_Sample.json", ApiType.Noaa).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new ApiException("Failed to load active storms", ex);
+            }
         }
 
         // HISTORICAL STORMS (IBTrACS)
@@ -93,72 +108,6 @@ namespace OmniWatch.Integrations.Services
             return freshData;
         }
 
-        // =========================
-        // KML PARSER (ACTIVE)
-        // =========================
-        private List<StormTrack> ParseKml(string kml)
-        {
-            XDocument doc = XDocument.Parse(kml);
-
-            XNamespace ns = "http://www.opengis.net/kml/2.2";
-
-            var tracks = new List<StormTrack>();
-
-            var placemarks = doc.Descendants(ns + "Placemark");
-
-            foreach (var pm in placemarks)
-            {
-                var name = pm.Element(ns + "name")?.Value ?? "UNKNOWN";
-
-                var lineString = pm.Descendants(ns + "LineString").FirstOrDefault();
-
-                if (lineString == null)
-                    continue;
-
-                var coordsText = lineString.Element(ns + "coordinates")?.Value;
-
-                if (string.IsNullOrWhiteSpace(coordsText))
-                    continue;
-
-                tracks.Add(new StormTrack
-                {
-                    Name = name,
-                    Track = ParseCoordinates(coordsText)
-                });
-            }
-
-            return tracks;
-        }
-
-        // =========================
-        // COORDINATES PARSER
-        // =========================
-        private List<StormTrackPointItem> ParseCoordinates(string coords)
-        {
-            var result = new List<StormTrackPointItem>();
-
-            var lines = coords.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var line in lines)
-            {
-                var parts = line.Split(',');
-
-                if (parts.Length < 2)
-                    continue;
-
-                if (double.TryParse(parts[1], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) &&
-                    double.TryParse(parts[0], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
-                {
-                    result.Add(new StormTrackPointItem
-                    {
-                        Latitude = lat,
-                        Longitude = lon
-                    });
-                }
-            }
-
-            return result;
-        }
 
         // =========================
         // IBTrACS PARSER (HISTORICAL)
