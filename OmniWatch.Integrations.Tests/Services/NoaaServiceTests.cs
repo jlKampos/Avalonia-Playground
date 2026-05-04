@@ -1,169 +1,237 @@
-﻿using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.NOA;
-using OmniWatch.Integrations.Enums;
+using OmniWatch.Integrations.Contracts.NOA.ActiveStorms;
+using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Integrations.Persistence;
 using OmniWatch.Integrations.Services;
-using OmniWatch.Integrations.Tests.Handlers;
-using System.Net;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 
-namespace OmniWatch.Integrations.Tests.Services
+namespace OmniWatch.Integrations.Tests.Services;
+
+public class NoaaServiceTests
 {
-    public class NoaaServiceTests : IDisposable
+    private readonly Mock<IHttpClientFactory> _factory = new();
+    private readonly Mock<IIbtracsClient> _ibtracs = new();
+    private readonly Mock<IGlobalProgressService> _progress = new();
+    private readonly Mock<IApiClient> _api = new();
+
+    private NoaaCacheContext CreateDb()
     {
-        private readonly Mock<IHttpClientFactory> _factoryMock;
-        private readonly Mock<IIbtracsClient> _ibtracsMock;
-        private readonly Mock<IGlobalProgressService> _progressMock;
-        private readonly NoaaCacheContext _db;
-        private readonly SqliteConnection _connection;
+        var options = new DbContextOptionsBuilder<NoaaCacheContext>()
+            .UseSqlite("Filename=:memory:")
+            .Options;
 
-        public NoaaServiceTests()
+        var db = new NoaaCacheContext(options);
+        db.Database.OpenConnection();
+        db.Database.EnsureCreated();
+
+        return db;
+    }
+
+    private NoaaService CreateSut(NoaaCacheContext db)
+    {
+        _factory.Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(new HttpClient());
+
+        return new NoaaService(
+            _factory.Object,
+            _ibtracs.Object,
+            _progress.Object,
+            _api.Object,
+            db
+        );
+    }
+
+    // =========================
+    // ACTIVE STORMS
+    // =========================
+
+    [Fact]
+    public async Task GetActiveStormTracksAsync_Should_Return_Data()
+    {
+        _api.Setup(x => x.GetAsync<NhcActiveStormResponse>(
+                It.IsAny<string>(),
+                It.IsAny<Integrations.Enums.ApiType>()))
+            .ReturnsAsync(new NhcActiveStormResponse());
+
+        var sut = CreateSut(CreateDb());
+
+        var result = await sut.GetActiveStormTracksAsync();
+
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task GetActiveStormTracksAsync_Should_Throw_ApiException_On_Error()
+    {
+        _api.Setup(x => x.GetAsync<NhcActiveStormResponse>(
+                It.IsAny<string>(),
+                It.IsAny<Integrations.Enums.ApiType>()))
+            .ThrowsAsync(new Exception("fail"));
+
+        var sut = CreateSut(CreateDb());
+
+        await Assert.ThrowsAsync<ApiException>(() =>
+            sut.GetActiveStormTracksAsync());
+    }
+
+    // =========================
+    // HISTORICAL - CACHE HIT
+    // =========================
+
+    [Fact]
+    public async Task GetHistoricalStormTracksAsync_Should_Return_Cached_Data()
+    {
+        var db = CreateDb();
+
+        db.StormTracks.Add(new StormTrack
         {
-            _factoryMock = new Mock<IHttpClientFactory>();
-            _ibtracsMock = new Mock<IIbtracsClient>();
-            _progressMock = new Mock<IGlobalProgressService>();
-
-            _connection = new SqliteConnection("Filename=:memory:");
-            _connection.Open();
-
-            var options = new DbContextOptionsBuilder<NoaaCacheContext>()
-                .UseSqlite(_connection)
-                .Options;
-
-            _db = new NoaaCacheContext(options);
-            _db.Database.EnsureCreated();
-        }
-
-        private NoaaService CreateService(HttpClient client)
-        {
-            _factoryMock
-                .Setup(f => f.CreateClient(ApiType.Noaa.ToString()))
-                .Returns(client);
-
-            return new NoaaService(
-                _factoryMock.Object,
-                _ibtracsMock.Object,
-                _progressMock.Object,
-                _db);
-        }
-
-        // =========================
-        // ACTIVE STORMS (KML)
-        // =========================
-        [Fact]
-        public async Task GetActiveStormTracksAsync_Should_Parse_Kml_Correctly()
-        {
-            // Arrange
-            var kml = @"<?xml version=""1.0"" encoding=""UTF-8""?>
-                <kml xmlns=""http://www.opengis.net/kml/2.2"">
-                <Document>
-                    <Placemark>
-                        <name>AL182024 - Hurricane Milton</name>
-                        <LineString>
-                            <coordinates>-85.5,22.1,0 -84.2,23.5,0</coordinates>
-                        </LineString>
-                    </Placemark>
-                </Document>
-                </kml>";
-
-            var handler = new FakeHttpMessageHandler(_ =>
-                new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(kml) });
-
-            var client = new HttpClient(handler) { BaseAddress = new Uri("https://noaa.test/") };
-            var service = CreateService(client);
-
-            // Act
-            var result = await service.GetActiveStormTracksAsync();
-
-            // Assert
-            Assert.Single(result);
-            Assert.Equal("AL182024 - Hurricane Milton", result[0].Name);
-            Assert.Equal(2, result[0].Track.Count);
-            Assert.Equal(22.1, result[0].Track[0].Latitude); // Lat é o segundo valor no KML (lon,lat)
-        }
-
-        // =========================
-        // CACHE LOGIC (DB)
-        // =========================
-        [Fact]
-        public async Task GetHistoricalStormTracksAsync_Should_Return_Cached_Data_If_Exists()
-        {
-            // Arrange
-            var year = 2024;
-            var stormId = "AL182024"; // O ID da Storm continua string (ex: SID do IBTrACS)
-
-            var cachedStorm = new StormTrack
+            Id = "A",
+            Name = "StormA",
+            Track = new List<StormTrackPointItem>
             {
-                Id = stormId,
-                Name = "MILTON"
-            };
+                new StormTrackPointItem
+                {
+                    Time = new DateTime(2020,1,1),
+                    Latitude = 10,
+                    Longitude = 10,
+                    Basin = "NA",
+                    Nature = "TS"
+                }
+            }
+        });
 
-            cachedStorm.Track.Add(new StormTrackPointItem
-            {
-                Time = new DateTime(year, 10, 5, 12, 0, 0, DateTimeKind.Utc),
-                Latitude = 22.1,
-                Longitude = -85.5,
-                Basin = "NA",
-                Nature = "TS"
-            });
+        await db.SaveChangesAsync();
 
-            _db.StormTracks.Add(cachedStorm);
-            await _db.SaveChangesAsync();
+        var sut = CreateSut(db);
 
-            // Importante: Limpar o cache de rastreio para forçar leitura do SQLite
-            _db.ChangeTracker.Clear();
+        var result = await sut.GetHistoricalStormTracksAsync(
+            2020,
+            CancellationToken.None);
 
-            var service = CreateService(new HttpClient());
+        Assert.Single(result);
 
-            // Act
-            var result = await service.GetHistoricalStormTracksAsync(year, CancellationToken.None);
+        _ibtracs.Verify(x => x.GetLocalCsvPathAsync(), Times.Never);
+    }
 
-            // Assert
-            Assert.NotEmpty(result);
-            Assert.Equal(stormId, result[0].Id);
+    // =========================
+    // HISTORICAL - CSV LOAD
+    // =========================
 
-            // Se o banco retornou dados, o Mock do Client NUNCA deve ter sido chamado
-            _ibtracsMock.Verify(x => x.GetLocalCsvPathAsync(), Times.Never);
-        }
+    [Fact]
+    public async Task GetHistoricalStormTracksAsync_Should_Parse_Csv_And_Save()
+    {
+        var db = CreateDb();
 
-        [Fact]
-        public async Task GetHistoricalStormTracksAsync_Should_Parse_Csv_And_Save_To_Db_On_Cache_Miss()
-        {
-            // Arrange
-            var year = 2023;
-            // O parser espera as colunas específicas que você definiu no FindColumn
-            var csvContent =
-                "SID,SEASON,NAME,LAT,LON,ISO_TIME,USA_WIND,USA_PRES,USA_SSHS,BASIN,NATURE\n" +
-                "Header,Line,Units,,,,,,,,\n" +
-                "2023001,2023,IDALIA,24.5,-83.1,2023-08-30 12:00:00,100,950,3,NA,TS";
+        var csv = BuildValidCsv();
 
-            var tempFile = Path.GetTempFileName();
-            File.WriteAllText(tempFile, csvContent);
+        var path = Path.GetTempFileName();
+        await File.WriteAllTextAsync(path, csv);
 
-            _ibtracsMock.Setup(x => x.GetLocalCsvPathAsync()).ReturnsAsync(tempFile);
-            var service = CreateService(new HttpClient());
+        _ibtracs.Setup(x => x.GetLocalCsvPathAsync())
+            .ReturnsAsync(path);
 
-            // Act
-            var result = await service.GetHistoricalStormTracksAsync(year, CancellationToken.None);
+        var sut = CreateSut(db);
 
-            // Assert
-            Assert.Single(result);
-            Assert.Equal("IDALIA", result[0].Name);
+        var result = await sut.GetHistoricalStormTracksAsync(
+            2021,
+            CancellationToken.None);
 
-            // Verifica se salvou no DB real (SQLite em memória)
-            var dbCount = await _db.StormTracks.CountAsync();
-            Assert.Equal(1, dbCount);
+        Assert.Single(result);
 
-            if (File.Exists(tempFile)) File.Delete(tempFile);
-        }
-        public void Dispose()
-        {
-            _db.Database.EnsureDeleted();
-            _db.Dispose();
-        }
+        var saved = await db.StormTracks
+            .Include(x => x.Track)
+            .ToListAsync();
+
+        Assert.Single(saved);
+        Assert.True(saved.First().Track.Count > 0);
+    }
+
+    // =========================
+    // HISTORICAL - CANCEL
+    // =========================
+
+    [Fact]
+    public async Task GetHistoricalStormTracksAsync_Should_Respect_Cancellation()
+    {
+        var db = CreateDb();
+
+        var sut = CreateSut(db);
+
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
+            sut.GetHistoricalStormTracksAsync(2021, cts.Token));
+    }
+
+    // =========================
+    // PARSER EDGE CASES
+    // =========================
+
+    [Fact]
+    public async Task Parser_Should_Skip_Invalid_LatLon()
+    {
+        var db = CreateDb();
+
+        var csv = @"SID,SEASON,LAT,LON,NAME
+A,2021,0,0,StormA";
+
+        var path = Path.GetTempFileName();
+        await File.WriteAllTextAsync(path, csv);
+
+        _ibtracs.Setup(x => x.GetLocalCsvPathAsync())
+            .ReturnsAsync(path);
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetHistoricalStormTracksAsync(
+            2021,
+            CancellationToken.None);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task Parser_Should_Handle_Missing_Headers()
+    {
+        var db = CreateDb();
+
+        var csv = @"INVALID,DATA
+1,2";
+
+        var path = Path.GetTempFileName();
+        await File.WriteAllTextAsync(path, csv);
+
+        _ibtracs.Setup(x => x.GetLocalCsvPathAsync())
+            .ReturnsAsync(path);
+
+        var sut = CreateSut(db);
+
+        var result = await sut.GetHistoricalStormTracksAsync(
+            2021,
+            CancellationToken.None);
+
+        Assert.Empty(result);
+    }
+
+    // =========================
+    // HELPERS
+    // =========================
+
+    private static string BuildValidCsv()
+    {
+        return @"SID,SEASON,LAT,LON,NAME,ISO_TIME,USA_WIND,USA_PRES,USA_SSHS,BASIN,NATURE
+            A,2021,10,20,StormA,2021-01-01 00:00:00,50,1000,1,NA,TS
+            A,2021,11,21,StormA,2021-01-01 06:00:00,60,990,2,NA,TS";
     }
 }

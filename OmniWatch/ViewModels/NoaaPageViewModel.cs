@@ -1,7 +1,10 @@
 ﻿using Avalonia.Threading;
+using BruTile.Predefined;
+using BruTile.Web;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mapsui;
 using Mapsui.Layers;
+using Mapsui.Limiting;
 using Mapsui.Nts;
 using Mapsui.Projections;
 using Mapsui.Styles;
@@ -15,6 +18,8 @@ using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
 using OmniWatch.Mapping.Noaa;
 using OmniWatch.Models.Noaa;
+using OmniWatch.Models.Noaa.ActiveStorms;
+using OmniWatch.Models.Noaa.ArchiveStorms;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
@@ -22,8 +27,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BruTile.Predefined;
-using BruTile.Web;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.ViewModels
@@ -40,6 +43,9 @@ namespace OmniWatch.ViewModels
         private int _segmentIndex = 0;
         private double _t = 0;
         private DispatcherTimer? _animationTimer;
+        private float _activeRotation = 0;
+        private DispatcherTimer? _activeStormsRotationTimer;
+
         private int _currentRotation = 0;
         private StormTrackDto? _lastStorm;
 
@@ -48,10 +54,15 @@ namespace OmniWatch.ViewModels
         private TileLayer? _baseLayer;
         private TileLayer? _labelLayer;
 
-        private bool _hasInitialZoom = false;
         private List<StormTrackDto> _stormDtos = new();
 
         public List<int> Years { get; }
+
+        [ObservableProperty]
+        public string _activeStormsMessage = "";
+
+        [ObservableProperty]
+        public bool _anyActiveStorms = false;
 
         [ObservableProperty]
         private int? _selectedYear;
@@ -108,8 +119,9 @@ namespace OmniWatch.ViewModels
             _cts = new CancellationTokenSource();
             try
             {
-                await InitializeMapAsync();
-                await LoadHistoricalStormsAsync(_cts.Token);
+                await InitializeMapAsync().ConfigureAwait(false);
+                await CheckActiveStormsAsync().ConfigureAwait(false);
+                await LoadHistoricalStormsAsync(_cts.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -124,8 +136,10 @@ namespace OmniWatch.ViewModels
         {
             _animationTimer?.Stop();
             _animationTimer = null;
+            _activeStormsRotationTimer?.Stop();
+            _activeStormsRotationTimer = null;
 
-            ClearStormLayers();
+            ClearStormLayers(clearActiveStorms: true);
 
             _cts?.Cancel();
             _cts?.Dispose();
@@ -143,12 +157,10 @@ namespace OmniWatch.ViewModels
 
                 ApplyMapTheme();
 
-                // Zoom inicial no Atlântico/Europa
+
+                // Initial zoom on Atlantic/Europe
                 var initialExtent = new MRect(-12000000, 0, 4000000, 8000000);
                 Map.Navigator.ZoomToBox(initialExtent);
-
-                var worldExtent = new MRect(-20037508, -20037508, 20037508, 20037508);
-                Map.Navigator.OverridePanBounds = worldExtent;
 
                 Map.RefreshGraphics();
             }
@@ -157,6 +169,46 @@ namespace OmniWatch.ViewModels
                 ProgressControl.IsVisible = false;
             }
         }
+
+        private async Task CheckActiveStormsAsync()
+        {
+            ProgressControl.IsVisible = true;
+            ProgressControl.Title = "Loading";
+            ProgressControl.Message = "Checking active storms";
+
+            try
+            {
+                var result = await _apiClient.GetActiveStormTracksAsync();
+
+                if (result != null)
+                {
+                    var activeSorms = ActiveStormMapper.Map(result.ActiveStorms);
+                    AnyActiveStorms = activeSorms.Any();
+                    ActiveStormsMessage = AnyActiveStorms
+                        ? $"⚠ There are currently {activeSorms.Count} active storm(s)."
+                        : "";
+
+                    if (AnyActiveStorms)
+                    {
+                        ShowCurrentActiveStormsOnMap(Map, activeSorms);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Active storms error");
+
+                await _messageService.ShowAsync(
+                    $"Error: {ex.Message}",
+                    MessageDialogType.Error);
+            }
+            finally
+            {
+                ProgressControl.IsVisible = false;
+            }
+        }
+
+
 
         private async Task LoadHistoricalStormsAsync(CancellationToken cancellationToken)
         {
@@ -191,6 +243,86 @@ namespace OmniWatch.ViewModels
                 ProgressControl.IsVisible = false;
             }
         }
+
+
+        private void ShowCurrentActiveStormsOnMap(Map map, List<ActiveStormDto> activeStorms)
+        {
+            if (map == null || activeStorms == null || !activeStorms.Any()) return;
+
+            var activeLayer = new MemoryLayer
+            {
+                Name = "Active Storms Layer",
+                Features = new List<IFeature>()
+            };
+
+            var imagePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Images", "Noaa", "activeHurricane.svg");
+            var uriPath = new Uri(imagePath).AbsoluteUri;
+            var hurricaneImage = new Mapsui.Styles.Image { Source = uriPath };
+
+            var features = new List<IFeature>();
+
+            foreach (var storm in activeStorms)
+            {
+                var (x, y) = SphericalMercator.FromLonLat(storm.Longitude, storm.Latitude);
+                var stormFeature = new PointFeature(new MPoint(x, y));
+
+                float scale = Math.Clamp(0.5f + (storm.Intensity / 120f), 0.6f, 1.5f);
+
+                var imageStyle = new ImageStyle
+                {
+                    Image = hurricaneImage,
+                    SymbolScale = scale,
+                    SymbolRotation = _activeRotation
+                };
+
+                var labelStyle = new LabelStyle
+                {
+                    Text = $"{storm.Name} ({storm.Classification})\n" +
+                           $"Wind: {storm.Intensity} kt\n" +
+                           $"Pres: {storm.Pressure} hPa\n" +
+                           $"Mov: {storm.Movement}",
+
+                    BackColor = new Brush(Color.FromArgb(191, 255, 165, 0)), // Laranja #BFFFA500
+                    BorderColor = Color.FromArgb(255, 255, 140, 0),
+                    BorderThickness = 1,
+                    ForeColor = Color.FromArgb(255, 25, 16, 0),
+                    Font = new Font { Size = 11, Bold = true },
+                    HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
+                    VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
+                    Offset = new Offset(30, 0),
+                    CollisionDetection = false
+                };
+
+                stormFeature.Styles.Add(imageStyle);
+                stormFeature.Styles.Add(labelStyle);
+                features.Add(stormFeature);
+            }
+
+            activeLayer.Features = features;
+            map.Layers.Add(activeLayer);
+
+            _activeStormsRotationTimer?.Stop();
+            _activeStormsRotationTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            _activeStormsRotationTimer.Tick += (s, e) =>
+            {
+                _activeRotation = (_activeRotation - 10) % 360;
+
+                // Atualiza a rotação de todas as features nesta camada
+                var layer = map.Layers.FirstOrDefault(l => l.Name == "Active Storms Layer") as MemoryLayer;
+                if (layer != null)
+                {
+                    foreach (var feature in layer.Features.Cast<PointFeature>())
+                    {
+                        var style = feature.Styles.OfType<ImageStyle>().FirstOrDefault();
+                        if (style != null) style.SymbolRotation = _activeRotation;
+                    }
+                    map.RefreshGraphics();
+                }
+            };
+
+            _activeStormsRotationTimer.Start();
+        }
+
 
         public void StartCycloneAnimation(Map map, StormTrackDto storm, Func<bool> reanimateProvider)
         {
@@ -275,11 +407,12 @@ namespace OmniWatch.ViewModels
                 stormFeature.Styles.Add(new LabelStyle
                 {
                     Text = $"{a.Time:yyyy-MM-dd HH:mm}\n" +
-                           $"Wind: {a.Wind} kt\n" +
-                           $"Pressure: {a.Pressure} hPa\n" +
-                           $"Cat: {a.Category}\n" +
-                           $"Basin: {a.Basin}\n" +
-                           $"Nature: {a.Nature}",
+                            $"Name: {storm.Name}\n" +
+                            $"Wind: {a.Wind} kt\n" +
+                            $"Pressure: {a.Pressure} hPa\n" +
+                            $"Cat: {a.Category}\n" +
+                            $"Basin: {a.Basin}\n" +
+                            $"Nature: {a.Nature}",
 
                     BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
                     BorderColor = Color.FromArgb(255, 60, 100, 0),
@@ -332,11 +465,18 @@ namespace OmniWatch.ViewModels
             Map.RefreshGraphics();
         }
 
-        private void ClearStormLayers()
+        private void ClearStormLayers(bool clearActiveStorms = false)
         {
             _animationTimer?.Stop();
             if (Map == null) return;
             var layers = Map.Layers.Where(l => l.Name is "Storm Track" or "Storm Head" or "Storm Trail").ToList();
+
+            if (clearActiveStorms)
+            {
+                _activeStormsRotationTimer?.Stop();
+                layers.AddRange(Map.Layers.Where(l => l.Name == "Active Storms Layer"));
+            }
+
             foreach (var l in layers) Map.Layers.Remove(l);
             Map.RefreshGraphics();
         }

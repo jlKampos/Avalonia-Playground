@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OmniWatch.Models.Noaa
+namespace OmniWatch.Models.Noaa.ArchiveStorms
 {
     public class StormPointDto
     {

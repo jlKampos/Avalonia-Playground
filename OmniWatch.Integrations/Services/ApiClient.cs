@@ -3,6 +3,7 @@ using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OmniWatch.Integrations.Services
 {
@@ -17,6 +18,7 @@ namespace OmniWatch.Integrations.Services
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
             PropertyNameCaseInsensitive = true
         };
 

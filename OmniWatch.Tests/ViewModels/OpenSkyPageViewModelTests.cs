@@ -9,6 +9,7 @@ using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
@@ -41,38 +42,50 @@ public class OpenSkyPageViewModelTests
         );
     }
 
-    // =========================
-    // LoadAsync
-    // =========================
-
-    [Fact]
-    public async Task LoadAsync_Should_Call_API()
+    private void SetupViewportApi()
     {
-        _api.Setup(x => x.GetAllFlightStatesAsync())
+        _api.Setup(x => x.GetFlightStatesInViewportAsync(
+                It.IsAny<double>(), It.IsAny<double>(),
+                It.IsAny<double>(), It.IsAny<double>()))
             .ReturnsAsync((
-                Data: new OpenSkyRawResponse
+                new OpenSkyRawResponse
                 {
                     States = new List<StateVectorItem>()
                 },
-                RateLimit: new RateLimitInfo
+                new RateLimitInfo
                 {
                     Remaining = 10,
                     Limit = 100,
                     ResetAt = DateTime.UtcNow.AddMinutes(1)
                 }
             ));
+    }
+
+    // =========================
+    // LoadAsync
+    // =========================
+
+    [Fact]
+    public async Task LoadAsync_Should_Call_Viewport_API()
+    {
+        SetupViewportApi();
 
         var vm = CreateVM();
 
         await vm.LoadAsync();
 
-        _api.Verify(x => x.GetAllFlightStatesAsync(), Times.AtLeastOnce);
+        _api.Verify(x => x.GetFlightStatesInViewportAsync(
+            It.IsAny<double>(), It.IsAny<double>(),
+            It.IsAny<double>(), It.IsAny<double>()),
+            Times.AtLeastOnce);
     }
 
     [Fact]
     public async Task LoadAsync_Should_Show_Error_On_Exception()
     {
-        _api.Setup(x => x.GetAllFlightStatesAsync())
+        _api.Setup(x => x.GetFlightStatesInViewportAsync(
+                It.IsAny<double>(), It.IsAny<double>(),
+                It.IsAny<double>(), It.IsAny<double>()))
             .ThrowsAsync(new Exception("boom"));
 
         var vm = CreateVM();
@@ -92,29 +105,20 @@ public class OpenSkyPageViewModelTests
     [Fact]
     public async Task UseRealData_Should_Trigger_Reload()
     {
-        _api.Setup(x => x.GetAllFlightStatesAsync())
-            .ReturnsAsync((
-                Data: new OpenSkyRawResponse
-                {
-                    States = new List<StateVectorItem>()
-                },
-                RateLimit: new RateLimitInfo
-                {
-                    Remaining = 10,
-                    Limit = 100,
-                    ResetAt = DateTime.UtcNow.AddMinutes(1)
-                }
-            ));
+        SetupViewportApi();
 
         var vm = CreateVM();
 
-        await vm.LoadAsync(); // garante estado inicial
+        await vm.LoadAsync();
 
         vm.UseRealData = true;
 
-        await Task.Delay(50); // apenas buffer mínimo
+        await Task.Delay(100); // allow async trigger
 
-        _api.Verify(x => x.GetAllFlightStatesAsync(), Times.AtLeastOnce);
+        _api.Verify(x => x.GetFlightStatesInViewportAsync(
+            It.IsAny<double>(), It.IsAny<double>(),
+            It.IsAny<double>(), It.IsAny<double>()),
+            Times.AtLeastOnce);
     }
 
     // =========================
@@ -124,13 +128,15 @@ public class OpenSkyPageViewModelTests
     [Fact]
     public async Task LoadAllFlightStates_Should_Set_RateLimit()
     {
-        _api.Setup(x => x.GetAllFlightStatesAsync())
+        _api.Setup(x => x.GetFlightStatesInViewportAsync(
+                It.IsAny<double>(), It.IsAny<double>(),
+                It.IsAny<double>(), It.IsAny<double>()))
             .ReturnsAsync((
-                Data: new OpenSkyRawResponse
+                new OpenSkyRawResponse
                 {
                     States = new List<StateVectorItem>()
                 },
-                RateLimit: new RateLimitInfo
+                new RateLimitInfo
                 {
                     Remaining = 5,
                     Limit = 100,
@@ -140,6 +146,7 @@ public class OpenSkyPageViewModelTests
 
         var vm = CreateVM();
 
+        await vm.LoadAsync();
         await vm.LoadAllFlightStatesAsync();
 
         Assert.Equal(5, vm.RateLimitRemaining);
@@ -179,16 +186,15 @@ public class OpenSkyPageViewModelTests
     [Fact]
     public async Task UnloadAsync_Should_Cancel_And_Clear_CancellationToken()
     {
+        SetupViewportApi();
+
         var vm = CreateVM();
 
-        // Força o início do loop
         vm.UseRealData = true;
         await vm.LoadAsync();
 
-        // Act
         await vm.UnloadAsync();
 
-        // Assert
         var cts = GetPrivateCts(vm);
         Assert.Null(cts);
     }
@@ -200,5 +206,4 @@ public class OpenSkyPageViewModelTests
 
         return (CancellationTokenSource?)field?.GetValue(vm);
     }
-
 }

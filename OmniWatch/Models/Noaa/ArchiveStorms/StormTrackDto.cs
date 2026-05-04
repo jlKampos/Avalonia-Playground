@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace OmniWatch.Models.Noaa
+namespace OmniWatch.Models.Noaa.ArchiveStorms
 {
     public class StormTrackDto
     {
