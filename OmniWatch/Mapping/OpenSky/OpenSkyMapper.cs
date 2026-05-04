@@ -1,4 +1,5 @@
-﻿using OmniWatch.Integrations.Contracts.OpenSky;
+﻿using NetTopologySuite.Index.HPRtree;
+using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Models.OpenSky;
 
 namespace OmniWatch.Mapping.OpenSky
@@ -17,7 +18,7 @@ namespace OmniWatch.Mapping.OpenSky
                 Longitude = src.Longitude,
                 Altitude = src.BaroAltitude,
                 OnGround = src.OnGround,
-                Velocity = src.Velocity,
+                Velocity = src.Velocity.HasValue ? src.Velocity.Value * 3.6 : 0,
                 PositionSource = src.PositionSource.HasValue
                     ? (PositionSource?)src.PositionSource.Value
                     : null

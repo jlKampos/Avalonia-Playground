@@ -3,6 +3,7 @@ using BruTile.Predefined;
 using BruTile.Web;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Mapsui;
+using Mapsui.Extensions;
 using Mapsui.Layers;
 using Mapsui.Nts;
 using Mapsui.Projections;
@@ -11,7 +12,6 @@ using Mapsui.Tiling.Layers;
 using NetTopologySuite.Geometries;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
-using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
 using OmniWatch.Mapping.OpenSky;
@@ -39,7 +39,7 @@ namespace OmniWatch.ViewModels
         #endregion
 
         #region State
-
+        private DispatcherTimer? _debounceTimer;
         private List<StateVectorDto> _flightStates = new();
         private CancellationTokenSource? _cts;
 
@@ -55,6 +55,10 @@ namespace OmniWatch.ViewModels
         #endregion
 
         #region Map
+        private MemoryLayer? _aircraftLayer;
+        private static readonly string PlaneImgPath = new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "Images", "OpenSky", "airplane.svg")).AbsoluteUri;
+        private static readonly Image PlaneImageSource = new Image { Source = PlaneImgPath };
+
 
         [ObservableProperty]
         private Map _map;
@@ -136,6 +140,22 @@ namespace OmniWatch.ViewModels
             _apiClient = apiClient;
 
             Map = new Mapsui.Map();
+
+            _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _debounceTimer.Tick += async (s, e) =>
+            {
+                _debounceTimer.Stop();
+                await LoadAllFlightStatesAsync();
+            };
+
+            Map.Navigator.ViewportChanged += (s, e) =>
+            {
+                if (UseRealData)
+                {
+                    _debounceTimer.Stop();
+                    _debounceTimer.Start();
+                }
+            };
         }
 
         #endregion
@@ -191,6 +211,9 @@ namespace OmniWatch.ViewModels
 
         public async Task LoadAllFlightStatesAsync()
         {
+
+            if (Map?.Navigator == null) return;
+
             var settings = _settingsService.Load();
             UpdateInterval = settings.RefreshInterval;
 
@@ -202,18 +225,14 @@ namespace OmniWatch.ViewModels
 
             try
             {
-                if (settings.UseOpenSkyCredentials)
-                {
-                    var auth = await _tokenManager.RefreshTokenAsync();
+                var extent = Map.Navigator.Viewport.ToExtent();
+                if (extent == null) return;
+                var bottomLeft = SphericalMercator.ToLonLat(extent.MinX, extent.MinY);
+                var topRight = SphericalMercator.ToLonLat(extent.MaxX, extent.MaxY);
 
-                    if (auth.Status == OpenSkyAuthStatus.Unauthorized)
-                        await _messageService.ShowAsync("Invalid OpenSky credentials.", MessageDialogType.Warning);
-
-                    if (auth.Status == OpenSkyAuthStatus.Error)
-                        await _messageService.ShowAsync("OpenSky server error.", MessageDialogType.Error);
-                }
-
-                var (raw, rate) = await _apiClient.GetAllFlightStatesAsync();
+                var (raw, rate) = await _apiClient.GetFlightStatesInViewportAsync(
+                    bottomLeft.lat, bottomLeft.lon,
+                    topRight.lat, topRight.lon);
 
                 if (rate != null)
                 {
@@ -222,12 +241,15 @@ namespace OmniWatch.ViewModels
                     RateLimitResetAt = rate.ResetAt;
                 }
 
-                if (raw?.States == null)
-                    return;
-
-                _flightStates = raw.States
-                    .Select(x => x.ToDto())
-                    .ToList();
+                if (raw?.States != null)
+                {
+                    _flightStates = raw.States.Select(x => x.ToDto()).ToList();
+                    AddAircraftLayerToMap(_flightStates);
+                }
+                else
+                {
+                    AddAircraftLayerToMap(new List<StateVectorDto>());
+                }
             }
             catch (Exception ex)
             {
@@ -373,17 +395,29 @@ namespace OmniWatch.ViewModels
 
         private async Task InitializeMapAsync()
         {
-            ApplyMapTheme();
+            try
+            {
+                ProgressControl.IsVisible = true;
+                ProgressControl.Title = "Initializing Map";
+                ProgressControl.Message = "Setting up layers...";
 
-            var center = new MPoint(-770000, 4780000);
-            Map.Navigator.CenterOnAndZoomTo(center, Map.Navigator.Resolutions[7]);
+                ApplyMapTheme();
 
-            var extent = new MRect(-1500000, 4200000, -300000, 5400000);
-            Map.Navigator.OverridePanBounds = extent;
+                Map.Navigator.OverridePanBounds = null;
+                Map.Navigator.OverrideZoomBounds = new MMinMax(0.5, 2500);
 
-            Map.RefreshGraphics();
+                var initialExtent = new MRect(-1100000, 4400000, -700000, 5200000);
+                Map.Navigator.ZoomToBox(initialExtent);
 
-            await Task.CompletedTask;
+                Map.RefreshGraphics();
+
+                await Task.CompletedTask;
+
+            }
+            finally
+            {
+                ProgressControl.IsVisible = false;
+            }
         }
 
         #region Theme
@@ -425,157 +459,94 @@ namespace OmniWatch.ViewModels
 
         private void AddAircraftLayerToMap(List<StateVectorDto> aircraft)
         {
-            bool usingCircles = false;
+            if (Map?.Navigator?.Viewport == null) return;
+
             var features = new List<IFeature>();
+
+            // Zoom check: Only show labels if resolution is low enough (zoomed in)
+            // Adjust 2000 to your preference
+            bool showLabels = Map.Navigator.Viewport.Resolution < 2000;
 
             foreach (var plane in aircraft)
             {
-                if (plane.Latitude == null || plane.Longitude == null)
+                // Basic validation
+                if (plane.Latitude == null || plane.Longitude == null || plane.OnGround == true)
                     continue;
 
-                if (plane.OnGround == true)
-                    continue;
-
-                var (x, y) = SphericalMercator.FromLonLat(
-                    plane.Longitude.Value,
-                    plane.Latitude.Value);
-
+                var (x, y) = SphericalMercator.FromLonLat(plane.Longitude.Value, plane.Latitude.Value);
                 var point = new MPoint(x, y);
 
-                var callsign = string.IsNullOrWhiteSpace(plane.Callsign)
-                    ? plane.Icao24?.ToUpper()
-                    : plane.Callsign.Trim();
-
-                var altitude = plane.Altitude?.ToString("F0") ?? "N/A";
-                var velocity = plane.Velocity?.ToString("F0") ?? "N/A";
-                var origin = plane.OriginCountry ?? "Unknown";
-                var onGround = plane.OnGround == true ? "Yes" : "No";
-
-                var infoText =
-                 $"CallSign: {callsign}\n" +
-                 $"Origin: {origin}\n" +
-                 $"Alt: {altitude}\n" +
-                 $"Vel: {velocity}\n" +
-                 $"OnGround: {onGround}";
-
-                var color = plane.Altitude switch
-                {
-                    < 2000 => Color.DodgerBlue,
-                    < 8000 => Color.Gold,
-                    _ => Color.IndianRed
-                };
-
+                // 1. Aircraft Icon/Symbol Feature
+                var color = plane.Altitude switch { < 2000 => Color.DodgerBlue, < 8000 => Color.Gold, _ => Color.IndianRed };
                 var aircraftFeature = new PointFeature(point);
-                aircraftFeature.Styles.Clear();
-
-                var imagePath = Path.Combine(
-                    AppContext.BaseDirectory,
-                    "Assets",
-                    "Images",
-                    "OpenSky",
-                    "airplane.svg"
-                );
-
-                var imageUri = new Uri(imagePath).AbsoluteUri;
 
                 if (plane.TrueTrack != null)
                 {
                     aircraftFeature.Styles.Add(new ImageStyle
                     {
-                        Image = new Mapsui.Styles.Image
-                        {
-                            Source = imageUri
-                        },
+                        Image = PlaneImageSource, // Uses the static cached image
                         SymbolScale = 0.6,
-                        SymbolRotation = plane.TrueTrack ?? 0,
-                        Offset = new Offset(0, 0)
+                        SymbolRotation = plane.TrueTrack.Value
                     });
                 }
                 else
                 {
-                    usingCircles = true;
                     aircraftFeature.Styles.Add(new SymbolStyle
                     {
                         SymbolType = SymbolType.Ellipse,
                         SymbolScale = 0.40f,
                         Fill = new Brush(color),
-                        Outline = new Pen(Color.White, 3)
+                        Outline = new Pen(Color.White, 2)
                     });
                 }
-
                 features.Add(aircraftFeature);
 
-                if (plane.TrueTrack != null && usingCircles)
+                // 2. Label Feature (Conditional for performance)
+                if (showLabels)
                 {
-                    var angle = Math.PI * plane.TrueTrack.Value / 180.0;
-                    var length = 15000.0;
-                    var offset = 3000.0;
+                    var callsign = string.IsNullOrWhiteSpace(plane.Callsign) ? plane.Icao24?.ToUpper() : plane.Callsign.Trim();
+                    var infoText = $"CallSign: {callsign}\n" +
+                        $"Alt: {plane.Altitude?.ToString("F0") ?? "N/A"}m\n" +
+                        $"Vel: {plane.Velocity?.ToString("F0") ?? "N/A"}km/h";
 
-                    var startX = x + Math.Sin(angle) * offset;
-                    var startY = y + Math.Cos(angle) * offset;
-
-                    var line = new LineString(new[]
+                    var labelFeature = new PointFeature(point);
+                    labelFeature.Styles.Add(new LabelStyle
                     {
-                        new Coordinate(startX, startY),
-                        new Coordinate(
-                            x + Math.Sin(angle) * length,
-                            y + Math.Cos(angle) * length)
+                        Text = infoText,
+                        BorderThickness = 1,
+                        BorderColor = Color.FromArgb(255, 60, 100, 0),
+                        ForeColor = Color.FromArgb(255, 25, 16, 0),
+                        BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
+                        Font = new Font { Size = 10, Bold = true },
+                        HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
+                        Offset = new Offset(20, 0),
+                        CollisionDetection = true
                     });
-
-                    var lineFeature = new GeometryFeature
-                    {
-                        Geometry = line
-                    };
-
-                    lineFeature.Styles.Add(new VectorStyle
-                    {
-                        Line = new Pen(new Color(color.R, color.G, color.B, 255), 1f)
-                    });
-
-                    features.Add(lineFeature);
+                    features.Add(labelFeature);
                 }
-
-                var label = new PointFeature(point);
-
-                label.Styles.Add(new LabelStyle
-                {
-                    Text = infoText,
-
-                    BorderThickness = 1,
-                    BorderColor = Color.FromArgb(255, 60, 100, 0),
-
-                    ForeColor = Color.FromArgb(255, 25, 16, 0),
-                    BackColor = new Brush(Color.FromArgb(191, 143, 170, 0)),
-
-                    Font = new Font
-                    {
-                        Size = 11,
-                        Bold = true
-                    },
-
-                    HorizontalAlignment = LabelStyle.HorizontalAlignmentEnum.Left,
-                    VerticalAlignment = LabelStyle.VerticalAlignmentEnum.Center,
-
-                    Offset = new Offset(20, 0),
-                    CollisionDetection = true
-                });
-
-                features.Add(label);
             }
 
-            var oldLayer = Map.Layers.FirstOrDefault(l => l.Name == "Aircraft");
-            if (oldLayer != null)
-                Map.Layers.Remove(oldLayer);
+            // --- Layer Management ---
+            // Look for existing layer to avoid duplication/memory leaks
+            var aircraftLayer = Map.Layers.FirstOrDefault(l => l.Name == "Aircraft") as MemoryLayer;
 
-            Map.Layers.Add(new MemoryLayer
+            if (aircraftLayer == null)
             {
-                Name = "Aircraft",
-                Features = features,
-                Style = null
-            });
+                aircraftLayer = new MemoryLayer
+                {
+                    Name = "Aircraft",
+                    Style = null // Styles are defined per feature
+                };
+                Map.Layers.Add(aircraftLayer);
+            }
 
+            // Atomic update of features
+            aircraftLayer.Features = features;
+
+            // Final UI Refresh
             Map.RefreshGraphics();
         }
+
 
         #endregion
     }
