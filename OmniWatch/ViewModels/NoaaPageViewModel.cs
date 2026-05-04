@@ -121,6 +121,8 @@ namespace OmniWatch.ViewModels
             _cts = new CancellationTokenSource();
             try
             {
+                ProgressControl.IsVisible = true;
+                ProgressControl.Title = "Starting Up";
                 await InitializeMapAsync().ConfigureAwait(false);
                 await CheckActiveStormsAsync().ConfigureAwait(false);
                 await LoadHistoricalStormsAsync(_cts.Token).ConfigureAwait(false);
@@ -532,14 +534,11 @@ namespace OmniWatch.ViewModels
                 {
                     ProgressControl.IsVisible = true;
 
-                    // Cancela operações atuais se houver
                     _cts?.Cancel();
                     _cts = new CancellationTokenSource();
 
-                    // Chama a limpeza
                     await _apiClient.ClearCacheAsync(_cts.Token);
 
-                    // Recarrega os dados do ano atual automaticamente
                     await LoadHistoricalStormsAsync(_cts.Token);
                 }
                 catch (Exception ex)

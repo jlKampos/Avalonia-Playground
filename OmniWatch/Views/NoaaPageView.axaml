@@ -126,7 +126,7 @@
 							IsVisible="{Binding AnyActiveStorms}">
 						<TextBlock Text="{Binding ActiveStormsMessage}"
 								   Foreground="#FF191000"
-								   FontSize="10"
+								   FontSize="11"
 								   FontWeight="Bold"
 								   TextWrapping="Wrap"/>
 					</Border>
