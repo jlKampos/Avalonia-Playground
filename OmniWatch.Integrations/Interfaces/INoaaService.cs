@@ -5,8 +5,10 @@ namespace OmniWatch.Integrations.Interfaces
 {
     public interface INoaaService
     {
+        Task ClearCacheAsync(CancellationToken cancellationToken);
+
         Task<NhcActiveStormResponse> GetActiveStormTracksAsync();
 
-        Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, CancellationToken cancellationToken, IProgress<string>? progress = null);
+        Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, CancellationToken cancellationToken);
     }
 }
