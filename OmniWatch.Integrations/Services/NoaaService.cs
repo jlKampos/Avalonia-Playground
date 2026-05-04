@@ -37,9 +37,6 @@ namespace OmniWatch.Integrations.Services
         // ACTIVE STORMS (KML)
         public async Task<NhcActiveStormResponse> GetActiveStormTracksAsync()
         {
-            //var kml = await _client.GetStringAsync("gis/kml/nhc_active.kml");
-
-            //return ParseKml(kml);
 
             try
             {

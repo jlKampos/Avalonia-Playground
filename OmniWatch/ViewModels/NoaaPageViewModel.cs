@@ -139,7 +139,7 @@ namespace OmniWatch.ViewModels
             _activeStormsRotationTimer?.Stop();
             _activeStormsRotationTimer = null;
 
-            ClearStormLayers();
+            ClearStormLayers(clearActiveStorms: true);
 
             _cts?.Cancel();
             _cts?.Dispose();
@@ -198,17 +198,13 @@ namespace OmniWatch.ViewModels
             {
                 _logger.LogError(ex, "Active storms error");
 
-                await Dispatcher.UIThread.InvokeAsync(async () =>
-                {
-                    await _messageService.ShowAsync($"Error: {ex.Message}", MessageDialogType.Error);
-                });
+                await _messageService.ShowAsync(
+                    $"Error: {ex.Message}",
+                    MessageDialogType.Error);
             }
             finally
             {
-                Dispatcher.UIThread.Post(() =>
-                {
-                    ProgressControl.IsVisible = false;
-                });
+                ProgressControl.IsVisible = false;
             }
         }
 
@@ -469,12 +465,18 @@ namespace OmniWatch.ViewModels
             Map.RefreshGraphics();
         }
 
-        private void ClearStormLayers()
+        private void ClearStormLayers(bool clearActiveStorms = false)
         {
             _animationTimer?.Stop();
-            _activeStormsRotationTimer?.Stop();
             if (Map == null) return;
-            var layers = Map.Layers.Where(l => l.Name is "Storm Track" or "Storm Head" or "Storm Trail" or "Active Storms Layer").ToList();
+            var layers = Map.Layers.Where(l => l.Name is "Storm Track" or "Storm Head" or "Storm Trail").ToList();
+
+            if (clearActiveStorms)
+            {
+                _activeStormsRotationTimer?.Stop();
+                layers.AddRange(Map.Layers.Where(l => l.Name == "Active Storms Layer"));
+            }
+
             foreach (var l in layers) Map.Layers.Remove(l);
             Map.RefreshGraphics();
         }
