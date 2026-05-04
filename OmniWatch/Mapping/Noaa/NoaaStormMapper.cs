@@ -9,14 +9,32 @@ namespace OmniWatch.Mapping.Noaa
     {
         public static StormTrackDto Map(StormTrack storm)
         {
+            if (storm == null) return null;
+            var uniquePoints = new List<StormPointDto>();
+            var sortedSourcePoints = storm.Track.OrderBy(p => p.Time).ToList();
+
+            foreach (var point in sortedSourcePoints)
+            {
+                var mappedPoint = MapPoint(point);
+
+                if (uniquePoints.Count > 0)
+                {
+                    var lastPoint = uniquePoints.Last();
+                    if (lastPoint.Latitude == mappedPoint.Latitude &&
+                        lastPoint.Longitude == mappedPoint.Longitude)
+                    {
+                        continue;
+                    }
+                }
+
+                uniquePoints.Add(mappedPoint);
+            }
+
             return new StormTrackDto
             {
                 Id = storm.Id,
                 Name = storm.Name,
-
-                Track = storm.Track
-                    .Select(MapPoint)
-                    .ToList()
+                Track = uniquePoints
             };
         }
 
@@ -28,7 +46,11 @@ namespace OmniWatch.Mapping.Noaa
                 return result;
 
             foreach (var storm in storms)
-                result.Add(Map(storm));
+            {
+                var mapped = Map(storm);
+                if (mapped != null && mapped.Track.Any())
+                    result.Add(mapped);
+            }
 
             return result;
         }

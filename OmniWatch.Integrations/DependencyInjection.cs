@@ -95,10 +95,6 @@ namespace OmniWatch.Integrations
                     new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/csv"));
             });
 
-
-            // IBTrACS SERVICE (parsing + domain)
-            services.AddTransient<IIbtracsService, IbtracsService>();
-
             services.AddSingleton<IGlobalProgressService, GlobalProgressService>();
 
             return services;
