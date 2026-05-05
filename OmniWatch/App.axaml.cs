@@ -1,14 +1,16 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Threading;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Core.Services;
 using OmniWatch.Core.Startup;
 using OmniWatch.Factory;
 using OmniWatch.Integrations;
+using OmniWatch.Integrations.Startup;
 using OmniWatch.Interfaces;
 using OmniWatch.Services;
 using OmniWatch.ViewModels;
@@ -16,12 +18,10 @@ using OmniWatch.ViewModels.ProgressControl;
 using OmniWatch.ViewModels.Settings;
 using OmniWatch.Views;
 using OmniWatch.Views.Splash;
+using Serilog;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace OmniWatch;
 
@@ -101,29 +101,35 @@ public partial class App : Application
             var splash = new SplashWindow();
             splash.Show();
 
-            Dispatcher.UIThread.InvokeAsync(async () =>
+            try
             {
-                try
+                // =========================
+                // CRITICAL STARTUP PIPELINE
+                // =========================
+
+                // 1. DATABASE INIT (Integrations)
+                var dbBootstrap = serviceProvider.GetRequiredService<DatabaseBootstrap>();
+                dbBootstrap.Initialize();
+
+                // 2. APP INIT (settings + secrets)
+                serviceProvider.GetRequiredService<AppInitializer>().Initialize();
+
+                // 3. MAIN WINDOW
+                var main = new MainWindow
                 {
-                    serviceProvider.GetRequiredService<AppInitializer>().Initialize();
+                    DataContext = serviceProvider.GetRequiredService<MainWindowViewModel>()
+                };
 
-                    var main = new MainWindow
-                    {
-                        DataContext = serviceProvider.GetRequiredService<MainWindowViewModel>()
-                    };
+                desktop.MainWindow = main;
+                main.Show();
 
-                    desktop.MainWindow = main;
-                    main.Show();
-
-                    await Task.Delay(50);
-                    splash.Close();
-                }
-                catch (Exception ex)
-                {
-                    logger.LogCritical(ex, "APP INITIALIZATION FAILED");
-                    throw;
-                }
-            });
+                splash.Close();
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "APP INITIALIZATION FAILED");
+                throw;
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

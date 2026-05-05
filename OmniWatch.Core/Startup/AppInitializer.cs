@@ -28,10 +28,15 @@ namespace OmniWatch.Core.Startup
 
         #region Public API
 
+        /// <summary>
+        /// Blocking initialization (safe for app startup)
+        /// </summary>
         public void Initialize()
         {
             InitializeSettings();
-            _ = InitializeSecrets();
+            InitializeSecrets()
+                .GetAwaiter()
+                .GetResult(); // ensures deterministic startup
         }
 
         #endregion
@@ -48,7 +53,7 @@ namespace OmniWatch.Core.Startup
                 _settingsService.Save(new AppSettings
                 {
                     UseOpenSkyCredentials = false,
-                    OpenSkyClientId = "",
+                    OpenSkyClientId = string.Empty,
                     RefreshInterval = 10,
                     Language = "en-US"
                 });
@@ -65,7 +70,9 @@ namespace OmniWatch.Core.Startup
 
             if (secret is null)
             {
-                await _secretService.SetAsync(key, string.Empty).ConfigureAwait(false);
+                await _secretService
+                    .SetAsync(key, string.Empty)
+                    .ConfigureAwait(false);
             }
         }
 
