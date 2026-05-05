@@ -27,6 +27,7 @@ namespace OmniWatch.Integrations.Contracts.Wind
 
                 return new List<WindSpeedItem>();
             }
+            set;
         }
     }
 }

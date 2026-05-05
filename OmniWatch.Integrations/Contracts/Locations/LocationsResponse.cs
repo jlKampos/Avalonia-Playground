@@ -27,6 +27,7 @@ namespace OmniWatch.Integrations.Contracts.Locations
 
                 return new List<LocationItem>();
             }
+            set;
         }
     }
 }

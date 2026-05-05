@@ -50,6 +50,7 @@ namespace OmniWatch.Integrations.Contracts.Seismic
                 // {}, null, etc → lista vazia
                 return new List<SeismicItem>();
             }
+            set;
         }
     }
 }

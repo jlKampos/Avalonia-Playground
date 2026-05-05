@@ -25,9 +25,9 @@ namespace OmniWatch.Integrations.Contracts.Precipitation
                            ?? new List<PrecipitationItem>();
                 }
 
-                // {}, null, etc → lista vazia
                 return new List<PrecipitationItem>();
             }
+            set;
         }
     }
 }

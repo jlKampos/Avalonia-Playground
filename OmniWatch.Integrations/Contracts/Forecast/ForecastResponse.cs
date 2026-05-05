@@ -33,6 +33,7 @@ namespace OmniWatch.Integrations.Contracts.Forecast
 
                 return new List<ForecastItem>();
             }
+            set { }
         }
     }
 }

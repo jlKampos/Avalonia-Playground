@@ -28,6 +28,7 @@ namespace OmniWatch.Integrations.Contracts.Weather
                 // {}, null, etc
                 return new List<WeatherTypeItem>();
             }
+            set;
         }
     }
 }
