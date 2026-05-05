@@ -45,8 +45,14 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
+                var endpoint = "CurrentStorms.json";
+
+#if DEBUG
+                endpoint = "productexamples/NHC_JSON_Sample.json";
+#endif
+
                 return await _apiClient.GetAsync<NhcActiveStormResponse>(
-                    "productexamples/NHC_JSON_Sample.json", ApiType.Noaa);
+                    endpoint, ApiType.Noaa);
             }
             catch (Exception ex)
             {
@@ -244,7 +250,6 @@ namespace OmniWatch.Integrations.Services
                 }
             });
         }
-
 
         private static int SafeInt(string value) => int.TryParse(value, out var n) ? n : 0;
 

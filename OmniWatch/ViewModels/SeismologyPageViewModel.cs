@@ -124,13 +124,18 @@ namespace OmniWatch.ViewModels
             {
                 ApplyMapTheme();
 
-                // Center on Portugal
-                var portugalCenter = new Mapsui.MPoint(-770000, 4780000);
-                Map.Navigator.CenterOnAndZoomTo(portugalCenter, Map.Navigator.Resolutions[7]);
+                var centerAll = new Mapsui.MPoint(-1800000, 4500000);
 
-                // Pan limits
-                var portugalExtent = new Mapsui.MRect(-1500000, 4200000, -300000, 5400000);
-                Map.Navigator.OverridePanBounds = portugalExtent;
+                Map.Navigator.CenterOnAndZoomTo(centerAll, Map.Navigator.Resolutions[5]);
+
+                var portugalAllExtent = new Mapsui.MRect(
+                    -3200000, // Oeste (Açores)
+                    3300000,  // Sul (Madeira)
+                    -200000,  // Este (Continente)
+                    5600000   // Norte (Continente)
+                );
+
+                Map.Navigator.OverridePanBounds = portugalAllExtent;
 
                 Map.RefreshGraphics();
             }
@@ -320,16 +325,24 @@ namespace OmniWatch.ViewModels
         {
             SeismicActivities.Clear();
 
-            var response = await _apiClient.GetSeismicAsync(7);
-
-            if (response?.Data == null)
-                return;
-
-            foreach (var item in response.Data)
+            var tasks = new[]
             {
-                SeismicActivities.Add(item.ToDto());
+                _apiClient.GetSeismicAsync(3),
+                _apiClient.GetSeismicAsync(7)
+            };
+
+            var responses = await Task.WhenAll(tasks);
+
+            foreach (var response in responses)
+            {
+                if (response?.Data == null)
+                    continue;
+
+                foreach (var item in response.Data)
+                    SeismicActivities.Add(item.ToDto());
             }
         }
+
 
         #endregion
     }
