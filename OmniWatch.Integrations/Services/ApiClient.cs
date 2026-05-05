@@ -1,5 +1,7 @@
-﻿using OmniWatch.Integrations.Enums;
+﻿using OmniWatch.Integrations.Contracts.Seismic;
+using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Exceptions;
+using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Interfaces;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -18,8 +20,8 @@ namespace OmniWatch.Integrations.Services
 
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
+            PropertyNameCaseInsensitive = true,
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
-            PropertyNameCaseInsensitive = true
         };
 
         public async Task<T?> GetAsync<T>(string endpoint, ApiType type, string? bearerToken = null)

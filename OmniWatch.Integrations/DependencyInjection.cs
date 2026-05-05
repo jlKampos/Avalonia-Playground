@@ -6,6 +6,7 @@ using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Integrations.Persistence;
 using OmniWatch.Integrations.Services;
+using OmniWatch.Integrations.Startup;
 
 namespace OmniWatch.Integrations
 {
@@ -13,8 +14,9 @@ namespace OmniWatch.Integrations
     {
         public static IServiceCollection AddIntegrations(this IServiceCollection services)
         {
-
-            // --- SQLITE ---
+            // =========================
+            // SQLITE PATH
+            // =========================
             var dbName = "omniwatch_cache.db";
             var dbPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -22,70 +24,46 @@ namespace OmniWatch.Integrations
                 dbName);
 
             var directory = Path.GetDirectoryName(dbPath);
-            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            if (!string.IsNullOrEmpty(directory))
+                Directory.CreateDirectory(directory);
 
+            // =========================
+            // DB CONTEXT
+            // =========================
             services.AddDbContext<NoaaCacheContext>(options =>
-            {
-                options.UseSqlite($"Data Source={dbPath}");
-            });
+                options.UseSqlite($"Data Source={dbPath}"));
 
-            // Temp scope 
-            using (var serviceProvider = services.BuildServiceProvider())
-            {
-                using (var scope = serviceProvider.CreateScope())
-                {
-                    var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
-                    db.Database.EnsureCreated();
-                }
-            }
-            // ---------------------------
+            // =========================
+            // DB BOOTSTRAP (IMPORTANT)
+            // =========================
+            services.AddSingleton<DatabaseBootstrap>();
 
+            // =========================
+            // SERVICES
+            // =========================
             services.AddSingleton<IApiClient, ApiClient>();
-
-
-            // NOAA SERVICE (Agora vai receber o contexto via DI)
             services.AddTransient<INoaaService, NoaaService>();
-
-            services.AddSingleton<IApiClient, ApiClient>();
-
-            // IPMA
-            services.AddHttpClient(ApiType.Ipma.ToString(), client =>
-            {
-                client.BaseAddress = new Uri("https://api.ipma.pt/open-data/");
-            });
-
             services.AddTransient<IIpmaService, IpmaService>();
-
-
-            // OpenSky API
-            services.AddHttpClient(ApiType.OpenSky.ToString(), client =>
-            {
-                client.BaseAddress = new Uri("https://opensky-network.org/api/");
-            });
-
             services.AddTransient<IOpenSkyService, OpenSkyService>();
-
-
-            // OpenSky OAuth2
-            services.AddHttpClient("OpenSkyAuth", client =>
-            {
-                client.BaseAddress = new Uri("https://auth.opensky-network.org/");
-            });
-
             services.AddSingleton<IOpenSkyTokenManager, OpenSkyTokenManager>();
+            services.AddSingleton<IGlobalProgressService, GlobalProgressService>();
 
+            // =========================
+            // HTTP CLIENTS
+            // =========================
+            services.AddHttpClient(ApiType.Ipma.ToString(), c =>
+                c.BaseAddress = new Uri("https://api.ipma.pt/open-data/"));
 
-            // NOAA ACTIVE STORMS (KML)
-            services.AddHttpClient(ApiType.Noaa.ToString(), client =>
+            services.AddHttpClient(ApiType.OpenSky.ToString(), c =>
+                c.BaseAddress = new Uri("https://opensky-network.org/api/"));
+
+            services.AddHttpClient(ApiType.Noaa.ToString(), c =>
             {
-                client.BaseAddress = new Uri("https://www.nhc.noaa.gov/");
-                client.Timeout = TimeSpan.FromSeconds(30);
-                client.DefaultRequestHeaders.Add("User-Agent", "OmniWatch/1.0");
+                c.BaseAddress = new Uri("https://www.nhc.noaa.gov/");
+                c.Timeout = TimeSpan.FromSeconds(30);
+                c.DefaultRequestHeaders.Add("User-Agent", "OmniWatch/1.0");
             });
 
-            services.AddTransient<INoaaService, NoaaService>();
-
-            // IBTrACS (HISTORICAL DATA)
             services.AddHttpClient<IIbtracsClient, IbtracsClient>(client =>
             {
                 client.Timeout = TimeSpan.FromMinutes(2);
@@ -95,10 +73,7 @@ namespace OmniWatch.Integrations
                     new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/csv"));
             });
 
-            services.AddSingleton<IGlobalProgressService, GlobalProgressService>();
-
             return services;
         }
-
     }
 }

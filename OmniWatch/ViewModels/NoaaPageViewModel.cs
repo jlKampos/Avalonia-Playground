@@ -38,7 +38,7 @@ namespace OmniWatch.ViewModels
         private readonly INoaaService _apiClient;
         private readonly ILogger<NoaaPageViewModel> _logger;
         private readonly IMessageService _messageService;
-        private CancellationTokenSource? _cts;
+        private CancellationTokenSource? _cancellationToken;
 
         // Animation state
         private readonly List<Coordinate> _currentTrailPoints = new();
@@ -117,15 +117,15 @@ namespace OmniWatch.ViewModels
 
         public async Task LoadAsync()
         {
-            _cts?.Cancel();
-            _cts = new CancellationTokenSource();
+            _cancellationToken?.Cancel();
+            _cancellationToken = new CancellationTokenSource();
             try
             {
                 ProgressControl.IsVisible = true;
                 ProgressControl.Title = "Starting Up";
                 await InitializeMapAsync().ConfigureAwait(false);
                 await CheckActiveStormsAsync().ConfigureAwait(false);
-                await LoadHistoricalStormsAsync(_cts.Token).ConfigureAwait(false);
+                await LoadHistoricalStormsAsync(_cancellationToken.Token).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { }
             catch (Exception ex)
@@ -145,9 +145,9 @@ namespace OmniWatch.ViewModels
 
             ClearStormLayers(clearActiveStorms: true);
 
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _cts = null;
+            _cancellationToken?.Cancel();
+            _cancellationToken?.Dispose();
+            _cancellationToken = null;
             return Task.CompletedTask;
         }
 
@@ -489,7 +489,7 @@ namespace OmniWatch.ViewModels
         partial void OnSelectedYearChanged(int? value)
         {
             if (value == null) return;
-            _cts?.Cancel();
+            _cancellationToken?.Cancel();
             ClearStormLayers();
             Hurricanes?.Clear();
             _ = LoadHistoricalStormsAsync(new CancellationTokenSource().Token);
@@ -534,12 +534,12 @@ namespace OmniWatch.ViewModels
                 {
                     ProgressControl.IsVisible = true;
 
-                    _cts?.Cancel();
-                    _cts = new CancellationTokenSource();
+                    _cancellationToken?.Cancel();
+                    _cancellationToken = new CancellationTokenSource();
 
-                    await _apiClient.ClearCacheAsync(_cts.Token);
+                    await _apiClient.ClearCacheAsync(_cancellationToken.Token);
 
-                    await LoadHistoricalStormsAsync(_cts.Token);
+                    await LoadHistoricalStormsAsync(_cancellationToken.Token);
                 }
                 catch (Exception ex)
                 {
