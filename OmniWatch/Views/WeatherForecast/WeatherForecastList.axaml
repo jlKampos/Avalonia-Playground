@@ -3,12 +3,15 @@
 			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:vm="using:OmniWatch.ViewModels"
-			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-			 x:Class="OmniWatch.Views.WeatherForecast.WeatherForecastList"
-			 x:DataType="vm:WeatherForecastPageViewModel"
 			 xmlns:local="clr-namespace:OmniWatch.Models.IPMA.Forecast"
 			 xmlns:awarness="clr-namespace:OmniWatch.Models.IPMA.Awarness"
-			 Background="{DynamicResource ResourceKey=PanelGradient}">
+			 mc:Ignorable="d"
+			 d:DesignWidth="800"
+			 d:DesignHeight="600"
+			 x:Class="OmniWatch.Views.WeatherForecast.WeatherForecastList"
+			 x:DataType="vm:WeatherForecastPageViewModel"
+			 Background="{DynamicResource PanelGradient}">
+
 	<Design.DataContext>
 		<vm:WeatherForecastPageViewModel />
 	</Design.DataContext>
@@ -21,7 +24,9 @@
 		<!-- ================= TAB HEADER ================= -->
 		<TabControl.ItemTemplate>
 			<DataTemplate x:DataType="local:ForecastItemDto">
-				<Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" Margin="6">
+				<Grid RowDefinitions="Auto,Auto"
+					  ColumnDefinitions="Auto,*"
+					  Margin="6">
 
 					<!-- Icon -->
 					<Svg Path="{Binding WeatherInformation.WeatherIconPath}"
@@ -29,10 +34,10 @@
 						 Height="20"
 						 Margin="0,0,5,0"/>
 
-					<!-- WeekDay -->
+					<!-- WeekDay (localized) -->
 					<TextBlock Grid.Row="0"
 							   Grid.Column="1"
-							   Text="{Binding WeekDay}"
+							   Text="{Binding LocalizedWeekDay}"
 							   FontWeight="SemiBold"/>
 
 					<!-- Date -->
@@ -41,7 +46,6 @@
 							   Text="{Binding DisplayDate}"
 							   FontSize="11"
 							   Opacity="0.7"/>
-
 				</Grid>
 			</DataTemplate>
 		</TabControl.ItemTemplate>
@@ -53,62 +57,124 @@
 				<Border Padding="16"
 						Margin="10"
 						CornerRadius="12"
-						Background="{DynamicResource ResourceKey=PanelGradient}">
+						Background="{DynamicResource PanelGradient}">
 
 					<ScrollViewer VerticalScrollBarVisibility="Auto"
 								  HorizontalScrollBarVisibility="Disabled"
 								  AllowAutoHide="True">
+
 						<StackPanel Spacing="16">
 
 							<!-- ================= FORECAST ================= -->
 							<StackPanel Spacing="10">
 
-								<!-- Título da Secção -->
-								<TextBlock Text="Weather Forecast"
+								<!-- Section Title -->
+								<TextBlock Text="{x:Static vm:WeatherForecastPageViewModel.WeatherForecastTitle}"
 										   FontSize="18"
 										   FontWeight="SemiBold"/>
 
-								<Border Background="{StaticResource PanelBrush}" Padding="15" CornerRadius="8">
+								<Border Background="{StaticResource PanelBrush}"
+										Padding="15"
+										CornerRadius="8">
+
 									<StackPanel Spacing="20">
 
-										<!-- SECÇÃO: TEMPERATURA -->
+										<!-- TEMPERATURE -->
 										<StackPanel Spacing="8">
-											<TextBlock Text="Temperature" FontSize="12" FontWeight="Bold"  Opacity="0.8"/>
-											<Border Background="{StaticResource SurfaceBrush}" Padding="12" CornerRadius="8">
-												<Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto">
-													<TextBlock Grid.Column="0" Text="Minimum" Opacity="0.5" Margin="0,0,10,0"/>
-													<TextBlock Grid.Column="1" Text="{Binding TemperatureMin, StringFormat='\{0\}°C'}" FontWeight="Medium"/>
+											<TextBlock Text="{x:Static vm:WeatherForecastPageViewModel.TemperatureLabel}"
+													   FontSize="12"
+													   FontWeight="Bold"
+													   Opacity="0.8"/>
 
-													<TextBlock Grid.Column="2" Text="Maximum" Opacity="0.5" Margin="20,0,10,0"/>
-													<TextBlock Grid.Column="3" Text="{Binding TemperatureMax, StringFormat='\{0\}°C'}" FontWeight="Medium"/>
+											<Border Background="{StaticResource SurfaceBrush}"
+													Padding="12"
+													CornerRadius="8">
+
+												<Grid ColumnDefinitions="Auto,*,Auto,*">
+
+													<TextBlock Grid.Column="0"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.MinimumLabel}"
+															   Opacity="0.5"
+															   Margin="0,0,10,0"/>
+
+													<TextBlock Grid.Column="1"
+															   Text="{Binding TemperatureMin, StringFormat='\{0\}°C'}"
+															   FontWeight="Medium"/>
+
+													<TextBlock Grid.Column="2"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.MaximumLabel}"
+															   Opacity="0.5"
+															   Margin="20,0,10,0"/>
+
+													<TextBlock Grid.Column="3"
+															   Text="{Binding TemperatureMax, StringFormat='\{0\}°C'}"
+															   FontWeight="Medium"/>
 												</Grid>
 											</Border>
 										</StackPanel>
 
-										<!-- SECÇÃO: VENTO -->
+										<!-- WIND -->
 										<StackPanel Spacing="8">
-											<TextBlock Text="Wind" FontSize="12" FontWeight="Bold"  Opacity="0.8"/>
-											<Border Background="{StaticResource SurfaceBrush}" Padding="12" CornerRadius="8">
-												<Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto">
-													<TextBlock Grid.Column="0" Text="Intensity" Opacity="0.5" Margin="0,0,10,0"/>
-													<TextBlock Grid.Column="1" Text="{Binding WindInformation.DescriptionEN}"/>
+											<TextBlock Text="{x:Static vm:WeatherForecastPageViewModel.WindLabel}"
+													   FontSize="12"
+													   FontWeight="Bold"
+													   Opacity="0.8"/>
 
-													<TextBlock Grid.Column="2" Text="Direction" Opacity="0.5" Margin="20,0,10,0"/>
-													<TextBlock Grid.Column="3" Text="{Binding PredictedWindDirection}"/>
+											<Border Background="{StaticResource SurfaceBrush}"
+													Padding="12"
+													CornerRadius="8">
+
+												<Grid ColumnDefinitions="Auto,*,Auto,*">
+
+													<TextBlock Grid.Column="0"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.IntensityLabel}"
+															   Opacity="0.5"
+															   Margin="0,0,10,0"/>
+
+													<!-- Localized wind description -->
+													<TextBlock Grid.Column="1"
+															   Text="{Binding LocalizedWindDescription}"/>
+
+													<TextBlock Grid.Column="2"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.DirectionLabel}"
+															   Opacity="0.5"
+															   Margin="20,0,10,0"/>
+
+													<TextBlock Grid.Column="3"
+															   Text="{Binding PredictedWindDirection}"/>
 												</Grid>
 											</Border>
 										</StackPanel>
 
-										<!-- SECÇÃO: PRECIPITAÇÃO -->
+										<!-- PRECIPITATION -->
 										<StackPanel Spacing="8">
-											<TextBlock Text="Precepitation" FontSize="12" FontWeight="Bold"  Opacity="0.8"/>
-											<Border Background="{StaticResource SurfaceBrush}" Padding="12" CornerRadius="8">
-												<Grid ColumnDefinitions="Auto,*,Auto,*" RowDefinitions="Auto">
-													<TextBlock Grid.Column="0" Text="Intensity " Opacity="0.5" Margin="0,0,10,0"/>
-													<TextBlock Grid.Column="1" Text="{Binding PrecipitationInformation.DescriptionPT}"/>
+											<TextBlock Text="{x:Static vm:WeatherForecastPageViewModel.PrecipitationLabel}"
+													   FontSize="12"
+													   FontWeight="Bold"
+													   Opacity="0.8"/>
 
-													<TextBlock Grid.Column="2" Text="Probability" Opacity="0.5" Margin="20,0,10,0"/>
-													<TextBlock Grid.Column="3" Text="{Binding PrecipitationProbability, StringFormat='\{0\}%'}"/>
+											<Border Background="{StaticResource SurfaceBrush}"
+													Padding="12"
+													CornerRadius="8">
+
+												<Grid ColumnDefinitions="Auto,*,Auto,*">
+
+													<TextBlock Grid.Column="0"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.IntensityLabel}"
+															   Opacity="0.5"
+															   Margin="0,0,10,0"/>
+
+													<!-- Localized precipitation description -->
+													<TextBlock Grid.Column="1"
+															   Text="{Binding LocalizedPrecipitationDescription}"/>
+
+													<TextBlock Grid.Column="2"
+															   Text="{x:Static vm:WeatherForecastPageViewModel.ProbabilityLabel}"
+															   Opacity="0.5"
+															   Margin="20,0,10,0"/>
+
+													<TextBlock Grid.Column="3"
+															   Text="{Binding PrecipitationProbability, StringFormat='\{0\}%'}"/>
 												</Grid>
 											</Border>
 										</StackPanel>
@@ -118,9 +184,10 @@
 							</StackPanel>
 
 							<!-- ================= AWARENESS ================= -->
-							<StackPanel IsVisible="{Binding HasAwareness}" Spacing="10">
+							<StackPanel IsVisible="{Binding HasAwareness}"
+										Spacing="10">
 
-								<TextBlock Text="Warnings"
+								<TextBlock Text="{x:Static vm:WeatherForecastPageViewModel.WarningsLabel}"
 										   FontSize="16"
 										   FontWeight="Bold"/>
 
@@ -134,52 +201,33 @@
 													Margin="0,4"
 													BorderThickness="0.6"
 													ClipToBounds="True">
-												<Grid ColumnDefinitions="6, *">
-													<!-- Barra de cor lateral esquerda -->
-													<Rectangle Grid.Column="0" Fill="{Binding LevelBrush}" Width="5" VerticalAlignment="Stretch"/>
 
-													<StackPanel Grid.Column="1" Spacing="2" Margin="10,0,0,0">
-														<TextBlock Text="{Binding Type}" FontWeight="Bold" FontSize="14"/>
-														<TextBlock Text="{Binding DisplayLevel}" FontSize="12" Opacity="0.9"/>
-														<TextBlock Text="{Binding Period}" FontSize="11" Opacity="0.6"/>
+												<Grid ColumnDefinitions="6,*">
+
+													<Rectangle Grid.Column="0"
+															   Fill="{Binding LevelBrush}"
+															   Width="5"
+															   VerticalAlignment="Stretch"/>
+
+													<StackPanel Grid.Column="1"
+																Spacing="2"
+																Margin="10,0,0,0">
+
+														<TextBlock Text="{Binding LocalizedType}"
+																   FontWeight="Bold"
+																   FontSize="14"/>
+
+														<TextBlock Text="{Binding LocalizedLevel}"
+																   FontSize="12"
+																   Opacity="0.9"/>
+
+														<TextBlock Text="{Binding Period}"
+																   FontSize="11"
+																   Opacity="0.6"/>
 													</StackPanel>
 												</Grid>
 											</Border>
-											<!--<Border Grid.Column="1"
-											Padding="10,8"
-											Background="{StaticResource PanelBrush}"
-											Margin="0,4"
-											ClipToBounds="True">
-											<StackPanel Spacing="2">
-											<TextBlock Text="{Binding Type}" FontWeight="Bold" FontSize="14"/>
-											<TextBlock Text="{Binding DisplayLevel}" FontSize="12" Opacity="0.9"/>
-											<TextBlock Text="{Binding Period}" FontSize="11" Opacity="0.6"/>
-											</StackPanel>
-											</Border>-->
-											<!--<Border Padding="10"
-											CornerRadius="8"
-											Background="{StaticResource PanelBrush}"
-											Margin="0,4"
-											BorderThickness="0.6"
-											ClipToBounds="True">
 
-											<StackPanel Spacing="4">
-
-											<Rectangle Fill="{Binding LevelBrush}" Width="6" VerticalAlignment="Stretch"/>
-
-											<TextBlock Text="{Binding Type}"
-											FontWeight="SemiBold"/>
-
-											<TextBlock Text="{Binding DisplayLevel}"
-											Opacity="0.8"/>
-
-											<TextBlock Text="{Binding Period}"
-											FontSize="12"
-											Opacity="0.7"/>
-
-											</StackPanel>
-
-											</Border>-->
 										</DataTemplate>
 									</ItemsControl.ItemTemplate>
 								</ItemsControl>

@@ -3,6 +3,7 @@
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:vm="using:OmniWatch.ViewModels.MessageDialog"
+		xmlns:local="using:OmniWatch.Localization"
 		mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 		x:Class="OmniWatch.Views.MessageDialog.MessageDialogBox"
 		x:DataType="vm:MessageDialogBoxViewModel"
@@ -17,6 +18,7 @@
 
 	<Border CornerRadius="8" Background="{StaticResource PrimaryBrush}"
 			BorderBrush="#444" BorderThickness="1" ClipToBounds="True">
+
 		<Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource PanelBrush}">
 
 			<!-- HEADER DINÂMICO -->
@@ -24,22 +26,36 @@
 				<StackPanel Orientation="Horizontal">
 					<Label FontFamily="{StaticResource PhosphorFill}"
 						   Content="{Binding Icon}"
-						   FontSize="20" Foreground="{StaticResource DarkPrimary}" VerticalAlignment="Center"/>
-					<TextBlock Grid.Column="1" Text="{Binding Title}"
-							   Foreground="{StaticResource DarkPrimary}" FontSize="16" FontWeight="Bold"
-							   Margin="1,0,0,0" VerticalAlignment="Center" />
+						   FontSize="20"
+						   Foreground="{StaticResource DarkPrimary}"
+						   VerticalAlignment="Center"/>
+
+					<TextBlock Grid.Column="1"
+							   Text="{Binding Title}"
+							   Foreground="{StaticResource DarkPrimary}"
+							   FontSize="16"
+							   FontWeight="Bold"
+							   Margin="1,0,0,0"
+							   VerticalAlignment="Center"/>
 				</StackPanel>
 			</Border>
 
-
-			<ScrollViewer Grid.Row="1" MaxHeight="300" >
-				<TextBlock Padding="15" Text="{Binding Message}"
-						   TextWrapping="Wrap" FontSize="14"/>
+			<!-- MESSAGE -->
+			<ScrollViewer Grid.Row="1" MaxHeight="300">
+				<TextBlock Padding="15"
+						   Text="{Binding Message}"
+						   TextWrapping="Wrap"
+						   FontSize="14"/>
 			</ScrollViewer>
 
-			<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,10,10,10">
+			<!-- BUTTONS -->
+			<StackPanel Grid.Row="2"
+						Orientation="Horizontal"
+						HorizontalAlignment="Right"
+						Spacing="10"
+						Margin="0,10,10,10">
 
-				<Button Content="Cancel"
+				<Button Content="{Binding [Dialog_Cancel], Source={x:Static local:LanguageManager.Instance}}"
 						Width="100"
 						Background="{Binding HeaderColor}"
 						Foreground="{StaticResource DarkPrimary}"
@@ -47,7 +63,7 @@
 						HorizontalContentAlignment="Center"
 						Click="OnCancelClick"/>
 
-				<Button Content="OK"
+				<Button Content="{Binding [Dialog_OK], Source={x:Static local:LanguageManager.Instance}}"
 						Width="100"
 						Background="{Binding HeaderColor}"
 						Foreground="{StaticResource DarkPrimary}"

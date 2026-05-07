@@ -1,18 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HarfBuzzSharp;
 using OmniWatch.Core.Enums;
 using OmniWatch.Core.Helpers;
 using OmniWatch.Core.Interfaces;
-using OmniWatch.Core.Models;
 using OmniWatch.Core.Settings;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.ViewModels.MessageDialog;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
@@ -28,6 +28,13 @@ namespace OmniWatch.ViewModels.Settings
         private readonly ISecretResetService _secretResetService;
         private readonly IMessageService _messageService;
         private readonly IOpenSkyTokenManager _tokenManager;
+
+        #endregion
+
+        #region Localization Helper
+
+        private string Translation(string key) =>
+            LanguageManager.Instance[key];
 
         #endregion
 
@@ -79,8 +86,13 @@ namespace OmniWatch.ViewModels.Settings
             get => selectedLanguage;
             set
             {
-                selectedLanguage = value;
-                Language = value?.Code;
+                if (SetProperty(ref selectedLanguage, value) && value != null)
+                {
+                    Language = value.Code;
+
+                    LanguageManager.Instance.CurrentCulture =
+                        new System.Globalization.CultureInfo(value.Code);
+                }
             }
         }
 
@@ -94,7 +106,7 @@ namespace OmniWatch.ViewModels.Settings
             ISecretResetService secretResetService,
             ProgressControlViewModel progressControl,
             IMessageService messageService,
-            IOpenSkyTokenManager tokenManager)
+            IOpenSkyTokenManager tokenManager) : base()
         {
             PageName = Data.ApplicationPageNames.Settings;
 
@@ -117,10 +129,9 @@ namespace OmniWatch.ViewModels.Settings
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Message = "Loading settings...";
+                ProgressControl.Message = Translation("Settings_Loading");
 
                 var settings = _settingsService.Load();
-
                 var secret = await _secretService.GetAsync(SecretKeys.ApiKey(ApiProvider.OpenSky));
 
                 OpenSkyClientId = settings.OpenSkyClientId ?? string.Empty;
@@ -130,13 +141,12 @@ namespace OmniWatch.ViewModels.Settings
                 RefreshInterval = settings.RefreshInterval;
                 UseOpenSkyCredentials = settings.UseOpenSkyCredentials;
 
-                SelectedLanguage = Languages
-                    .FirstOrDefault(x => x.Code == settings.Language);
+                SelectedLanguage = Languages.FirstOrDefault(x => x.Code == settings.Language);
             }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Failed to load settings: {ex.Message}",
+                    string.Format(Translation("Settings_LoadFailed"), ex.Message),
                     MessageDialogType.Error
                 );
             }
@@ -150,14 +160,13 @@ namespace OmniWatch.ViewModels.Settings
 
         #region Commands
 
-        public IRelayCommand ToggleSecretVisibilityCommand => new RelayCommand(() => IsSecretVisible = !IsSecretVisible);
-
+        public IRelayCommand ToggleSecretVisibilityCommand =>
+            new RelayCommand(() => IsSecretVisible = !IsSecretVisible);
 
         partial void OnIsSecretVisibleChanged(bool value)
         {
             OnPropertyChanged(nameof(SecretVisibilityIcon));
         }
-
 
         [RelayCommand]
         private async Task TestOpenSkyCredentialsAsync()
@@ -165,9 +174,8 @@ namespace OmniWatch.ViewModels.Settings
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Message = "Validating OpenSky credentials...";
+                ProgressControl.Message = Translation("Settings_ValidatingCredentials");
 
-                // Testar credenciais diretamente (sem gravar)
                 var result = await _tokenManager.TestCredentialsAsync(
                     OpenSkyClientId,
                     OpenSkyClientSecret
@@ -177,19 +185,19 @@ namespace OmniWatch.ViewModels.Settings
                 {
                     case OpenSkyAuthStatus.Success:
                         await _messageService.ShowAsync(
-                            "Credentials are valid!",
+                            Translation("Settings_CredentialsValid"),
                             MessageDialogType.Success);
                         break;
 
                     case OpenSkyAuthStatus.Unauthorized:
                         await _messageService.ShowAsync(
-                            "Invalid credentials.\nPlease check your Client ID and Secret.",
+                            Translation("Settings_CredentialsInvalid"),
                             MessageDialogType.Error);
                         break;
 
                     case OpenSkyAuthStatus.Error:
                         await _messageService.ShowAsync(
-                            "OpenSky server returned an error.\nTry again later.",
+                            Translation("Settings_ServerError"),
                             MessageDialogType.Error);
                         break;
                 }
@@ -197,7 +205,7 @@ namespace OmniWatch.ViewModels.Settings
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Unexpected error: {ex.Message}",
+                    string.Format(Translation("Settings_UnexpectedError"), ex.Message),
                     MessageDialogType.Error);
             }
             finally
@@ -205,7 +213,6 @@ namespace OmniWatch.ViewModels.Settings
                 ProgressControl.IsVisible = false;
             }
         }
-
 
         #endregion
 
@@ -216,7 +223,7 @@ namespace OmniWatch.ViewModels.Settings
             if (!value && RefreshInterval < 10)
             {
                 _ = _messageService.ShowAsync(
-                    "OpenSky credentials are required for refresh intervals less than 10 seconds. Refresh interval has been reset to 10 seconds.",
+                    Translation("Settings_RefreshIntervalWarning"),
                     MessageDialogType.Warning
                 ).ConfigureAwait(false);
 
@@ -228,47 +235,36 @@ namespace OmniWatch.ViewModels.Settings
 
         #region Save
 
-        public void Save()
-        {
-            _ = SaveSettingsAsync();
-        }
-
-        public void Reset()
-        {
-            _ = ResetSettingsAsync();
-        }
-
+        public void Save() => _ = SaveSettingsAsync();
+        public void Reset() => _ = ResetSettingsAsync();
 
         private async Task SaveSettingsAsync()
         {
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Message = "Saving settings...";
+                ProgressControl.Message = Translation("Settings_Saving");
 
                 if (!UseOpenSkyCredentials && RefreshInterval < 10)
                 {
                     await _messageService.ShowAsync(
-                        "Settings not saved.\n\n" +
-                        "Warning: OpenSky requests without authentication must not be made more frequently than every 10 seconds, or your IP may be blocked.",
+                        Translation("Settings_SaveBlockedNoAuth"),
                         MessageDialogType.Warning
                     );
                     RefreshInterval = 10;
                     return;
                 }
-                else if (UseOpenSkyCredentials && (string.IsNullOrWhiteSpace(OpenSkyClientId) || string.IsNullOrWhiteSpace(OpenSkyClientSecret)))
+                else if (UseOpenSkyCredentials &&
+                        (string.IsNullOrWhiteSpace(OpenSkyClientId) ||
+                         string.IsNullOrWhiteSpace(OpenSkyClientSecret)))
                 {
                     await _messageService.ShowAsync(
-                          "Configuration not saved.\n\n" +
-                          "You selected OpenSky authentication, but the required credentials are missing.\n" +
-                          "Please provide both Client ID and Client Secret before saving.",
-                          MessageDialogType.Warning
-                      );
-
+                        Translation("Settings_SaveBlockedMissingCredentials"),
+                        MessageDialogType.Warning
+                    );
                     return;
                 }
 
-                // 1. Save non-sensitive settings
                 _settingsService.Save(new AppSettings
                 {
                     UseOpenSkyCredentials = UseOpenSkyCredentials,
@@ -277,7 +273,6 @@ namespace OmniWatch.ViewModels.Settings
                     Language = Language
                 });
 
-                // 2. Save secret securely (NEW MODEL)
                 if (!string.IsNullOrWhiteSpace(OpenSkyClientSecret))
                 {
                     await _secretService.SetAsync(
@@ -287,16 +282,15 @@ namespace OmniWatch.ViewModels.Settings
                 }
 
                 await _messageService.ShowAsync(
-                    "Settings saved successfully.",
+                    Translation("Settings_SaveSuccess"),
                     MessageDialogType.Warning
                 );
             }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Failed to save settings: {ex.Message}",
-                    MessageDialogType.Error
-                );
+                    string.Format(Translation("Settings_SaveFailed"), ex.Message),
+                    MessageDialogType.Error);
             }
             finally
             {
@@ -309,7 +303,7 @@ namespace OmniWatch.ViewModels.Settings
             try
             {
                 var result = await _messageService.ShowAsync(
-                    "Are you sure you want to reset all settings?\nThis will remove your OpenSky credentials and restore defaults.",
+                    Translation("Settings_ResetConfirm"),
                     MessageDialogType.Warning
                 );
 
@@ -317,9 +311,8 @@ namespace OmniWatch.ViewModels.Settings
                     return;
 
                 ProgressControl.IsVisible = true;
-                ProgressControl.Message = "Resetting settings...";
+                ProgressControl.Message = Translation("Settings_Resetting");
 
-                // 1. Reset settings (via service, não file system)
                 _settingsService.Save(new AppSettings
                 {
                     UseOpenSkyCredentials = false,
@@ -328,29 +321,27 @@ namespace OmniWatch.ViewModels.Settings
                     Language = "en-US"
                 });
 
-                // 2. Reset secrets (OpenSky scope completo)
                 await _secretResetService.ResetAsync(ApiProvider.OpenSky);
 
-                // 3. Reload UI state
                 await Load();
 
                 await _messageService.ShowAsync(
-                    "Settings have been reset successfully.",
+                    Translation("Settings_ResetSuccess"),
                     MessageDialogType.Warning
                 );
             }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Failed to reset settings: {ex.Message}",
-                    MessageDialogType.Error
-                );
+                    string.Format(Translation("Settings_ResetFailed"), ex.Message),
+                    MessageDialogType.Error);
             }
             finally
             {
                 ProgressControl.IsVisible = false;
             }
         }
+
         #endregion
     }
 }

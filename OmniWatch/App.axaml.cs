@@ -107,14 +107,20 @@ public partial class App : Application
                 // CRITICAL STARTUP PIPELINE
                 // =========================
 
-                // 1. DATABASE INIT (Integrations)
                 var dbBootstrap = serviceProvider.GetRequiredService<DatabaseBootstrap>();
                 dbBootstrap.Initialize();
 
-                // 2. APP INIT (settings + secrets)
                 serviceProvider.GetRequiredService<AppInitializer>().Initialize();
 
-                // 3. MAIN WINDOW
+                var settingsService = serviceProvider.GetRequiredService<ISettingsService>();
+                var settings = settingsService.Load();
+
+                if (!string.IsNullOrEmpty(settings?.Language))
+                {
+                    Localization.LanguageManager.Instance.CurrentCulture =
+                        new System.Globalization.CultureInfo(settings.Language);
+                }
+
                 var main = new MainWindow
                 {
                     DataContext = serviceProvider.GetRequiredService<MainWindowViewModel>()

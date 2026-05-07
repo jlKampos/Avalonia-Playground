@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using OmniWatch.Data;
 using OmniWatch.Factory;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.ViewModels.ProgressControl;
-using OmniWatch.Views.Progress;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -24,7 +24,11 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         private ProgressControlViewModel _progressControl;
 
-        public string WindowTitle => $"OmniWatch {Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
+        private string Translation(string key) =>
+            LanguageManager.Instance[key];
+
+        public string WindowTitle =>
+            $"OmniWatch {Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion}";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(WeatherPageIsActive))]
@@ -43,9 +47,9 @@ namespace OmniWatch.ViewModels
         public MainWindowViewModel(ProgressControlViewModel progressControl)
         {
             ProgressControl = progressControl;
+
             if (Design.IsDesignMode)
             {
-                // Fake page for preview
                 CurrentPage = new WeatherForecastPageViewModel();
             }
         }
@@ -70,17 +74,14 @@ namespace OmniWatch.ViewModels
             IsLoadingPage = false;
         }
 
-        // Centralized navigation logic (fixes loops not stopping)
         private async Task NavigateToAsync(ApplicationPageNames pageName, string loadingMessage)
         {
             IsLoadingPage = true;
             ProgressControl.Message = loadingMessage;
 
-            // 1. Unload previous page (IMPORTANT)
             if (CurrentPage is IAsyncPage oldPage)
                 await oldPage.UnloadAsync();
 
-            // 2. Load new page
             var page = _pageFactory.GetPage(pageName);
             CurrentPage = page;
 
@@ -96,26 +97,24 @@ namespace OmniWatch.ViewModels
             SideMenuExpanded = !SideMenuExpanded;
         }
 
-        // All navigation commands now use NavigateToAsync()
-
         [RelayCommand]
         private Task GoToWeather() =>
-            NavigateToAsync(ApplicationPageNames.WeatherForecast, "Loading Weather Forecast page");
+            NavigateToAsync(ApplicationPageNames.WeatherForecast, Translation("Main_LoadWeather"));
 
         [RelayCommand]
         private Task GoToSeismology() =>
-            NavigateToAsync(ApplicationPageNames.Seismology, "Loading Seismology page");
+            NavigateToAsync(ApplicationPageNames.Seismology, Translation("Main_LoadSeismology"));
 
         [RelayCommand]
         private Task GoToOpenSky() =>
-            NavigateToAsync(ApplicationPageNames.OpenSky, "Loading OpenSky page");
+            NavigateToAsync(ApplicationPageNames.OpenSky, Translation("Main_LoadOpenSky"));
 
         [RelayCommand]
         private Task GoToNoaa() =>
-            NavigateToAsync(ApplicationPageNames.Noaa, "Loading NOAA NHC page");
+            NavigateToAsync(ApplicationPageNames.Noaa, Translation("Main_LoadNoaa"));
 
         [RelayCommand]
         private Task GoToSettings() =>
-            NavigateToAsync(ApplicationPageNames.Settings, "Loading Settings page");
+            NavigateToAsync(ApplicationPageNames.Settings, Translation("Main_LoadSettings"));
     }
 }
