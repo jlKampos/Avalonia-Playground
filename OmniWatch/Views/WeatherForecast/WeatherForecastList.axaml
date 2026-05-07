@@ -213,11 +213,11 @@
 																Spacing="2"
 																Margin="10,0,0,0">
 
-														<TextBlock Text="{Binding Type}"
+														<TextBlock Text="{Binding LocalizedType}"
 																   FontWeight="Bold"
 																   FontSize="14"/>
 
-														<TextBlock Text="{Binding DisplayLevel}"
+														<TextBlock Text="{Binding LocalizedLevel}"
 																   FontSize="12"
 																   Opacity="0.9"/>
 

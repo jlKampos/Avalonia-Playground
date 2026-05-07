@@ -1,43 +1,54 @@
 ﻿using Avalonia.Media;
+using OmniWatch.Helpers;
+using OmniWatch.Localization;
 using System;
+using System.ComponentModel;
 
 namespace OmniWatch.Models.IPMA.Awarness
 {
-    public class AwarnessItemDto
+    public class AwarnessItemDto : INotifyPropertyChanged
     {
-        public string Area { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
-        public string Level { get; set; } = string.Empty;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
+        public string Area { get; set; } = string.Empty;
+        public string Type { get; set; } = string.Empty; // EN (from translation service)
+        public string Level { get; set; } = string.Empty;
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-
         public string Text { get; set; } = string.Empty;
 
-        public string Period => $"{StartTime:dd/MM HH:mm} - {EndTime:dd/MM HH:mm}";
+        // Brush vem do VM
+        public SolidColorBrush LevelBrush { get; set; } = new SolidColorBrush(Colors.Gray);
 
-        public string HasText => string.IsNullOrWhiteSpace(Text)
-            ? "Sem descrição"
-            : Text;
+        // ============================
+        // LOCALIZED PROPERTIES
+        // ============================
 
-        public string DisplayLevel =>
-           Level?.ToLower() switch
-           {
-               "green" => "Green",
-               "yellow" => "Yellow",
-               "orange" => "Orange",
-               "red" => "Red",
-               _ => Level
-           };
-
-        public SolidColorBrush LevelBrush =>
-            Level?.ToLower() switch
+        public string LocalizedType =>
+            LanguageManager.Instance.CurrentCulture.TwoLetterISOLanguageName switch
             {
-                "green" => new SolidColorBrush(Colors.Green),
-                "yellow" => new SolidColorBrush(Colors.Yellow),
-                "orange" => new SolidColorBrush(Colors.Orange),
-                "red" => new SolidColorBrush(Colors.Red),
-                _ => new SolidColorBrush(Colors.Gray)
+                "pt" => WeatherTranslationService.TranslateAwarenessToPT(Type),
+                _ => Type
             };
+
+        public string LocalizedLevel =>
+            LanguageManager.Instance.CurrentCulture.TwoLetterISOLanguageName switch
+            {
+                "pt" => WeatherTranslationService.TranslateLevelToPT(Level),
+                _ => WeatherTranslationService.TranslateLevelToEN(Level)
+            };
+
+        public string Period =>
+            $"{StartTime:dd/MM HH:mm} - {EndTime:dd/MM HH:mm}";
+
+        // ============================
+        // LANGUAGE CHANGE NOTIFY
+        // ============================
+
+        public void OnLanguageChanged()
+        {
+            PropertyChanged?.Invoke(this, new(nameof(LocalizedType)));
+            PropertyChanged?.Invoke(this, new(nameof(LocalizedLevel)));
+        }
     }
 }

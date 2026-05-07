@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NetTopologySuite.Index.HPRtree;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
@@ -81,7 +82,12 @@ namespace OmniWatch.ViewModels
             LanguageManager.Instance.PropertyChanged += (_, __) =>
             {
                 foreach (var f in Forecasts)
+                {
                     f.OnLanguageChanged();
+
+                    foreach (var a in f.AwarnessInformation)
+                        a.OnLanguageChanged();
+                }
             };
 
         }
@@ -371,11 +377,22 @@ namespace OmniWatch.ViewModels
                 tempList.Add(item);
             }
 
-            foreach (var item in tempList)
-                Forecasts.Add(item);
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Forecasts.Clear();
 
-            SelectedTab = Forecasts.FirstOrDefault();
+                foreach (var item in tempList)
+                {
+                    foreach (var a in item.AwarnessInformation)
+                        a.LevelBrush = GetLevelBrush(a.Level);
+
+                    Forecasts.Add(item);
+                }
+
+                SelectedTab = Forecasts.FirstOrDefault();
+            });
         }
+
 
         #endregion
     }
