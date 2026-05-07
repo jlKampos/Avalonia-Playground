@@ -13,6 +13,9 @@ namespace OmniWatch.Models.Noaa.ActiveStorms
         public double Longitude { get; set; }
         public int Intensity { get; set; }
         public string IntensityUnit { get; set; } = "KT";
+
+        public double WindSpeedKM { get { return KnotsToKmH(Intensity); } }
+
         public int Pressure { get; set; }
         public string PressureUnit { get; set; } = "mb";
 
@@ -22,5 +25,10 @@ namespace OmniWatch.Models.Noaa.ActiveStorms
 
         public List<StormProductDto> Links { get; set; } = new List<StormProductDto>();
 
+
+        public static double KnotsToKmH(double knots)
+        {
+            return knots * 1.852;
+        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Precipitation;
-using OmniWatch.Models.Precipitation;
+using OmniWatch.Models.IPMA.Precipitation;
 
 namespace OmniWatch.Mapping.Weather.Precipitation
 {

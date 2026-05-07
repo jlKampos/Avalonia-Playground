@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Wind;
-using OmniWatch.Models.Wind;
+using OmniWatch.Models.IPMA.Wind;
 
 namespace OmniWatch.Mapping.Weather.Wind
 {

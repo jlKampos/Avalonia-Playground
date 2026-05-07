@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Locations;
-using OmniWatch.Models.Locations;
+using OmniWatch.Models.IPMA.Locations;
 
 namespace OmniWatch.Mapping.Weather.Location
 {

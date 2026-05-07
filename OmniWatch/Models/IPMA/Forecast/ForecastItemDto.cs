@@ -1,11 +1,11 @@
-﻿using OmniWatch.Models.Awarness;
-using OmniWatch.Models.Precipitation;
-using OmniWatch.Models.Weather;
-using OmniWatch.Models.Wind;
+﻿using OmniWatch.Models.IPMA.Awarness;
+using OmniWatch.Models.IPMA.Precipitation;
+using OmniWatch.Models.IPMA.Weather;
+using OmniWatch.Models.IPMA.Wind;
 using System;
 using System.Collections.Generic;
 
-namespace OmniWatch.Models.Forecast
+namespace OmniWatch.Models.IPMA.Forecast
 {
     public class ForecastItemDto
     {

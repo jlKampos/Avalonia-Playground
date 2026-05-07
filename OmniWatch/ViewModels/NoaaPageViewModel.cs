@@ -281,7 +281,7 @@ namespace OmniWatch.ViewModels
                 var labelStyle = new LabelStyle
                 {
                     Text = $"{storm.Name} ({storm.Classification})\n" +
-                           $"Wind: {storm.Intensity} kt\n" +
+                           $"Wind: {storm.WindSpeedKM:F1} km/h - {storm.Intensity} kt\n" +
                            $"Pres: {storm.Pressure} hPa\n" +
                            $"Mov: {storm.Movement}",
 
@@ -340,7 +340,7 @@ namespace OmniWatch.ViewModels
             var stormData = storm.Track.Select(p =>
             {
                 var (x, y) = SphericalMercator.FromLonLat(p.Longitude, p.Latitude);
-                return new { X = x, Y = y, p.Wind, p.Pressure, p.Category, p.Time, p.Basin, p.Nature };
+                return new { X = x, Y = y, p.Wind, p.Pressure, p.Category, p.Time, p.Basin, p.Nature, p.WindSpeedKM };
             }).ToList();
 
             _segmentIndex = 0;
@@ -410,7 +410,7 @@ namespace OmniWatch.ViewModels
                 {
                     Text = $"{a.Time:yyyy-MM-dd HH:mm}\n" +
                             $"Name: {storm.Name}\n" +
-                            $"Wind: {a.Wind} kt\n" +
+                            $"Wind: {a.WindSpeedKM:F1} km/h - {a.Wind} kt\n" +
                             $"Pressure: {a.Pressure} hPa\n" +
                             $"Cat: {a.Category}\n" +
                             $"Basin: {a.Basin}\n" +
