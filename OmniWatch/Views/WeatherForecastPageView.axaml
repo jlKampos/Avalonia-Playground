@@ -5,26 +5,31 @@
 			 xmlns:vm="using:OmniWatch.ViewModels"
 			 xmlns:wf="clr-namespace:OmniWatch.Views.WeatherForecast"
 			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 xmlns:local="using:OmniWatch.Localization"
 			 mc:Ignorable="d"
 			 d:DesignWidth="800"
 			 d:DesignHeight="450"
 			 x:Class="OmniWatch.Views.WeatherForecastPageView"
-			 x:DataType="vm:WeatherForecastPageViewModel"
-			 xmlns:local="clr-namespace:OmniWatch.Models.Forecast"
-			 xmlns:awarness="clr-namespace:OmniWatch.Models.Awarness">
-
+			 x:DataType="vm:WeatherForecastPageViewModel">
 
 	<Grid RowDefinitions="100,*">
-		<Border Grid.Row="0" Background="{DynamicResource ResourceKey=PanelGradient}" Padding="20">
-			<StackPanel Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
 
-				<!-- Title -->
-				<TextBlock Text="Select location"
+		<!-- HEADER -->
+		<Border Grid.Row="0"
+				Background="{DynamicResource ResourceKey=PanelGradient}"
+				Padding="20">
+
+			<StackPanel Orientation="Horizontal"
+						Spacing="20"
+						VerticalAlignment="Center">
+
+				<!-- TITLE -->
+				<TextBlock Text="{Binding [Weather_SelectLocation], Source={x:Static local:LanguageManager.Instance}}"
 						   FontSize="20"
 						   Foreground="White"
 						   VerticalAlignment="Center"/>
 
-				<!-- ComboBox with fixed width to match DatePicker proportions -->
+				<!-- LOCATION COMBOBOX -->
 				<ComboBox Width="250"
 						  ItemsSource="{Binding Locations}"
 						  SelectedItem="{Binding SelectedLocation}">
@@ -38,12 +43,19 @@
 			</StackPanel>
 		</Border>
 
-		<Border Grid.Row="1" Padding="0" IsVisible="{Binding ProgressControl.IsVisible}">
+		<!-- LOADING -->
+		<Border Grid.Row="1"
+				Padding="0"
+				IsVisible="{Binding ProgressControl.IsVisible}">
 			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
 		</Border>
 
-		<Border Grid.Row="1" Padding="0" IsVisible="{Binding !ProgressControl.IsVisible}">
+		<!-- FORECAST LIST -->
+		<Border Grid.Row="1"
+				Padding="0"
+				IsVisible="{Binding !ProgressControl.IsVisible}">
 			<wf:WeatherForecastList />
 		</Border>
+
 	</Grid>
 </UserControl>

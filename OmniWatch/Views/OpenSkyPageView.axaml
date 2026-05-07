@@ -6,6 +6,7 @@
 			 xmlns:conv="clr-namespace:OmniWatch.Helpers"
 			 xmlns:mapsui="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
 			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 xmlns:local="using:OmniWatch.Localization"
 			 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 			 x:DataType="vm:OpenSkyPageViewModel"
 			 x:Class="OmniWatch.Views.OpenSkyPageView">
@@ -43,10 +44,9 @@
 		<!-- HEADER AREA -->
 		<Border Grid.Row="0" Background="{DynamicResource PanelGradient}" Padding="20">
 
-			<!-- Main header grid: left side grows, right side fixed width -->
 			<Grid ColumnDefinitions="*, Auto" ColumnSpacing="20">
 
-				<!-- LEFT SIDE CONTENT -->
+				<!-- LEFT SIDE -->
 				<StackPanel Grid.Column="0"
 							Orientation="Vertical"
 							Spacing="6">
@@ -55,14 +55,15 @@
 								VerticalAlignment="Center"
 								Spacing="10">
 
-						<TextBlock Text="Air traffic"
+						<TextBlock Text="{Binding [OpenSky_Title], Source={x:Static local:LanguageManager.Instance}}"
 								   Foreground="White"
 								   FontSize="20"
 								   VerticalAlignment="Center"/>
 					</StackPanel>
 
-					<!-- Rate‑limit information row -->
-					<StackPanel IsVisible="{Binding ShowRateLimitOverlay}" Orientation="Horizontal"
+					<!-- Rate‑limit information -->
+					<StackPanel IsVisible="{Binding ShowRateLimitOverlay}"
+								Orientation="Horizontal"
 								Spacing="15">
 
 						<!-- Remaining credits -->
@@ -70,137 +71,109 @@
 								CornerRadius="4"
 								Padding="7"
 								VerticalAlignment="Center">
-							<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-								<TextBlock Text="Rate limit remaining:"
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding [OpenSky_RateLimitRemaining], Source={x:Static local:LanguageManager.Instance}}"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 								<TextBlock Text="{Binding RateLimitRemaining}"
 										   Margin="5,0,0,0"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 							</StackPanel>
 						</Border>
 
-						<!-- Separator -->
-						<TextBlock Text="|"
-								   Foreground="Gray"
-								   FontSize="14"
-								   Margin="6,0"
-								   VerticalAlignment="Center"/>
+						<TextBlock Text="|" Foreground="Gray" FontSize="14" Margin="6,0"/>
 
 						<!-- Total credits -->
 						<Border Background="#338FAA00"
 								CornerRadius="4"
 								Padding="7"
 								VerticalAlignment="Center">
-							<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-								<TextBlock Text="Rate limit total:"
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding [OpenSky_RateLimitTotal], Source={x:Static local:LanguageManager.Instance}}"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 								<TextBlock Text="{Binding RateLimitTotal}"
 										   Margin="5,0,0,0"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 							</StackPanel>
 						</Border>
 
-						<!-- Separator -->
-						<TextBlock Text="|"
-								   Foreground="Gray"
-								   FontSize="14"
-								   Margin="6,0"
-								   VerticalAlignment="Center"/>
+						<TextBlock Text="|" Foreground="Gray" FontSize="14" Margin="6,0"/>
 
 						<!-- Update Interval -->
 						<Border Background="#338FAA00"
 								CornerRadius="4"
 								Padding="7"
 								VerticalAlignment="Center">
-							<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-								<TextBlock Text="Update Interval:"
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding [OpenSky_UpdateInterval], Source={x:Static local:LanguageManager.Instance}}"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 								<TextBlock Text="{Binding UpdateInterval}"
 										   Margin="5,0,0,0"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 							</StackPanel>
-
-
 						</Border>
 
-						<!-- Separator -->
-						<TextBlock Text="|"
-								   Foreground="Gray"
-								   FontSize="14"
-								   Margin="6,0"
-								   VerticalAlignment="Center"/>
+						<TextBlock Text="|" Foreground="Gray" FontSize="14" Margin="6,0"/>
 
 						<!-- Reset timestamp -->
 						<Border Background="#338FAA00"
 								CornerRadius="4"
 								Padding="7"
 								VerticalAlignment="Center">
-							<StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-								<TextBlock Text="Reset at:"
+							<StackPanel Orientation="Horizontal">
+								<TextBlock Text="{Binding [OpenSky_ResetAt], Source={x:Static local:LanguageManager.Instance}}"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 								<TextBlock Text="{Binding RateLimitResetAt}"
 										   Margin="5,0,0,0"
 										   Foreground="{StaticResource DarkAccent}"
-										   FontSize="10"
-										   VerticalAlignment="Center"/>
+										   FontSize="10"/>
 							</StackPanel>
-
 						</Border>
+
 					</StackPanel>
 
 				</StackPanel>
 
-				<!-- RIGHT SIDE -->
+				<!-- RIGHT SIDE (empty for now) -->
 				<Grid Grid.Column="1"
 					  HorizontalAlignment="Right"
 					  VerticalAlignment="Center"
 					  RowDefinitions="Auto, Auto"
 					  RowSpacing="10">
-
 				</Grid>
 
 			</Grid>
 
 		</Border>
 
-		<!-- Progress overlay (loading indicator) -->
+		<!-- Progress overlay -->
 		<Border Padding="0" Grid.Row="1" IsVisible="{Binding ProgressControl.IsVisible}" ZIndex="10">
 			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
 		</Border>
 
-		<!-- Main map area -->
-		<Border Padding="0" Grid.Row="1" IsVisible="{Binding !ProgressControl.IsVisible}" >
+		<!-- MAP AREA -->
+		<Border Padding="0" Grid.Row="1" IsVisible="{Binding !ProgressControl.IsVisible}">
 			<Grid>
-				<!-- Mapa -->
+
 				<mapsui:MapControl x:Name="MyMapControl" />
 
-				<!-- Map Actions -->
+				<!-- Warning for non-auth users -->
 				<Grid HorizontalAlignment="Left"
 					  VerticalAlignment="Top"
-					  Margin="10"
-					  RowSpacing="5">
+					  Margin="10">
 
 					<Border Background="#BFFFA500"
 							CornerRadius="4"
 							Padding="7"
 							Margin="5,0,0,0"
-							VerticalAlignment="Center"
 							IsVisible="{Binding ShowRateLimitNonAuthUser}">
-						<TextBlock Text="⚠ API requests to OpenSky are limited to one every 10 seconds to avoid IP blocking."
+						<TextBlock Text="{Binding [OpenSky_WarningRateLimit], Source={x:Static local:LanguageManager.Instance}}"
 								   Foreground="#FF191000"
 								   FontSize="10"
 								   FontWeight="Bold"
@@ -208,86 +181,66 @@
 					</Border>
 				</Grid>
 
+				<!-- THEME -->
 				<Grid HorizontalAlignment="Right"
 					  VerticalAlignment="Top"
-					  Margin="10"
-					  RowSpacing="5">
-					<!-- Theme -->
-					<Border
-					Background="#BF8FAA00"
-					CornerRadius="4"
-					Padding="6">
+					  Margin="10">
 
-						<Grid ColumnDefinitions="Auto,*"
-							  ColumnSpacing="10"
-							  HorizontalAlignment="Stretch"
-							  VerticalAlignment="Center">
+					<Border Background="#BF8FAA00"
+							CornerRadius="4"
+							Padding="6">
 
-							<TextBlock Text="Theme"
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+
+							<TextBlock Text="{Binding [OpenSky_Theme], Source={x:Static local:LanguageManager.Instance}}"
 									   FontSize="11"
 									   FontWeight="Bold"
-									   VerticalAlignment="Center"
-									   Margin="0,0,10,0"
 									   Foreground="#FF191000"/>
 
 							<ToggleSwitch Grid.Column="1"
 										  Width="110"
 										  IsChecked="{Binding IsDarkTheme, Mode=TwoWay}"
-										  HorizontalAlignment="Center"
-										  VerticalAlignment="Center"
 										  OffContentTemplate="{StaticResource LightIconTemplate}"
 										  OnContentTemplate="{StaticResource DarkIconTemplate}" />
-
 						</Grid>
 					</Border>
 				</Grid>
+
+				<!-- DATA TYPE -->
 				<Grid HorizontalAlignment="Right"
 					  VerticalAlignment="Bottom"
-					  Margin="10"
-					  RowSpacing="5">
+					  Margin="10">
 
-					<!-- Data type -->
 					<Border Background="#BF8FAA00"
 							CornerRadius="4"
 							Padding="6">
 
-						<Grid ColumnDefinitions="Auto,*"
-							  ColumnSpacing="10"
-							  HorizontalAlignment="Stretch"
-							  VerticalAlignment="Center">
+						<Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
 
-							<TextBlock Text="Data"
+							<TextBlock Text="{Binding [OpenSky_Data], Source={x:Static local:LanguageManager.Instance}}"
 									   FontSize="11"
 									   FontWeight="Bold"
-									   VerticalAlignment="Center"
-									   Margin="0,0,10,0"
 									   Foreground="#FF191000"/>
 
 							<ToggleSwitch Grid.Column="1"
 										  Height="30"
 										  Width="110"
-										  IsChecked="{Binding UseRealData}"
-										  HorizontalAlignment="Center"
-										  VerticalAlignment="Center">
+										  IsChecked="{Binding UseRealData}">
 
 								<ToggleSwitch.OnContentTemplate>
 									<DataTemplate>
-										<TextBlock Text="Real"
+										<TextBlock Text="{Binding [OpenSky_DataReal], Source={x:Static local:LanguageManager.Instance}}"
 												   FontSize="11"
 												   FontWeight="Bold"
-												   HorizontalAlignment="Center"
-												   VerticalAlignment="Center"
 												   Foreground="#FF191000"/>
 									</DataTemplate>
 								</ToggleSwitch.OnContentTemplate>
 
 								<ToggleSwitch.OffContentTemplate>
 									<DataTemplate>
-										<TextBlock Text="Dummy"
+										<TextBlock Text="{Binding [OpenSky_DataDummy], Source={x:Static local:LanguageManager.Instance}}"
 												   FontSize="11"
 												   FontWeight="Bold"
-												   HorizontalAlignment="Center"
-												   VerticalAlignment="Center"
 												   Foreground="#FF191000"/>
 									</DataTemplate>
 								</ToggleSwitch.OffContentTemplate>
@@ -297,6 +250,7 @@
 						</Grid>
 					</Border>
 				</Grid>
+
 			</Grid>
 		</Border>
 

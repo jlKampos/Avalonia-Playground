@@ -5,10 +5,9 @@ namespace OmniWatch.Helpers
 {
     public static class WeatherTranslationService
     {
-        private static readonly Dictionary<string, string> AwarenessTypes = new(StringComparer.OrdinalIgnoreCase)
+        private static readonly Dictionary<string, string> AwarenessPTtoEN = new(StringComparer.OrdinalIgnoreCase)
         {
-			// Hidrometeorológicos
-			{ "Agitação Marítima", "Sea Swell" },
+            { "Agitação Marítima", "Sea Swell" },
             { "Trovoada", "Thunderstorms" },
             { "Precipitação", "Rain / Precipitation" },
             { "Chuva", "Rain" },
@@ -16,44 +15,91 @@ namespace OmniWatch.Helpers
             { "Vento Forte", "Strong Wind" },
             { "Nevoeiro", "Fog" },
             { "Neve", "Snow" },
-        
-			// Temperaturas e Clima
-			{ "Tempo Frio", "Cold Weather" },
+            { "Tempo Frio", "Cold Weather" },
             { "Tempo Quente", "Hot Weather" },
             { "Onda de Calor", "Heatwave" },
             { "Onda de Frio", "Cold Wave" },
-        
-			// Riscos Ambientais
-			{ "Incêndio", "Fire Risk" },
+            { "Incêndio", "Fire Risk" },
             { "Risco de Incêndio", "Fire Risk" },
             { "Incêndio Rural", "Rural Fire Risk" },
             { "Radiação UV", "UV Radiation" },
-            { "Poeiras", "Dust / Sand in suspension" },
-
-			// Níveis de Aviso (Se precisares de traduzir o levelID)
-			{ "green", "Low Risk" },
-            { "yellow", "Moderate Risk" },
-            { "orange", "High Risk" },
-            { "red", "Extreme Risk" }
+            { "Poeiras", "Dust / Sand in suspension" }
         };
 
+        private static readonly Dictionary<string, string> AwarenessENtoPT = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Sea Swell", "Agitação Marítima" },
+            { "Thunderstorms", "Trovoada" },
+            { "Rain / Precipitation", "Precipitação" },
+            { "Rain", "Chuva" },
+            { "Wind", "Vento" },
+            { "Strong Wind", "Vento Forte" },
+            { "Fog", "Nevoeiro" },
+            { "Snow", "Neve" },
+            { "Cold Weather", "Tempo Frio" },
+            { "Hot Weather", "Tempo Quente" },
+            { "Heatwave", "Onda de Calor" },
+            { "Cold Wave", "Onda de Frio" },
+            { "Fire Risk", "Risco de Incêndio" },
+            { "Rural Fire Risk", "Incêndio Rural" },
+            { "UV Radiation", "Radiação UV" },
+            { "Dust / Sand in suspension", "Poeiras" }
+        };
+
+        private static readonly Dictionary<string, string> LevelENtoPT = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "green", "Verde" },
+            { "yellow", "Amarelo" },
+            { "orange", "Laranja" },
+            { "red", "Vermelho" }
+        };
+
+        private static readonly Dictionary<string, string> LevelPTtoEN = new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Verde", "Green" },
+            { "Amarelo", "Yellow" },
+            { "Laranja", "Orange" },
+            { "Vermelho", "Red" }
+        };
 
         public static string TranslateAwareness(string ptTerm)
         {
             if (string.IsNullOrWhiteSpace(ptTerm))
                 return "General Alert";
 
-            // Remove espaços em branco extras que a API possa enviar
-            var cleanedTerm = ptTerm.Trim();
+            var cleaned = ptTerm.Trim();
 
-            if (AwarenessTypes.TryGetValue(cleanedTerm, out var enTerm))
-            {
-                return enTerm;
-            }
+            return AwarenessPTtoEN.TryGetValue(cleaned, out var en)
+                ? en
+                : cleaned;
+        }
 
-            // Caso o termo seja novo, fazemos um log (opcional) e devolvemos o original
-            System.Diagnostics.Debug.WriteLine($"[Translation] Missing term: {cleanedTerm}");
-            return cleanedTerm;
+        public static string TranslateAwarenessToPT(string enTerm)
+        {
+            if (string.IsNullOrWhiteSpace(enTerm))
+                return "Alerta Geral";
+
+            var cleaned = enTerm.Trim();
+
+            return AwarenessENtoPT.TryGetValue(cleaned, out var pt)
+                ? pt
+                : cleaned;
+        }
+
+        public static string TranslateLevelToPT(string level)
+        {
+            if (LevelENtoPT.TryGetValue(level, out var pt))
+                return pt;
+
+            return level;
+        }
+
+        public static string TranslateLevelToEN(string level)
+        {
+            if (LevelPTtoEN.TryGetValue(level, out var en))
+                return en;
+
+            return level;
         }
     }
 }

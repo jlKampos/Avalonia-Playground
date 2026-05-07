@@ -1,17 +1,10 @@
 ﻿using Moq;
 using OmniWatch.Core.Interfaces;
-using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Contracts.Seismic;
-using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
-using OmniWatch.Models.Seismic;
 using OmniWatch.ViewModels;
 using OmniWatch.ViewModels.ProgressControl;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Xunit;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.Tests.ViewModels;

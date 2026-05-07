@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Forecast;
-using OmniWatch.Models.Forecast;
+using OmniWatch.Models.IPMA.Forecast;
 
 namespace OmniWatch.Mapping.Weather.Forecast
 {

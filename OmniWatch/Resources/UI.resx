@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
+    </resheader>
+
+    <!-- SETTINGS -->
+    <data name="Settings_Title">
+        <value>Settings</value>
+    </data>
+    <data name="Language_Label">
+        <value>Language</value>
+    </data>
+    <data name="UseOpenSkyCredentials_Label">
+        <value>Use OpenSky Credentials</value>
+    </data>
+    <data name="OpenSkyRefreshInterval_Label">
+        <value>OpenSky Refresh Interval</value>
+    </data>
+    <data name="OpenSkyClientId_Label">
+        <value>OpenSky Client ID</value>
+    </data>
+    <data name="OpenSkyClientSecret_Label">
+        <value>OpenSky Client Secret</value>
+    </data>
+    <data name="TestCredentials_Button">
+        <value>Test Credentials</value>
+    </data>
+    <data name="Save_Button">
+        <value>Save</value>
+    </data>
+    <data name="Reset_Button">
+        <value>Reset</value>
+    </data>
+
+    <data name="Settings_Loading">
+        <value>Loading settings...</value>
+    </data>
+    <data name="Settings_LoadFailed">
+        <value>Failed to load settings: {0}</value>
+    </data>
+    <data name="Settings_ValidatingCredentials">
+        <value>Validating OpenSky credentials...</value>
+    </data>
+    <data name="Settings_CredentialsValid">
+        <value>Credentials are valid!</value>
+    </data>
+    <data name="Settings_CredentialsInvalid">
+        <value>Invalid credentials.\nCheck Client ID and Secret.</value>
+    </data>
+    <data name="Settings_ServerError">
+        <value>OpenSky server returned an error.\nTry again later.</value>
+    </data>
+    <data name="Settings_UnexpectedError">
+        <value>Unexpected error: {0}</value>
+    </data>
+    <data name="Settings_RefreshIntervalWarning">
+        <value>OpenSky credentials are required for refresh intervals below 10 seconds. Interval
+            reset to 10 seconds.</value>
+    </data>
+    <data name="Settings_Saving">
+        <value>Saving settings...</value>
+    </data>
+    <data name="Settings_SaveBlockedNoAuth">
+        <value>Settings not saved.\n\nWarning: unauthenticated OpenSky requests must not be made
+            more frequently than every 10 seconds.</value>
+    </data>
+    <data name="Settings_SaveBlockedMissingCredentials">
+        <value>Configuration not saved.\n\nYou selected OpenSky authentication, but credentials are
+            missing.</value>
+    </data>
+    <data name="Settings_SaveSuccess">
+        <value>Settings saved successfully.</value>
+    </data>
+    <data name="Settings_SaveFailed">
+        <value>Failed to save settings: {0}</value>
+    </data>
+    <data name="Settings_ResetConfirm">
+        <value>Are you sure you want to reset all settings?\nThis will remove your OpenSky
+            credentials.</value>
+    </data>
+    <data name="Settings_Resetting">
+        <value>Resetting settings...</value>
+    </data>
+    <data name="Settings_ResetSuccess">
+        <value>Settings have been reset successfully.</value>
+    </data>
+    <data name="Settings_ResetFailed">
+        <value>Failed to reset settings: {0}</value>
+    </data>
+
+    <!-- DIALOG -->
+    <data name="Dialog_Cancel">
+        <value>Cancel</value>
+    </data>
+    <data name="Dialog_OK">
+        <value>OK</value>
+    </data>
+    <data name="Dialog_DefaultTitle">
+        <value>Message</value>
+    </data>
+    <data name="Dialog_DefaultMessage">
+        <value>Operation completed.</value>
+    </data>
+
+    <!-- MAIN NAVIGATION -->
+    <data name="Main_Weather">
+        <value>Weather</value>
+    </data>
+    <data name="Main_Seismology">
+        <value>Seismology</value>
+    </data>
+    <data name="Main_AirTraffic">
+        <value>Air Traffic</value>
+    </data>
+    <data name="Main_HurricaneCenter">
+        <value>Hurricane Center</value>
+    </data>
+    <data name="Main_Settings">
+        <value>Settings</value>
+    </data>
+
+    <data name="Main_PreparingContent">
+        <value>Preparing content</value>
+    </data>
+    <data name="Main_LoadWeather">
+        <value>Loading Weather Forecast page</value>
+    </data>
+    <data name="Main_LoadSeismology">
+        <value>Loading Seismology page</value>
+    </data>
+    <data name="Main_LoadOpenSky">
+        <value>Loading OpenSky page</value>
+    </data>
+    <data name="Main_LoadNoaa">
+        <value>Loading NOAA NHC page</value>
+    </data>
+    <data name="Main_LoadSettings">
+        <value>Loading Settings page</value>
+    </data>
+
+    <!-- NOAA -->
+    <data name="Noaa_Title">
+        <value>NOAA</value>
+    </data>
+    <data name="Noaa_ClearCacheTooltip">
+        <value>Clear cache and refresh NOAA data.</value>
+    </data>
+    <data name="Noaa_Reanimate">
+        <value>Reanimate</value>
+    </data>
+    <data name="Noaa_Yes">
+        <value>Yes</value>
+    </data>
+    <data name="Noaa_No">
+        <value>No</value>
+    </data>
+    <data name="Noaa_Theme">
+        <value>Theme</value>
+    </data>
+
+    <data name="Noaa_Startup">
+        <value>Starting Up</value>
+    </data>
+    <data name="Noaa_InitMap">
+        <value>Initializing Map</value>
+    </data>
+    <data name="Noaa_SetupLayers">
+        <value>Setting up layers...</value>
+    </data>
+    <data name="Noaa_Loading">
+        <value>Loading</value>
+    </data>
+    <data name="Noaa_CheckingActiveStorms">
+        <value>Checking active storms</value>
+    </data>
+    <data name="Noaa_IBTracs">
+        <value>IBTrACS Data</value>
+    </data>
+    <data name="Noaa_LoadingYear">
+        <value>Loading storms for {0}...</value>
+    </data>
+    <data name="Noaa_StartupError">
+        <value>Startup Error: {0}</value>
+    </data>
+    <data name="Noaa_ActiveStorms">
+        <value>⚠ There are currently {0} active storm(s).</value>
+    </data>
+    <data name="Noaa_Error">
+        <value>Error: {0}</value>
+    </data>
+    <data name="Noaa_NoData">
+        <value>No data found for this year.</value>
+    </data>
+    <data name="Noaa_ForceRefreshConfirm">
+        <value>Do you want to clear your local cache and download the latest NOAA data?</value>
+    </data>
+    <data name="Noaa_ForceRefreshError">
+        <value>Error clearing cache: {0}</value>
+    </data>
+
+    <!-- OPENSKY -->
+    <data name="OpenSky_Title">
+        <value>Air Traffic</value>
+    </data>
+    <data name="OpenSky_RateLimitRemaining">
+        <value>Remaining limit:</value>
+    </data>
+    <data name="OpenSky_RateLimitTotal">
+        <value>Total limit:</value>
+    </data>
+    <data name="OpenSky_UpdateInterval">
+        <value>Update interval:</value>
+    </data>
+    <data name="OpenSky_ResetAt">
+        <value>Resets at:</value>
+    </data>
+    <data name="OpenSky_WarningRateLimit">
+        <value>⚠ OpenSky API requests are limited to one every 10 seconds.</value>
+    </data>
+    <data name="OpenSky_Theme">
+        <value>Theme</value>
+    </data>
+    <data name="OpenSky_Data">
+        <value>Data</value>
+    </data>
+    <data name="OpenSky_DataReal">
+        <value>Real</value>
+    </data>
+    <data name="OpenSky_DataDummy">
+        <value>Dummy</value>
+    </data>
+
+    <data name="OpenSky_InitMap">
+        <value>Initializing Map</value>
+    </data>
+    <data name="OpenSky_SetupLayers">
+        <value>Setting up layers...</value>
+    </data>
+    <data name="OpenSky_StartupError">
+        <value>Startup Error: {0}</value>
+    </data>
+    <data name="OpenSky_LoadError">
+        <value>Error loading: {0}</value>
+    </data>
+    <data name="OpenSky_FailedLoadStates">
+        <value>Failed to load flight states: {0}</value>
+    </data>
+    <data name="OpenSky_RateLimitReached">
+        <value>OpenSky API limit reached.\nNext reset at {0} UTC.</value>
+    </data>
+
+    <!-- SEISMOLOGY -->
+    <data name="Seismo_Title">
+        <value>Seismic Activity</value>
+    </data>
+    <data name="Seismo_SelectDate">
+        <value>Select date</value>
+    </data>
+    <data name="Seismo_Loading">
+        <value>Loading</value>
+    </data>
+    <data name="Seismo_Initializing">
+        <value>Initializing seismic data...</value>
+    </data>
+    <data name="Seismo_StartupError">
+        <value>Startup Error: {0}</value>
+    </data>
+    <data name="Seismo_MapError">
+        <value>Map Error: {0}</value>
+    </data>
+    <data name="Seismo_ThemeError">
+        <value>Error applying theme\n{0}</value>
+    </data>
+
+    <!-- WEATHER -->
+    <data name="Weather_SelectLocation">
+        <value>Select location</value>
+    </data>
+    <data name="Weather_Loading">
+        <value>Loading</value>
+    </data>
+    <data name="Weather_ForecastFor">
+        <value>Forecast for {0}...</value>
+    </data>
+    <data name="Weather_ErrorLoadingData">
+        <value>Error loading data</value>
+    </data>
+    <data name="Weather_StartupError">
+        <value>Startup Error: {0}</value>
+    </data>
+
+    <data name="Weather_Title">
+        <value>Weather Forecast</value>
+    </data>
+    <data name="Weather_Temperature">
+        <value>Temperature</value>
+    </data>
+    <data name="Weather_Minimum">
+        <value>Minimum</value>
+    </data>
+    <data name="Weather_Maximum">
+        <value>Maximum</value>
+    </data>
+    <data name="Weather_Wind">
+        <value>Wind</value>
+    </data>
+    <data name="Weather_Intensity">
+        <value>Intensity</value>
+    </data>
+    <data name="Weather_Direction">
+        <value>Direction</value>
+    </data>
+    <data name="Weather_Precipitation">
+        <value>Precipitation</value>
+    </data>
+    <data name="Weather_Probability">
+        <value>Probability</value>
+    </data>
+    <data name="Weather_Warnings">
+        <value>Warnings</value>
+    </data>
+
+</root>

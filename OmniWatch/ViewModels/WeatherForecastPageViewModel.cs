@@ -1,23 +1,24 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using NetTopologySuite.Index.HPRtree;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
-using OmniWatch.Mapping;
+using OmniWatch.Localization;
 using OmniWatch.Mapping.Weather.Awarness;
 using OmniWatch.Mapping.Weather.Forecast;
 using OmniWatch.Mapping.Weather.Location;
 using OmniWatch.Mapping.Weather.Precipitation;
 using OmniWatch.Mapping.Weather.WeatherTypes;
 using OmniWatch.Mapping.Weather.Wind;
-using OmniWatch.Models.Awarness;
-using OmniWatch.Models.Forecast;
-using OmniWatch.Models.Locations;
-using OmniWatch.Models.Precipitation;
-using OmniWatch.Models.Weather;
-using OmniWatch.Models.Wind;
+using OmniWatch.Models.IPMA.Awarness;
+using OmniWatch.Models.IPMA.Forecast;
+using OmniWatch.Models.IPMA.Locations;
+using OmniWatch.Models.IPMA.Precipitation;
+using OmniWatch.Models.IPMA.Weather;
+using OmniWatch.Models.IPMA.Wind;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
@@ -50,13 +51,23 @@ namespace OmniWatch.ViewModels
         [ObservableProperty]
         private AwarnessItemDto _awarness;
 
-
         public Window? OwnerWindow { get; set; }
 
         public ObservableCollection<LocationDto> Locations { get; } = new();
-
         public ObservableCollection<ForecastItemDto> Forecasts { get; } = new();
 
+        private static string Translation(string key) => LanguageManager.Instance[key];
+
+        public static string WeatherForecastTitle => Translation("Weather_Title");
+        public static string TemperatureLabel => Translation("Weather_Temperature");
+        public static string MinimumLabel => Translation("Weather_Minimum");
+        public static string MaximumLabel => Translation("Weather_Maximum");
+        public static string WindLabel => Translation("Weather_Wind");
+        public static string IntensityLabel => Translation("Weather_Intensity");
+        public static string DirectionLabel => Translation("Weather_Direction");
+        public static string PrecipitationLabel => Translation("Weather_Precipitation");
+        public static string ProbabilityLabel => Translation("Weather_Probability");
+        public static string WarningsLabel => Translation("Weather_Warnings");
 
         // =========================
         // RUNTIME CONSTRUCTOR
@@ -67,6 +78,18 @@ namespace OmniWatch.ViewModels
             _progressControl = progressControl;
             _messageService = messageService;
             _apiClient = apiClient;
+
+            LanguageManager.Instance.PropertyChanged += (_, __) =>
+            {
+                foreach (var f in Forecasts)
+                {
+                    f.OnLanguageChanged();
+
+                    foreach (var a in f.AwarnessInformation)
+                        a.OnLanguageChanged();
+                }
+            };
+
         }
 
         public async Task LoadAsync()
@@ -74,36 +97,35 @@ namespace OmniWatch.ViewModels
             try
             {
                 await Task.WhenAll(
-                 LoadPrecipitationAsync(),
-                 LoadWindAsync(),
-                 LoadLocationsAsync(),
-                 LoadWeatherTypesAsync(),
-                 LoadAwarnessAsync()
-             );
+                    LoadPrecipitationAsync(),
+                    LoadWindAsync(),
+                    LoadLocationsAsync(),
+                    LoadWeatherTypesAsync(),
+                    LoadAwarnessAsync()
+                );
             }
             catch (ApiException ex)
             {
-                var exMsg = "Error loading data";
+                var exMsg = Translation("Weather_ErrorLoadingData");
 
-                if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.InnerException.Message))
+                if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.InnerException?.Message))
                 {
                     exMsg = ex.InnerException.InnerException.Message;
                 }
 
-                await _messageService.ShowAsync($"Startup Error: {exMsg}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Weather_StartupError"), exMsg),
+                    MessageDialogType.Error);
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Weather_StartupError"), ex.Message),
+                    MessageDialogType.Error);
             }
-
         }
 
-        public Task UnloadAsync()
-        {
-            return Task.CompletedTask;
-        }
-
+        public Task UnloadAsync() => Task.CompletedTask;
 
         // =========================
         // DESIGN MODE CONSTRUCTOR
@@ -187,19 +209,18 @@ namespace OmniWatch.ViewModels
             }
         }
 
+
         private async Task LoadDataOrchestratorAsync(LocationDto value)
         {
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Loading";
-                ProgressControl.Message = $"Forecast for {value.Name}...";
-                // Only the heavy lifting goes to a background thread
-                await Task.Run(async () =>
-                {
-                    await Task.Delay(500); // Artificial delay
-                    await LoadForecastAsync(value.GlobalIdLocal);
-                });
+                ProgressControl.Title = Translation("Weather_Loading");
+                ProgressControl.Message = string.Format(Translation("Weather_ForecastFor"), value.Name);
+
+                await Task.Delay(10);
+                await LoadForecastAsync(value.GlobalIdLocal);
+
             }
             catch (Exception ex)
             {
@@ -328,17 +349,14 @@ namespace OmniWatch.ViewModels
 
             foreach (var item in mapped)
             {
-                // Weather enrichment
                 item.WeatherInformation =
                     WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId)
                     ?? new WeatherTypeDto { DescriptionPT = "Unknown" };
 
-                // Wind enrichment
                 item.WindInformation =
                     WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass)
                     ?? new WindSpeedDto { DescriptionPT = "N/A" };
 
-                // Precipitation enrichment
                 item.PrecipitationInformation =
                     PrecepitationTypes.FirstOrDefault(x => x.IntensityLevel == item.PrecipitationIntensityClass)
                     ?? new PrecipitationDto { DescriptionPT = "---", IntensityLevel = -99 };
@@ -358,11 +376,22 @@ namespace OmniWatch.ViewModels
                 tempList.Add(item);
             }
 
-            foreach (var item in tempList)
-                Forecasts.Add(item);
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Forecasts.Clear();
 
-            SelectedTab = Forecasts.FirstOrDefault();
+                foreach (var item in tempList)
+                {
+                    foreach (var a in item.AwarnessInformation)
+                        a.LevelBrush = GetLevelBrush(a.Level);
+
+                    Forecasts.Add(item);
+                }
+
+                SelectedTab = Forecasts.FirstOrDefault();
+            });
         }
+
 
         #endregion
     }

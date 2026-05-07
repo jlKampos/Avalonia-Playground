@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OmniWatch.ViewModels.MessageDialog
 {
@@ -44,12 +45,29 @@ namespace OmniWatch.ViewModels.MessageDialog
         {
             (Icon, HeaderColor) = type switch
             {
-                MessageDialogType.Error => ("\uE4F6", Brushes.Crimson),
-                MessageDialogType.Warning => ("\uEE44", Brushes.Orange),
-                MessageDialogType.Success => ("\uEBA6", Brushes.MediumSeaGreen),
-                MessageDialogType.Information => ("\uE2CE", Brushes.DodgerBlue),
-                _ => ("\uE3E8", Brushes.Gray)
+                MessageDialogType.Error =>
+                    ("\uE4F6", GetBrush("ErrorBrush")),
+
+                MessageDialogType.Warning =>
+                    ("\uEE44", GetBrush("DarkOrangeBrush")),
+
+                MessageDialogType.Success =>
+                    ("\uEBA6", GetBrush("AccentBrush")),
+
+                MessageDialogType.Information =>
+                    ("\uE2CE", GetBrush("InformationBrush")),
+
+                _ =>
+                    ("\uE3E8", Brushes.Gray)
             };
+        }
+
+        private static IBrush GetBrush(string key)
+        {
+            if (Avalonia.Application.Current?.TryFindResource(key, out var value) == true)
+                return value as IBrush ?? Brushes.Gray;
+
+            return Brushes.Gray;
         }
     }
 }

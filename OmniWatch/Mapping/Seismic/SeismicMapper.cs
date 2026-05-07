@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Seismic;
-using OmniWatch.Models.Seismic;
+using OmniWatch.Models.IPMA.Seismic;
 
 namespace OmniWatch.Mapping.Seismic
 {

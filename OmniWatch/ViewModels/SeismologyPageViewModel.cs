@@ -11,9 +11,10 @@ using Mapsui.Tiling.Layers;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.Mapping;
 using OmniWatch.Mapping.Seismic;
-using OmniWatch.Models.Seismic;
+using OmniWatch.Models.IPMA.Seismic;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,13 @@ namespace OmniWatch.ViewModels
         private bool _isDarkTheme = true;
 
         private List<SeismicActivityDto> SeismicActivities { get; set; } = new();
+
+        #endregion
+
+        #region Localization Helper
+
+        private string Translation(string key) =>
+            LanguageManager.Instance[key];
 
         #endregion
 
@@ -101,8 +109,8 @@ namespace OmniWatch.ViewModels
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Loading";
-                ProgressControl.Message = "Initialising seismic data...";
+                ProgressControl.Title = Translation("Seismo_Loading");
+                ProgressControl.Message = Translation("Seismo_Initializing");
 
                 await InitializeMapAsync();
                 await LoadSeismologyDataAsync();
@@ -110,7 +118,9 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Startup Error: {ex.Message}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Seismo_StartupError"), ex.Message),
+                    MessageDialogType.Error);
             }
             finally
             {
@@ -129,10 +139,10 @@ namespace OmniWatch.ViewModels
                 Map.Navigator.CenterOnAndZoomTo(centerAll, Map.Navigator.Resolutions[5]);
 
                 var portugalAllExtent = new Mapsui.MRect(
-                    -3200000, // Oeste (Açores)
-                    3300000,  // Sul (Madeira)
-                    -200000,  // Este (Continente)
-                    5600000   // Norte (Continente)
+                    -3200000,
+                    3300000,
+                    -200000,
+                    5600000
                 );
 
                 Map.Navigator.OverridePanBounds = portugalAllExtent;
@@ -141,7 +151,9 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync($"Map Error: {ex.Message}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Seismo_MapError"), ex.Message),
+                    MessageDialogType.Error);
             }
         }
 
@@ -159,7 +171,6 @@ namespace OmniWatch.ViewModels
 
         private void ApplyMapTheme()
         {
-            // Remove previous base layers
             if (_baseLayer != null) Map.Layers.Remove(_baseLayer);
             if (_labelLayer != null) Map.Layers.Remove(_labelLayer);
 
@@ -182,7 +193,6 @@ namespace OmniWatch.ViewModels
                 _labelLayer = null;
             }
 
-            // Insert base layers at bottom
             Map.Layers.Insert(0, _baseLayer);
             if (_labelLayer != null)
                 Map.Layers.Insert(1, _labelLayer);
@@ -302,7 +312,9 @@ namespace OmniWatch.ViewModels
             }
             catch (Exception ex)
             {
-                _messageService.ShowAsync($"Error while applying theme\n{ex.Message}", MessageDialogType.Error);
+                _messageService.ShowAsync(
+                    string.Format(Translation("Seismo_ThemeError"), ex.Message),
+                    MessageDialogType.Error);
             }
         }
 
@@ -342,7 +354,6 @@ namespace OmniWatch.ViewModels
                     SeismicActivities.Add(item.ToDto());
             }
         }
-
 
         #endregion
     }

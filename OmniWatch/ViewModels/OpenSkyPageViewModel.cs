@@ -14,6 +14,7 @@ using OmniWatch.Core.Interfaces;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.Mapping.OpenSky;
 using OmniWatch.Models.OpenSky;
 using OmniWatch.ViewModels.ProgressControl;
@@ -38,6 +39,13 @@ namespace OmniWatch.ViewModels
 
         #endregion
 
+        #region Localization Helper
+
+        private string Translation(string key) =>
+            LanguageManager.Instance[key];
+
+        #endregion
+
         #region State
         private DispatcherTimer? _debounceTimer;
         private List<StateVectorDto> _flightStates = new();
@@ -58,7 +66,6 @@ namespace OmniWatch.ViewModels
         private MemoryLayer? _aircraftLayer;
         private static readonly string PlaneImgPath = new Uri(Path.Combine(AppContext.BaseDirectory, "Assets", "Images", "OpenSky", "airplane.svg")).AbsoluteUri;
         private static readonly Image PlaneImageSource = new Image { Source = PlaneImgPath };
-
 
         [ObservableProperty]
         private Map _map;
@@ -117,7 +124,7 @@ namespace OmniWatch.ViewModels
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Loading error: {ex.Message}",
+                    string.Format(Translation("OpenSky_LoadError"), ex.Message),
                     MessageDialogType.Error);
             }
         }
@@ -172,14 +179,13 @@ namespace OmniWatch.ViewModels
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Startup Error: {ex.Message}",
+                    string.Format(Translation("OpenSky_StartupError"), ex.Message),
                     MessageDialogType.Error);
             }
         }
 
         public Task UnloadAsync()
         {
-            // Ensures all running loops are stopped when navigating away
             _cts?.Cancel();
             _cts = null;
             return Task.CompletedTask;
@@ -187,7 +193,6 @@ namespace OmniWatch.ViewModels
 
         private async Task ReloadAircraftAsync()
         {
-            // Cancel any previous loop
             _cts?.Cancel();
             _cts = null;
 
@@ -211,7 +216,6 @@ namespace OmniWatch.ViewModels
 
         public async Task LoadAllFlightStatesAsync()
         {
-
             if (Map?.Navigator == null) return;
 
             var settings = _settingsService.Load();
@@ -254,7 +258,7 @@ namespace OmniWatch.ViewModels
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(
-                    $"Failed to load flight states: {ex.Message}",
+                    string.Format(Translation("OpenSky_FailedLoadStates"), ex.Message),
                     MessageDialogType.Error);
             }
         }
@@ -289,7 +293,7 @@ namespace OmniWatch.ViewModels
                         var waitSeconds = (int)Math.Max((rate.ResetAt - DateTime.UtcNow).TotalSeconds, 1);
 
                         await _messageService.ShowAsync(
-                            $"OpenSky API limit reached.\nNext reset at {rate.ResetAt:HH:mm:ss} UTC.",
+                            string.Format(Translation("OpenSky_RateLimitReached"), rate.ResetAt.ToString("HH:mm:ss")),
                             MessageDialogType.Warning);
 
                         await Task.Delay(waitSeconds * 1000, token);
@@ -310,10 +314,9 @@ namespace OmniWatch.ViewModels
                 }
                 catch
                 {
-                    // ignore or log
+                    // ignore
                 }
 
-                // Compensate drift
                 var elapsed = DateTime.UtcNow - start;
                 var settings2 = _settingsService.Load();
                 var delay = TimeSpan.FromSeconds(settings2.RefreshInterval) - elapsed;
@@ -398,8 +401,8 @@ namespace OmniWatch.ViewModels
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Initializing Map";
-                ProgressControl.Message = "Setting up layers...";
+                ProgressControl.Title = Translation("OpenSky_InitMap");
+                ProgressControl.Message = Translation("OpenSky_SetupLayers");
 
                 ApplyMapTheme();
 
@@ -463,20 +466,16 @@ namespace OmniWatch.ViewModels
 
             var features = new List<IFeature>();
 
-            // Zoom check: Only show labels if resolution is low enough (zoomed in)
-            // Adjust 2000 to your preference
             bool showLabels = Map.Navigator.Viewport.Resolution < 2000;
 
             foreach (var plane in aircraft)
             {
-                // Basic validation
                 if (plane.Latitude == null || plane.Longitude == null || plane.OnGround == true)
                     continue;
 
                 var (x, y) = SphericalMercator.FromLonLat(plane.Longitude.Value, plane.Latitude.Value);
                 var point = new MPoint(x, y);
 
-                // 1. Aircraft Icon/Symbol Feature
                 var color = plane.Altitude switch { < 2000 => Color.DodgerBlue, < 8000 => Color.Gold, _ => Color.IndianRed };
                 var aircraftFeature = new PointFeature(point);
 
@@ -484,7 +483,7 @@ namespace OmniWatch.ViewModels
                 {
                     aircraftFeature.Styles.Add(new ImageStyle
                     {
-                        Image = PlaneImageSource, // Uses the static cached image
+                        Image = PlaneImageSource,
                         SymbolScale = 0.6,
                         SymbolRotation = plane.TrueTrack.Value
                     });
@@ -501,7 +500,6 @@ namespace OmniWatch.ViewModels
                 }
                 features.Add(aircraftFeature);
 
-                // 2. Label Feature (Conditional for performance)
                 if (showLabels)
                 {
                     var callsign = string.IsNullOrWhiteSpace(plane.Callsign) ? plane.Icao24?.ToUpper() : plane.Callsign.Trim();
@@ -526,8 +524,6 @@ namespace OmniWatch.ViewModels
                 }
             }
 
-            // --- Layer Management ---
-            // Look for existing layer to avoid duplication/memory leaks
             var aircraftLayer = Map.Layers.FirstOrDefault(l => l.Name == "Aircraft") as MemoryLayer;
 
             if (aircraftLayer == null)
@@ -535,18 +531,15 @@ namespace OmniWatch.ViewModels
                 aircraftLayer = new MemoryLayer
                 {
                     Name = "Aircraft",
-                    Style = null // Styles are defined per feature
+                    Style = null
                 };
                 Map.Layers.Add(aircraftLayer);
             }
 
-            // Atomic update of features
             aircraftLayer.Features = features;
 
-            // Final UI Refresh
             Map.RefreshGraphics();
         }
-
 
         #endregion
     }

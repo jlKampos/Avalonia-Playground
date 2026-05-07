@@ -5,7 +5,7 @@
 	<Styles.Resources>
 
 		<!-- COLOR PALETTE -->
-		<Color x:Key="DarkOrange">#33FFA500</Color>
+		<Color x:Key="DarkOrange">#FFA500</Color>
 		<Color x:Key="DarkPrimary">#1A1A1A</Color>
 		<Color x:Key="DarkPanel">#262626</Color>
 		<Color x:Key="DarkSurface">#333333</Color>
@@ -23,12 +23,22 @@
 		<Color x:Key="DarkAccentPurple">#540269</Color>
 		<Color x:Key="DarkAccentOrange">#D67A1F</Color>
 
+		<SolidColorBrush x:Key="DarkAccentBrush"
+						 Color="{StaticResource DarkAccent}" />
+
+		<SolidColorBrush x:Key="DarkOrangeBrush"
+						 Color="{StaticResource DarkOrange}" />
+
+		<SolidColorBrush x:Key="ErrorBrush"
+						 Color="#DC2626" />
+
+		<SolidColorBrush x:Key="InformationBrush"
+						 Color="#FFD700" />
 
 		<Color x:Key="DarkText">#E6E6E6</Color>
 		<Color x:Key="DarkTextDim">#A0A0A0</Color>
 
 		<!-- BRUSHES -->
-		<SolidColorBrush x:Key="DarkOrangeBrush" Color="#55FFA500" />
 		<SolidColorBrush x:Key="TextSelectionBrush" Color="{StaticResource DarkAccentSoft}" />
 		<SolidColorBrush x:Key="TextSelectionForegroundBrush" Color="{StaticResource DarkPrimary}" />
 		<SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource DarkPrimary}" />

@@ -10,6 +10,9 @@ namespace OmniWatch.Models.Noaa.ArchiveStorms
         public double Longitude { get; set; }
 
         public int Wind { get; set; }
+
+        public double WindSpeedKM { get { return KnotsToKmH(Wind); } }
+
         public int Pressure { get; set; }
         public int Category { get; set; }
 
@@ -17,5 +20,10 @@ namespace OmniWatch.Models.Noaa.ArchiveStorms
         public string Nature { get; set; }
 
         public double DistanceToLand { get; set; }
+
+        private static double KnotsToKmH(double knots)
+        {
+            return knots * 1.852;
+        }
     }
 }

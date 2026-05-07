@@ -1,4 +1,4 @@
-﻿namespace OmniWatch.Models.Precipitation
+﻿namespace OmniWatch.Models.IPMA.Precipitation
 {
     public class PrecipitationDto
     {

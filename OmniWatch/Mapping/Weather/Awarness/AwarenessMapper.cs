@@ -1,6 +1,6 @@
 ﻿using OmniWatch.Helpers;
 using OmniWatch.Integrations.Contracts.Awarness;
-using OmniWatch.Models.Awarness;
+using OmniWatch.Models.IPMA.Awarness;
 
 namespace OmniWatch.Mapping.Weather.Awarness
 {

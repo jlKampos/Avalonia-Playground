@@ -7,8 +7,10 @@
 			 xmlns:conv="clr-namespace:OmniWatch.Helpers"
 			 xmlns:mapsui="clr-namespace:Mapsui.UI.Avalonia;assembly=Mapsui.UI.Avalonia"
 			 xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
+			 xmlns:local="using:OmniWatch.Localization"
 			 x:DataType="vm:NoaaPageViewModel"
 			 x:Class="OmniWatch.Views.NoaaPageView">
+
 	<UserControl.Resources>
 
 		<DataTemplate x:Key="LightIconTemplate">
@@ -35,8 +37,9 @@
 
 	</UserControl.Resources>
 
-
 	<Grid RowDefinitions="100,*">
+
+		<!-- HEADER -->
 		<Border Grid.Row="0"
 				Background="{DynamicResource ResourceKey=PanelGradient}"
 				Padding="20">
@@ -45,7 +48,7 @@
 				  VerticalAlignment="Center">
 
 				<!-- TITLE -->
-				<TextBlock Text="NOAA"
+				<TextBlock Text="{Binding [Noaa_Title], Source={x:Static local:LanguageManager.Instance}}"
 						   Foreground="White"
 						   FontSize="20"
 						   VerticalAlignment="Center"/>
@@ -71,7 +74,7 @@
 
 					<Button Command="{Binding ForceRefreshCommand}"
 							IsEnabled="{Binding !ProgressControl.IsVisible}"
-							ToolTip.Tip="Clear cache and update NOAA data."
+							ToolTip.Tip="{Binding [Noaa_ClearCacheTooltip], Source={x:Static local:LanguageManager.Instance}}"
 							Background="{StaticResource DarkAccent}"
 							Foreground="{StaticResource DarkPrimary}"
 							BorderThickness="0"
@@ -83,7 +86,6 @@
 							VerticalAlignment="Center">
 
 						<TextBlock FontFamily="{DynamicResource PhosphorFill}"
-
 								   FontSize="20"
 								   Text="&#xE75A;"
 								   HorizontalAlignment="Center"
@@ -96,23 +98,30 @@
 			</Grid>
 		</Border>
 
-		<!-- Progress Overlay -->
-		<Border  Padding="0" Grid.Row="1" IsVisible="{Binding ProgressControl.IsVisible}" ZIndex="10">
+		<!-- PROGRESS OVERLAY -->
+		<Border Padding="0"
+				Grid.Row="1"
+				IsVisible="{Binding ProgressControl.IsVisible}"
+				ZIndex="10">
 			<pg:ProgressControl DataContext="{Binding ProgressControl}" />
 		</Border>
 
-		<!-- Map Body -->
+		<!-- MAP BODY -->
 		<Border Grid.Row="1"
-				Padding="0" IsVisible="{Binding !ProgressControl.IsVisible}"
+				Padding="0"
+				IsVisible="{Binding !ProgressControl.IsVisible}"
 				Background="{DynamicResource ResourceKey=PanelGradient}">
+
 			<Grid>
-				<!-- Mapa -->
+
+				<!-- MAP -->
 				<mapsui:MapControl x:Name="MyMapControl"
 								   Background="Transparent"
 								   HorizontalAlignment="Stretch"
 								   VerticalAlignment="Stretch"
 								   Margin="0" />
 
+				<!-- ACTIVE STORMS -->
 				<Grid HorizontalAlignment="Left"
 					  VerticalAlignment="Top"
 					  Margin="10"
@@ -132,22 +141,25 @@
 					</Border>
 				</Grid>
 
-				<Grid RowDefinitions="Auto,*" HorizontalAlignment="Right"
+				<!-- RIGHT PANEL -->
+				<Grid RowDefinitions="Auto,*"
+					  HorizontalAlignment="Right"
 					  VerticalAlignment="Top"
 					  Margin="10"
 					  RowSpacing="5">
-					<!-- Reanimate -->
+
+					<!-- REANIMATE -->
 					<Border Grid.Row="0"
 							Background="#BF8FAA00"
 							CornerRadius="4"
 							Padding="6">
 
-						<Grid  ColumnDefinitions="Auto,*"
-							   ColumnSpacing="10"
-							   HorizontalAlignment="Stretch"
-							   VerticalAlignment="Center">
+						<Grid ColumnDefinitions="Auto,*"
+							  ColumnSpacing="10"
+							  HorizontalAlignment="Stretch"
+							  VerticalAlignment="Center">
 
-							<TextBlock Text="Reanimate"
+							<TextBlock Text="{Binding [Noaa_Reanimate], Source={x:Static local:LanguageManager.Instance}}"
 									   FontSize="11"
 									   FontWeight="Bold"
 									   VerticalAlignment="Center"
@@ -163,7 +175,7 @@
 
 								<ToggleSwitch.OnContentTemplate>
 									<DataTemplate>
-										<TextBlock Text="Yes"
+										<TextBlock Text="{Binding [Noaa_Yes], Source={x:Static local:LanguageManager.Instance}}"
 												   FontSize="11"
 												   FontWeight="Bold"
 												   HorizontalAlignment="Center"
@@ -174,7 +186,7 @@
 
 								<ToggleSwitch.OffContentTemplate>
 									<DataTemplate>
-										<TextBlock Text="No"
+										<TextBlock Text="{Binding [Noaa_No], Source={x:Static local:LanguageManager.Instance}}"
 												   FontSize="11"
 												   FontWeight="Bold"
 												   HorizontalAlignment="Center"
@@ -189,18 +201,18 @@
 
 					</Border>
 
-					<!-- Theme -->
+					<!-- THEME -->
 					<Border Grid.Row="1"
 							Background="#BF8FAA00"
 							CornerRadius="4"
 							Padding="6">
 
-						<Grid  ColumnDefinitions="Auto,*"
-							   ColumnSpacing="10"
-							   HorizontalAlignment="Stretch"
-							   VerticalAlignment="Center">
+						<Grid ColumnDefinitions="Auto,*"
+							  ColumnSpacing="10"
+							  HorizontalAlignment="Stretch"
+							  VerticalAlignment="Center">
 
-							<TextBlock Text="Theme"
+							<TextBlock Text="{Binding [Noaa_Theme], Source={x:Static local:LanguageManager.Instance}}"
 									   FontSize="11"
 									   FontWeight="Bold"
 									   VerticalAlignment="Center"
@@ -216,8 +228,12 @@
 										  OnContentTemplate="{StaticResource DarkIconTemplate}" />
 						</Grid>
 					</Border>
+
 				</Grid>
+
 			</Grid>
 		</Border>
+
 	</Grid>
+
 </UserControl>

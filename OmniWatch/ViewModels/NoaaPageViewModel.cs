@@ -17,6 +17,7 @@ using OmniWatch.Helpers;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.Mapping.Noaa;
 using OmniWatch.Models.Noaa;
 using OmniWatch.Models.Noaa.ActiveStorms;
@@ -95,6 +96,9 @@ namespace OmniWatch.ViewModels
             }
         }
 
+        private string Translation(string key) =>
+            LanguageManager.Instance[key];
+
         public NoaaPageViewModel(
             INoaaService noaaService,
             IMessageService messageService,
@@ -112,7 +116,6 @@ namespace OmniWatch.ViewModels
             int currentYear = DateTime.Now.Year;
             Years = Enumerable.Range(1980, currentYear - 1980 + 1).Reverse().ToList();
             SelectedYear = currentYear;
-
         }
 
         public async Task LoadAsync()
@@ -122,7 +125,8 @@ namespace OmniWatch.ViewModels
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Starting Up";
+                ProgressControl.Title = Translation("Noaa_Startup");
+
                 await InitializeMapAsync().ConfigureAwait(false);
                 await CheckActiveStormsAsync().ConfigureAwait(false);
                 await LoadHistoricalStormsAsync(_cancellationToken.Token).ConfigureAwait(false);
@@ -132,7 +136,10 @@ namespace OmniWatch.ViewModels
             {
                 var apiEx = ex.FindDeepestInner<ApiException>();
                 var exMsg = apiEx?.ResponseContent ?? ex.GetBaseException().Message;
-                await _messageService.ShowAsync($"Startup Error: {exMsg}", MessageDialogType.Error);
+
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Noaa_StartupError"), exMsg),
+                    MessageDialogType.Error);
             }
         }
 
@@ -156,8 +163,8 @@ namespace OmniWatch.ViewModels
             try
             {
                 ProgressControl.IsVisible = true;
-                ProgressControl.Title = "Initializing Map";
-                ProgressControl.Message = "Setting up layers...";
+                ProgressControl.Title = Translation("Noaa_InitMap");
+                ProgressControl.Message = Translation("Noaa_SetupLayers");
 
                 ApplyMapTheme();
 
@@ -176,8 +183,8 @@ namespace OmniWatch.ViewModels
         private async Task CheckActiveStormsAsync()
         {
             ProgressControl.IsVisible = true;
-            ProgressControl.Title = "Loading";
-            ProgressControl.Message = "Checking active storms";
+            ProgressControl.Title = Translation("Noaa_Loading");
+            ProgressControl.Message = Translation("Noaa_CheckingActiveStorms");
 
             try
             {
@@ -188,7 +195,7 @@ namespace OmniWatch.ViewModels
                     var activeSorms = ActiveStormMapper.Map(result.ActiveStorms);
                     AnyActiveStorms = activeSorms.Any();
                     ActiveStormsMessage = AnyActiveStorms
-                        ? $"⚠ There are currently {activeSorms.Count} active storm(s)."
+                        ? string.Format(Translation("Noaa_ActiveStorms"), activeSorms.Count)
                         : "";
 
                     if (AnyActiveStorms)
@@ -202,7 +209,7 @@ namespace OmniWatch.ViewModels
                 _logger.LogError(ex, "Active storms error");
 
                 await _messageService.ShowAsync(
-                    $"Error: {ex.Message}",
+                    string.Format(Translation("Noaa_Error"), ex.Message),
                     MessageDialogType.Error);
             }
             finally
@@ -211,12 +218,11 @@ namespace OmniWatch.ViewModels
             }
         }
 
-
         private async Task LoadHistoricalStormsAsync(CancellationToken cancellationToken)
         {
             ProgressControl.IsVisible = true;
-            ProgressControl.Title = "IBTrACS Data";
-            ProgressControl.Message = $"Loading storms for {SelectedYear}...";
+            ProgressControl.Title = Translation("Noaa_IBTracs");
+            ProgressControl.Message = string.Format(Translation("Noaa_LoadingYear"), SelectedYear);
 
             try
             {
@@ -225,7 +231,9 @@ namespace OmniWatch.ViewModels
 
                 if (storms == null || !storms.Any())
                 {
-                    await _messageService.ShowAsync("No data found for this year.", MessageDialogType.Warning);
+                    await _messageService.ShowAsync(
+                        Translation("Noaa_NoData"),
+                        MessageDialogType.Warning);
                     return;
                 }
 
@@ -238,7 +246,9 @@ namespace OmniWatch.ViewModels
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
                 _logger.LogError(ex, "Historical Load Error");
-                await _messageService.ShowAsync($"Error: {ex.Message}", MessageDialogType.Error);
+                await _messageService.ShowAsync(
+                    string.Format(Translation("Noaa_Error"), ex.Message),
+                    MessageDialogType.Error);
                 ProgressControl.IsVisible = false;
             }
             finally
@@ -246,7 +256,6 @@ namespace OmniWatch.ViewModels
                 ProgressControl.IsVisible = false;
             }
         }
-
 
         private void ShowCurrentActiveStormsOnMap(Map map, List<ActiveStormDto> activeStorms)
         {
@@ -281,7 +290,7 @@ namespace OmniWatch.ViewModels
                 var labelStyle = new LabelStyle
                 {
                     Text = $"{storm.Name} ({storm.Classification})\n" +
-                           $"Wind: {storm.Intensity} kt\n" +
+                           $"Wind: {storm.WindSpeedKM:F1} km/h - {storm.Intensity} kt\n" +
                            $"Pres: {storm.Pressure} hPa\n" +
                            $"Mov: {storm.Movement}",
 
@@ -325,7 +334,6 @@ namespace OmniWatch.ViewModels
             _activeStormsRotationTimer.Start();
         }
 
-
         public void StartCycloneAnimation(Map map, StormTrackDto storm, Func<bool> reanimateProvider)
         {
             if (map == null || storm?.Track == null || storm.Track.Count < 2) return;
@@ -340,7 +348,7 @@ namespace OmniWatch.ViewModels
             var stormData = storm.Track.Select(p =>
             {
                 var (x, y) = SphericalMercator.FromLonLat(p.Longitude, p.Latitude);
-                return new { X = x, Y = y, p.Wind, p.Pressure, p.Category, p.Time, p.Basin, p.Nature };
+                return new { X = x, Y = y, p.Wind, p.Pressure, p.Category, p.Time, p.Basin, p.Nature, p.WindSpeedKM };
             }).ToList();
 
             _segmentIndex = 0;
@@ -410,7 +418,7 @@ namespace OmniWatch.ViewModels
                 {
                     Text = $"{a.Time:yyyy-MM-dd HH:mm}\n" +
                             $"Name: {storm.Name}\n" +
-                            $"Wind: {a.Wind} kt\n" +
+                            $"Wind: {a.WindSpeedKM:F1} km/h - {a.Wind} kt\n" +
                             $"Pressure: {a.Pressure} hPa\n" +
                             $"Cat: {a.Category}\n" +
                             $"Basin: {a.Basin}\n" +
@@ -525,7 +533,7 @@ namespace OmniWatch.ViewModels
         public async Task ForceRefreshAsync()
         {
             var result = await _messageService.ShowAsync(
-                "Do you want to clear your local cache and download the latest data from NOAA?",
+                Translation("Noaa_ForceRefreshConfirm"),
                 MessageDialogType.Warning);
 
             if (result == MessageDialogResult.Ok)
@@ -543,7 +551,9 @@ namespace OmniWatch.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    await _messageService.ShowAsync($"Error clearing cache: {ex.Message}", MessageDialogType.Error);
+                    await _messageService.ShowAsync(
+                        string.Format(Translation("Noaa_ForceRefreshError"), ex.Message),
+                        MessageDialogType.Error);
                 }
                 finally
                 {
@@ -551,6 +561,5 @@ namespace OmniWatch.ViewModels
                 }
             }
         }
-
     }
 }
