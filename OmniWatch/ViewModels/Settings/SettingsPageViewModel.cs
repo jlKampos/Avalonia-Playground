@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using OmniWatch.Core.Enums;
 using OmniWatch.Core.Helpers;
 using OmniWatch.Core.Interfaces;
-using OmniWatch.Core.Models;
 using OmniWatch.Core.Settings;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Interfaces;
@@ -12,7 +11,6 @@ using OmniWatch.ViewModels.MessageDialog;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
@@ -79,8 +77,13 @@ namespace OmniWatch.ViewModels.Settings
             get => selectedLanguage;
             set
             {
-                selectedLanguage = value;
-                Language = value?.Code;
+                if (SetProperty(ref selectedLanguage, value) && value != null)
+                {
+                    Language = value.Code;
+
+                    OmniWatch.Localization.LanguageManager.Instance.CurrentCulture =
+                        new System.Globalization.CultureInfo(value.Code);
+                }
             }
         }
 

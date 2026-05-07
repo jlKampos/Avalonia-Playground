@@ -58,6 +58,7 @@ namespace OmniWatch.Core.Startup
                     Language = "en-US"
                 });
             }
+
         }
 
         private async Task InitializeSecrets()

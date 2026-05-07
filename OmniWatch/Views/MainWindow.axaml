@@ -5,6 +5,7 @@
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:pg="clr-namespace:OmniWatch.Views.Progress"
 		xmlns:view="clr-namespace:OmniWatch"
+		xmlns:local="using:OmniWatch.Localization"
 		mc:Ignorable="d"
 		d:DesignWidth="1024"
 		d:DesignHeight="600"
@@ -42,6 +43,7 @@
 						   Source="{SvgImage /Assets/Images/w_icon.svg}"
 						   Width="22" />
 
+					<!-- WEATHER -->
 					<Button Classes.active="{Binding WeatherPageIsActive}"
 							HorizontalAlignment="Stretch"
 							Command="{Binding GoToWeatherCommand}">
@@ -49,11 +51,12 @@
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 								   Classes="icon"
 								   Content="&#xE59A;" />
-							<Label Content="Weather"
+							<Label Content="{Binding [Main_Weather], Source={x:Static local:LanguageManager.Instance}}"
 								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
 
+					<!-- SEISMOLOGY -->
 					<Button Classes.active="{Binding SeismologyPageIsActive}"
 							HorizontalAlignment="Stretch"
 							Command="{Binding GoToSeismologyCommand}">
@@ -61,11 +64,12 @@
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 								   Classes="icon"
 								   Content="&#xEAA0;" />
-							<Label Content="Seismology"
+							<Label Content="{Binding [Main_Seismology], Source={x:Static local:LanguageManager.Instance}}"
 								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
 
+					<!-- AIR TRAFFIC -->
 					<Button Classes.active="{Binding OpenSkyPageIsActive}"
 							HorizontalAlignment="Stretch"
 							Command="{Binding GoToOpenSkyCommand}">
@@ -73,12 +77,12 @@
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 								   Classes="icon"
 								   Content="&#xE002;" />
-							<Label Content="Air traffic"
+							<Label Content="{Binding [Main_AirTraffic], Source={x:Static local:LanguageManager.Instance}}"
 								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
 
-
+					<!-- HURRICANE CENTER -->
 					<Button Classes.active="{Binding NoaaPageIsActive}"
 							HorizontalAlignment="Stretch"
 							Command="{Binding GoToNoaaCommand}">
@@ -86,20 +90,23 @@
 							<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 								   Classes="icon"
 								   Content="&#xE88E;" />
-							<Label Content="Hurricane Center"
+							<Label Content="{Binding [Main_HurricaneCenter], Source={x:Static local:LanguageManager.Instance}}"
 								   IsVisible="{Binding SideMenuExpanded}" />
 						</StackPanel>
 					</Button>
+
 				</StackPanel>
 
-				<Button Grid.Row="1" HorizontalAlignment="Stretch"
+				<!-- SETTINGS -->
+				<Button Grid.Row="1"
+						HorizontalAlignment="Stretch"
 						Classes.active="{Binding SettingsPageIsActive}"
 						Command="{Binding GoToSettingsCommand}">
 					<StackPanel Orientation="Horizontal">
 						<Label FontFamily="{DynamicResource ResourceKey=PhosphorFill}"
 							   Classes="icon"
 							   Content="&#xE270;" />
-						<Label Content="Settings"
+						<Label Content="{Binding [Main_Settings], Source={x:Static local:LanguageManager.Instance}}"
 							   IsVisible="{Binding SideMenuExpanded}" />
 					</StackPanel>
 				</Button>
@@ -107,15 +114,20 @@
 			</Grid>
 		</Border>
 
+		<!-- CONTENT -->
 		<ContentControl Grid.Column="1" Content="{Binding CurrentPage}" />
 
-		<!-- Loader -->
-		<Grid Grid.Column="1" IsVisible="{Binding IsLoadingPage}"  RowDefinitions="100,*,Auto"
+		<!-- LOADER -->
+		<Grid Grid.Column="1"
+			  IsVisible="{Binding IsLoadingPage}"
+			  RowDefinitions="100,*,Auto"
 			  Background="{StaticResource PanelBrush}">
 
 			<!-- HEADER -->
-			<Border Grid.Row="0"  Background="{DynamicResource ResourceKey=CardGradient}" Padding="0,10">
-				<Border  Background="{StaticResource DarkAccent}" Padding="10">
+			<Border Grid.Row="0"
+					Background="{DynamicResource ResourceKey=CardGradient}"
+					Padding="0,10">
+				<Border Background="{StaticResource DarkAccent}" Padding="10">
 
 					<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
 						<Label FontFamily="{StaticResource PhosphorFill}"
@@ -125,7 +137,7 @@
 							   Foreground="{StaticResource DarkPrimary}"
 							   VerticalAlignment="Center"/>
 
-						<TextBlock Text="Preparing content"
+						<TextBlock Text="{Binding [Main_PreparingContent], Source={x:Static local:LanguageManager.Instance}}"
 								   Foreground="{StaticResource DarkPrimary}"
 								   FontSize="18"
 								   FontWeight="Bold"
@@ -133,11 +145,12 @@
 					</StackPanel>
 
 				</Border>
-
 			</Border>
+
 			<Border Grid.Row="1" Background="{StaticResource PanelGradient}">
 				<pg:ProgressControl DataContext="{Binding ProgressControl}" />
 			</Border>
+
 		</Grid>
 
 	</Grid>

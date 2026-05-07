@@ -17,6 +17,15 @@
 		<AvaloniaResource Include="Assets\Images\**\*" />
 		<AvaloniaResource Include="Assets\Fonts\**\*" />
 		<AvaloniaResource Include="Assets\Styles\**\*" />
+		<AvaloniaResource Include="Resources\UI.resx">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		  <CustomToolNamespace>OmniWatch.Localization</CustomToolNamespace>
+		  <Generator>PublicResXFileCodeGenerator</Generator>
+		  <LastGenOutput>UI.Designer.cs</LastGenOutput>
+		</AvaloniaResource>
+		<AvaloniaResource Include="Resources\UI.pt-PT.resx">
+		  <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+		</AvaloniaResource>
 
 		<None Update="Assets\Images\OpenSky\airplane.svg">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -38,6 +47,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Compile Update="Resources\UI.Designer.cs">
+		  <DesignTime>True</DesignTime>
+		  <AutoGen>True</AutoGen>
+		  <DependentUpon>UI.resx</DependentUpon>
+		</Compile>
 		<Compile Update="Views\OpenSky\OpenSkyPageView.axaml.cs">
 			<DependentUpon>OpenSkyPageView.axaml</DependentUpon>
 		</Compile>
