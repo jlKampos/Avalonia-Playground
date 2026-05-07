@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OmniWatch.Models.Locations
+namespace OmniWatch.Models.IPMA.Locations
 {
 
     public class LocationDto

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OmniWatch.Models.Seismic
+namespace OmniWatch.Models.IPMA.Seismic
 {
     public class SeismicActivityDto
     {

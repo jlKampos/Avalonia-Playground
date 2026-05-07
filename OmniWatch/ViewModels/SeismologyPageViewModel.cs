@@ -13,7 +13,7 @@ using OmniWatch.Integrations.Interfaces;
 using OmniWatch.Interfaces;
 using OmniWatch.Mapping;
 using OmniWatch.Mapping.Seismic;
-using OmniWatch.Models.Seismic;
+using OmniWatch.Models.IPMA.Seismic;
 using OmniWatch.ViewModels.ProgressControl;
 using System;
 using System.Collections.Generic;

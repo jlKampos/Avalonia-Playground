@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OmniWatch.Models.Weather
+namespace OmniWatch.Models.IPMA.Weather
 {
     public class WeatherTypeDto
     {

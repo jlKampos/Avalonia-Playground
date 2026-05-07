@@ -1,5 +1,5 @@
 ﻿using OmniWatch.Integrations.Contracts.Weather;
-using OmniWatch.Models.Weather;
+using OmniWatch.Models.IPMA.Weather;
 
 namespace OmniWatch.Mapping.Weather.WeatherTypes
 {

@@ -1,7 +1,7 @@
 ﻿using Avalonia.Media;
 using System;
 
-namespace OmniWatch.Models.Awarness
+namespace OmniWatch.Models.IPMA.Awarness
 {
     public class AwarnessItemDto
     {

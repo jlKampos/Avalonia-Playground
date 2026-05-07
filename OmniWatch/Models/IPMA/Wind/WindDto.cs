@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OmniWatch.Models.Wind
+namespace OmniWatch.Models.IPMA.Wind
 {
     public class WindDto
     {
