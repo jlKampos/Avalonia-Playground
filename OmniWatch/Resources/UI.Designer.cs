@@ -61,11 +61,461 @@ namespace OmniWatch.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Dialog_Cancel {
+            get {
+                return ResourceManager.GetString("Dialog_Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation completed..
+        /// </summary>
+        public static string Dialog_DefaultMessage {
+            get {
+                return ResourceManager.GetString("Dialog_DefaultMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message.
+        /// </summary>
+        public static string Dialog_DefaultTitle {
+            get {
+                return ResourceManager.GetString("Dialog_DefaultTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OK.
+        /// </summary>
+        public static string Dialog_OK {
+            get {
+                return ResourceManager.GetString("Dialog_OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Language.
         /// </summary>
         public static string Language_Label {
             get {
                 return ResourceManager.GetString("Language_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Air Traffic.
+        /// </summary>
+        public static string Main_AirTraffic {
+            get {
+                return ResourceManager.GetString("Main_AirTraffic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hurricane Center.
+        /// </summary>
+        public static string Main_HurricaneCenter {
+            get {
+                return ResourceManager.GetString("Main_HurricaneCenter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading NOAA NHC page.
+        /// </summary>
+        public static string Main_LoadNoaa {
+            get {
+                return ResourceManager.GetString("Main_LoadNoaa", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading OpenSky page.
+        /// </summary>
+        public static string Main_LoadOpenSky {
+            get {
+                return ResourceManager.GetString("Main_LoadOpenSky", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Seismology page.
+        /// </summary>
+        public static string Main_LoadSeismology {
+            get {
+                return ResourceManager.GetString("Main_LoadSeismology", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Settings page.
+        /// </summary>
+        public static string Main_LoadSettings {
+            get {
+                return ResourceManager.GetString("Main_LoadSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading Weather Forecast page.
+        /// </summary>
+        public static string Main_LoadWeather {
+            get {
+                return ResourceManager.GetString("Main_LoadWeather", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Preparing content.
+        /// </summary>
+        public static string Main_PreparingContent {
+            get {
+                return ResourceManager.GetString("Main_PreparingContent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seismology.
+        /// </summary>
+        public static string Main_Seismology {
+            get {
+                return ResourceManager.GetString("Main_Seismology", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string Main_Settings {
+            get {
+                return ResourceManager.GetString("Main_Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather.
+        /// </summary>
+        public static string Main_Weather {
+            get {
+                return ResourceManager.GetString("Main_Weather", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ⚠ There are currently {0} active storm(s)..
+        /// </summary>
+        public static string Noaa_ActiveStorms {
+            get {
+                return ResourceManager.GetString("Noaa_ActiveStorms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking active storms.
+        /// </summary>
+        public static string Noaa_CheckingActiveStorms {
+            get {
+                return ResourceManager.GetString("Noaa_CheckingActiveStorms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear cache and refresh NOAA data..
+        /// </summary>
+        public static string Noaa_ClearCacheTooltip {
+            get {
+                return ResourceManager.GetString("Noaa_ClearCacheTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error: {0}.
+        /// </summary>
+        public static string Noaa_Error {
+            get {
+                return ResourceManager.GetString("Noaa_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do you want to clear your local cache and download the latest NOAA data?.
+        /// </summary>
+        public static string Noaa_ForceRefreshConfirm {
+            get {
+                return ResourceManager.GetString("Noaa_ForceRefreshConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error clearing cache: {0}.
+        /// </summary>
+        public static string Noaa_ForceRefreshError {
+            get {
+                return ResourceManager.GetString("Noaa_ForceRefreshError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IBTrACS Data.
+        /// </summary>
+        public static string Noaa_IBTracs {
+            get {
+                return ResourceManager.GetString("Noaa_IBTracs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing Map.
+        /// </summary>
+        public static string Noaa_InitMap {
+            get {
+                return ResourceManager.GetString("Noaa_InitMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading.
+        /// </summary>
+        public static string Noaa_Loading {
+            get {
+                return ResourceManager.GetString("Noaa_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading storms for {0}....
+        /// </summary>
+        public static string Noaa_LoadingYear {
+            get {
+                return ResourceManager.GetString("Noaa_LoadingYear", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No.
+        /// </summary>
+        public static string Noaa_No {
+            get {
+                return ResourceManager.GetString("Noaa_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No data found for this year..
+        /// </summary>
+        public static string Noaa_NoData {
+            get {
+                return ResourceManager.GetString("Noaa_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reanimate.
+        /// </summary>
+        public static string Noaa_Reanimate {
+            get {
+                return ResourceManager.GetString("Noaa_Reanimate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting up layers....
+        /// </summary>
+        public static string Noaa_SetupLayers {
+            get {
+                return ResourceManager.GetString("Noaa_SetupLayers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starting Up.
+        /// </summary>
+        public static string Noaa_Startup {
+            get {
+                return ResourceManager.GetString("Noaa_Startup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Startup Error: {0}.
+        /// </summary>
+        public static string Noaa_StartupError {
+            get {
+                return ResourceManager.GetString("Noaa_StartupError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        public static string Noaa_Theme {
+            get {
+                return ResourceManager.GetString("Noaa_Theme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NOAA.
+        /// </summary>
+        public static string Noaa_Title {
+            get {
+                return ResourceManager.GetString("Noaa_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Yes.
+        /// </summary>
+        public static string Noaa_Yes {
+            get {
+                return ResourceManager.GetString("Noaa_Yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Data.
+        /// </summary>
+        public static string OpenSky_Data {
+            get {
+                return ResourceManager.GetString("OpenSky_Data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Dummy.
+        /// </summary>
+        public static string OpenSky_DataDummy {
+            get {
+                return ResourceManager.GetString("OpenSky_DataDummy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Real.
+        /// </summary>
+        public static string OpenSky_DataReal {
+            get {
+                return ResourceManager.GetString("OpenSky_DataReal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load flight states: {0}.
+        /// </summary>
+        public static string OpenSky_FailedLoadStates {
+            get {
+                return ResourceManager.GetString("OpenSky_FailedLoadStates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing Map.
+        /// </summary>
+        public static string OpenSky_InitMap {
+            get {
+                return ResourceManager.GetString("OpenSky_InitMap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error loading: {0}.
+        /// </summary>
+        public static string OpenSky_LoadError {
+            get {
+                return ResourceManager.GetString("OpenSky_LoadError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OpenSky API limit reached.\nNext reset at {0} UTC..
+        /// </summary>
+        public static string OpenSky_RateLimitReached {
+            get {
+                return ResourceManager.GetString("OpenSky_RateLimitReached", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remaining limit:.
+        /// </summary>
+        public static string OpenSky_RateLimitRemaining {
+            get {
+                return ResourceManager.GetString("OpenSky_RateLimitRemaining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total limit:.
+        /// </summary>
+        public static string OpenSky_RateLimitTotal {
+            get {
+                return ResourceManager.GetString("OpenSky_RateLimitTotal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resets at:.
+        /// </summary>
+        public static string OpenSky_ResetAt {
+            get {
+                return ResourceManager.GetString("OpenSky_ResetAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Setting up layers....
+        /// </summary>
+        public static string OpenSky_SetupLayers {
+            get {
+                return ResourceManager.GetString("OpenSky_SetupLayers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Startup Error: {0}.
+        /// </summary>
+        public static string OpenSky_StartupError {
+            get {
+                return ResourceManager.GetString("OpenSky_StartupError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Theme.
+        /// </summary>
+        public static string OpenSky_Theme {
+            get {
+                return ResourceManager.GetString("OpenSky_Theme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Air Traffic.
+        /// </summary>
+        public static string OpenSky_Title {
+            get {
+                return ResourceManager.GetString("OpenSky_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update interval:.
+        /// </summary>
+        public static string OpenSky_UpdateInterval {
+            get {
+                return ResourceManager.GetString("OpenSky_UpdateInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ⚠ OpenSky API requests are limited to one every 10 seconds..
+        /// </summary>
+        public static string OpenSky_WarningRateLimit {
+            get {
+                return ResourceManager.GetString("OpenSky_WarningRateLimit", resourceCulture);
             }
         }
         
@@ -115,11 +565,231 @@ namespace OmniWatch.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Initializing seismic data....
+        /// </summary>
+        public static string Seismo_Initializing {
+            get {
+                return ResourceManager.GetString("Seismo_Initializing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading.
+        /// </summary>
+        public static string Seismo_Loading {
+            get {
+                return ResourceManager.GetString("Seismo_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Map Error: {0}.
+        /// </summary>
+        public static string Seismo_MapError {
+            get {
+                return ResourceManager.GetString("Seismo_MapError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select date.
+        /// </summary>
+        public static string Seismo_SelectDate {
+            get {
+                return ResourceManager.GetString("Seismo_SelectDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Startup Error: {0}.
+        /// </summary>
+        public static string Seismo_StartupError {
+            get {
+                return ResourceManager.GetString("Seismo_StartupError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error applying theme\n{0}.
+        /// </summary>
+        public static string Seismo_ThemeError {
+            get {
+                return ResourceManager.GetString("Seismo_ThemeError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Seismic Activity.
+        /// </summary>
+        public static string Seismo_Title {
+            get {
+                return ResourceManager.GetString("Seismo_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid credentials.\nCheck Client ID and Secret..
+        /// </summary>
+        public static string Settings_CredentialsInvalid {
+            get {
+                return ResourceManager.GetString("Settings_CredentialsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Credentials are valid!.
+        /// </summary>
+        public static string Settings_CredentialsValid {
+            get {
+                return ResourceManager.GetString("Settings_CredentialsValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load settings: {0}.
+        /// </summary>
+        public static string Settings_LoadFailed {
+            get {
+                return ResourceManager.GetString("Settings_LoadFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading settings....
+        /// </summary>
+        public static string Settings_Loading {
+            get {
+                return ResourceManager.GetString("Settings_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OpenSky credentials are required for refresh intervals below 10 seconds. Interval
+        ///            reset to 10 seconds..
+        /// </summary>
+        public static string Settings_RefreshIntervalWarning {
+            get {
+                return ResourceManager.GetString("Settings_RefreshIntervalWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to reset all settings?\nThis will remove your OpenSky
+        ///            credentials..
+        /// </summary>
+        public static string Settings_ResetConfirm {
+            get {
+                return ResourceManager.GetString("Settings_ResetConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to reset settings: {0}.
+        /// </summary>
+        public static string Settings_ResetFailed {
+            get {
+                return ResourceManager.GetString("Settings_ResetFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings have been reset successfully..
+        /// </summary>
+        public static string Settings_ResetSuccess {
+            get {
+                return ResourceManager.GetString("Settings_ResetSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resetting settings....
+        /// </summary>
+        public static string Settings_Resetting {
+            get {
+                return ResourceManager.GetString("Settings_Resetting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configuration not saved.\n\nYou selected OpenSky authentication, but credentials are
+        ///            missing..
+        /// </summary>
+        public static string Settings_SaveBlockedMissingCredentials {
+            get {
+                return ResourceManager.GetString("Settings_SaveBlockedMissingCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings not saved.\n\nWarning: unauthenticated OpenSky requests must not be made
+        ///            more frequently than every 10 seconds..
+        /// </summary>
+        public static string Settings_SaveBlockedNoAuth {
+            get {
+                return ResourceManager.GetString("Settings_SaveBlockedNoAuth", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to save settings: {0}.
+        /// </summary>
+        public static string Settings_SaveFailed {
+            get {
+                return ResourceManager.GetString("Settings_SaveFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings saved successfully..
+        /// </summary>
+        public static string Settings_SaveSuccess {
+            get {
+                return ResourceManager.GetString("Settings_SaveSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saving settings....
+        /// </summary>
+        public static string Settings_Saving {
+            get {
+                return ResourceManager.GetString("Settings_Saving", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OpenSky server returned an error.\nTry again later..
+        /// </summary>
+        public static string Settings_ServerError {
+            get {
+                return ResourceManager.GetString("Settings_ServerError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Settings.
         /// </summary>
         public static string Settings_Title {
             get {
                 return ResourceManager.GetString("Settings_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error: {0}.
+        /// </summary>
+        public static string Settings_UnexpectedError {
+            get {
+                return ResourceManager.GetString("Settings_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Validating OpenSky credentials....
+        /// </summary>
+        public static string Settings_ValidatingCredentials {
+            get {
+                return ResourceManager.GetString("Settings_ValidatingCredentials", resourceCulture);
             }
         }
         
@@ -138,6 +808,141 @@ namespace OmniWatch.Localization {
         public static string UseOpenSkyCredentials_Label {
             get {
                 return ResourceManager.GetString("UseOpenSkyCredentials_Label", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direction.
+        /// </summary>
+        public static string Weather_Direction {
+            get {
+                return ResourceManager.GetString("Weather_Direction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error loading data.
+        /// </summary>
+        public static string Weather_ErrorLoadingData {
+            get {
+                return ResourceManager.GetString("Weather_ErrorLoadingData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Forecast for {0}....
+        /// </summary>
+        public static string Weather_ForecastFor {
+            get {
+                return ResourceManager.GetString("Weather_ForecastFor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Intensity.
+        /// </summary>
+        public static string Weather_Intensity {
+            get {
+                return ResourceManager.GetString("Weather_Intensity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loading.
+        /// </summary>
+        public static string Weather_Loading {
+            get {
+                return ResourceManager.GetString("Weather_Loading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Maximum.
+        /// </summary>
+        public static string Weather_Maximum {
+            get {
+                return ResourceManager.GetString("Weather_Maximum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum.
+        /// </summary>
+        public static string Weather_Minimum {
+            get {
+                return ResourceManager.GetString("Weather_Minimum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Precipitation.
+        /// </summary>
+        public static string Weather_Precipitation {
+            get {
+                return ResourceManager.GetString("Weather_Precipitation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Probability.
+        /// </summary>
+        public static string Weather_Probability {
+            get {
+                return ResourceManager.GetString("Weather_Probability", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select location.
+        /// </summary>
+        public static string Weather_SelectLocation {
+            get {
+                return ResourceManager.GetString("Weather_SelectLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Startup Error: {0}.
+        /// </summary>
+        public static string Weather_StartupError {
+            get {
+                return ResourceManager.GetString("Weather_StartupError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Temperature.
+        /// </summary>
+        public static string Weather_Temperature {
+            get {
+                return ResourceManager.GetString("Weather_Temperature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weather Forecast.
+        /// </summary>
+        public static string Weather_Title {
+            get {
+                return ResourceManager.GetString("Weather_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warnings.
+        /// </summary>
+        public static string Weather_Warnings {
+            get {
+                return ResourceManager.GetString("Weather_Warnings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wind.
+        /// </summary>
+        public static string Weather_Wind {
+            get {
+                return ResourceManager.GetString("Weather_Wind", resourceCulture);
             }
         }
     }
