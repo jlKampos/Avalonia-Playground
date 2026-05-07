@@ -1,117 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-    <!-- 
-    Microsoft ResX Schema 
-    
-    Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
-    associated with the data types.
-    
-    Example:
-    
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing"
-    mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework
-    object]</value>
-        <comment>This is a comment</comment>
-    </data>
-                
-    There are any number of "resheader" rows that contain simple 
-    name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
-    mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
-    extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
-    read any of the formats listed below.
-    
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
-    
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
-
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-        <xsd:element name="root" msdata:IsDataSet="true">
-            <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="metadata">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" />
-                            </xsd:sequence>
-                            <xsd:attribute name="name" use="required" type="xsd:string" />
-                            <xsd:attribute name="type" type="xsd:string" />
-                            <xsd:attribute name="mimetype" type="xsd:string" />
-                            <xsd:attribute ref="xml:space" />
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="assembly">
-                        <xsd:complexType>
-                            <xsd:attribute name="alias" type="xsd:string" />
-                            <xsd:attribute name="name" type="xsd:string" />
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"
-                                    msdata:Ordinal="1" />
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0"
-                                    msdata:Ordinal="2" />
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required"
-                                msdata:Ordinal="1" />
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-                            <xsd:attribute ref="xml:space" />
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"
-                                    msdata:Ordinal="1" />
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" />
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
-            </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
     <resheader name="resmimetype">
         <value>text/microsoft-resx</value>
     </resheader>
@@ -119,163 +7,326 @@
         <value>2.0</value>
     </resheader>
     <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
-            Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms</value>
     </resheader>
     <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
-            Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms</value>
     </resheader>
 
-    <data name="Settings_Title" xml:space="preserve">
+    <!-- SETTINGS -->
+    <data name="Settings_Title">
         <value>Definições</value>
     </data>
-
-    <data name="Language_Label" xml:space="preserve">
+    <data name="Language_Label">
         <value>Idioma</value>
     </data>
-
-    <data name="UseOpenSkyCredentials_Label" xml:space="preserve">
+    <data name="UseOpenSkyCredentials_Label">
         <value>Usar Credenciais OpenSky</value>
     </data>
-
-    <data name="OpenSkyRefreshInterval_Label" xml:space="preserve">
+    <data name="OpenSkyRefreshInterval_Label">
         <value>Intervalo de Atualização OpenSky</value>
     </data>
-
-    <data name="OpenSkyClientId_Label" xml:space="preserve">
+    <data name="OpenSkyClientId_Label">
         <value>ID do Cliente OpenSky</value>
     </data>
-
-    <data name="OpenSkyClientSecret_Label" xml:space="preserve">
+    <data name="OpenSkyClientSecret_Label">
         <value>Segredo do Cliente OpenSky</value>
     </data>
-
-    <data name="TestCredentials_Button" xml:space="preserve">
+    <data name="TestCredentials_Button">
         <value>Testar Credenciais</value>
     </data>
-
-    <data name="Save_Button" xml:space="preserve">
+    <data name="Save_Button">
         <value>Guardar</value>
     </data>
-
-    <data name="Reset_Button" xml:space="preserve">
+    <data name="Reset_Button">
         <value>Repor</value>
     </data>
 
-    <data name="Dialog_Cancel" xml:space="preserve">
+    <data name="Settings_Loading">
+        <value>A carregar definições...</value>
+    </data>
+    <data name="Settings_LoadFailed">
+        <value>Falha ao carregar definições: {0}</value>
+    </data>
+    <data name="Settings_ValidatingCredentials">
+        <value>A validar credenciais OpenSky...</value>
+    </data>
+    <data name="Settings_CredentialsValid">
+        <value>Credenciais válidas!</value>
+    </data>
+    <data name="Settings_CredentialsInvalid">
+        <value>Credenciais inválidas.\nVerifica o Client ID e o Secret.</value>
+    </data>
+    <data name="Settings_ServerError">
+        <value>O servidor OpenSky devolveu um erro.\nTenta novamente mais tarde.</value>
+    </data>
+    <data name="Settings_UnexpectedError">
+        <value>Erro inesperado: {0}</value>
+    </data>
+    <data name="Settings_RefreshIntervalWarning">
+        <value>As credenciais OpenSky são necessárias para intervalos inferiores a 10 segundos. O
+            intervalo foi reposto para 10 segundos.</value>
+    </data>
+    <data name="Settings_Saving">
+        <value>A guardar definições...</value>
+    </data>
+    <data name="Settings_SaveBlockedNoAuth">
+        <value>Definições não guardadas.\n\nAviso: pedidos OpenSky sem autenticação não devem ser
+            feitos com frequência inferior a 10 segundos, ou o teu IP pode ser bloqueado.</value>
+    </data>
+    <data name="Settings_SaveBlockedMissingCredentials">
+        <value>Configuração não guardada.\n\nSelecionaste autenticação OpenSky, mas faltam as
+            credenciais.\nFornece o Client ID e o Client Secret antes de guardar.</value>
+    </data>
+    <data name="Settings_SaveSuccess">
+        <value>Definições guardadas com sucesso.</value>
+    </data>
+    <data name="Settings_SaveFailed">
+        <value>Falha ao guardar definições: {0}</value>
+    </data>
+    <data name="Settings_ResetConfirm">
+        <value>Tens a certeza que queres repor todas as definições?\nIsto irá remover as credenciais
+            OpenSky e restaurar os valores padrão.</value>
+    </data>
+    <data name="Settings_Resetting">
+        <value>A repor definições...</value>
+    </data>
+    <data name="Settings_ResetSuccess">
+        <value>As definições foram repostas com sucesso.</value>
+    </data>
+    <data name="Settings_ResetFailed">
+        <value>Falha ao repor definições: {0}</value>
+    </data>
+
+    <!-- DIALOG -->
+    <data name="Dialog_Cancel">
         <value>Cancelar</value>
     </data>
-
-    <data name="Dialog_OK" xml:space="preserve">
+    <data name="Dialog_OK">
         <value>OK</value>
     </data>
-
-    <data name="Dialog_DefaultTitle" xml:space="preserve">
+    <data name="Dialog_DefaultTitle">
         <value>Mensagem</value>
     </data>
-
-    <data name="Dialog_DefaultMessage" xml:space="preserve">
+    <data name="Dialog_DefaultMessage">
         <value>Operação concluída.</value>
     </data>
 
-    <data name="Main_Weather" xml:space="preserve">
+    <!-- MAIN NAVIGATION -->
+    <data name="Main_Weather">
         <value>Meteorologia</value>
     </data>
-
-    <data name="Main_Seismology" xml:space="preserve">
+    <data name="Main_Seismology">
         <value>Sismologia</value>
     </data>
-
-    <data name="Main_AirTraffic" xml:space="preserve">
+    <data name="Main_AirTraffic">
         <value>Tráfego aéreo</value>
     </data>
-
-    <data name="Main_HurricaneCenter" xml:space="preserve">
+    <data name="Main_HurricaneCenter">
         <value>Centro de Furacões</value>
     </data>
-
-    <data name="Main_Settings" xml:space="preserve">
+    <data name="Main_Settings">
         <value>Definições</value>
     </data>
-
-    <data name="Main_PreparingContent" xml:space="preserve">
+    <data name="Main_PreparingContent">
         <value>A preparar conteúdo</value>
     </data>
+    <data name="Main_LoadWeather">
+        <value>A carregar página de previsão meteorológica</value>
+    </data>
+    <data name="Main_LoadSeismology">
+        <value>A carregar página de sismologia</value>
+    </data>
+    <data name="Main_LoadOpenSky">
+        <value>A carregar página OpenSky</value>
+    </data>
+    <data name="Main_LoadNoaa">
+        <value>A carregar página NOAA NHC</value>
+    </data>
+    <data name="Main_LoadSettings">
+        <value>A carregar página de definições</value>
+    </data>
 
-    <data name="Noaa_Title" xml:space="preserve">
+    <!-- NOAA -->
+    <data name="Noaa_Title">
         <value>NOAA</value>
     </data>
-
-    <data name="Noaa_ClearCacheTooltip" xml:space="preserve">
+    <data name="Noaa_ClearCacheTooltip">
         <value>Limpar cache e atualizar dados NOAA.</value>
     </data>
-
-    <data name="Noaa_Reanimate" xml:space="preserve">
+    <data name="Noaa_Reanimate">
         <value>Reanimar</value>
     </data>
-
-    <data name="Noaa_Yes" xml:space="preserve">
+    <data name="Noaa_Yes">
         <value>Sim</value>
     </data>
-
-    <data name="Noaa_No" xml:space="preserve">
+    <data name="Noaa_No">
         <value>Não</value>
     </data>
-
-    <data name="Noaa_Theme" xml:space="preserve">
+    <data name="Noaa_Theme">
         <value>Tema</value>
     </data>
-    <data name="OpenSky_Title" xml:space="preserve">
+
+    <data name="Noaa_Startup">
+        <value>A iniciar</value>
+    </data>
+    <data name="Noaa_InitMap">
+        <value>A inicializar o mapa</value>
+    </data>
+    <data name="Noaa_SetupLayers">
+        <value>A configurar camadas...</value>
+    </data>
+    <data name="Noaa_Loading">
+        <value>A carregar</value>
+    </data>
+    <data name="Noaa_CheckingActiveStorms">
+        <value>A verificar tempestades ativas</value>
+    </data>
+    <data name="Noaa_IBTracs">
+        <value>Dados IBTrACS</value>
+    </data>
+    <data name="Noaa_LoadingYear">
+        <value>A carregar tempestades de {0}...</value>
+    </data>
+    <data name="Noaa_StartupError">
+        <value>Erro ao iniciar: {0}</value>
+    </data>
+    <data name="Noaa_ActiveStorms">
+        <value>⚠ Existem atualmente {0} tempestades ativas.</value>
+    </data>
+    <data name="Noaa_Error">
+        <value>Erro: {0}</value>
+    </data>
+    <data name="Noaa_NoData">
+        <value>Não foram encontrados dados para este ano.</value>
+    </data>
+    <data name="Noaa_ForceRefreshConfirm">
+        <value>Queres limpar a cache local e descarregar os dados mais recentes da NOAA?</value>
+    </data>
+    <data name="Noaa_ForceRefreshError">
+        <value>Erro ao limpar a cache: {0}</value>
+    </data>
+
+    <!-- OPENSKY -->
+    <data name="OpenSky_Title">
         <value>Tráfego aéreo</value>
     </data>
-
-    <data name="OpenSky_RateLimitRemaining" xml:space="preserve">
+    <data name="OpenSky_RateLimitRemaining">
         <value>Limite restante:</value>
     </data>
-
-    <data name="OpenSky_RateLimitTotal" xml:space="preserve">
+    <data name="OpenSky_RateLimitTotal">
         <value>Limite total:</value>
     </data>
-
-    <data name="OpenSky_UpdateInterval" xml:space="preserve">
+    <data name="OpenSky_UpdateInterval">
         <value>Intervalo de atualização:</value>
     </data>
-
-    <data name="OpenSky_ResetAt" xml:space="preserve">
+    <data name="OpenSky_ResetAt">
         <value>Reinicia às:</value>
     </data>
-
-    <data name="OpenSky_WarningRateLimit" xml:space="preserve">
-        <value>⚠ Os pedidos à API OpenSky são limitados a um a cada 10 segundos para evitar bloqueio de IP.</value>
+    <data name="OpenSky_WarningRateLimit">
+        <value>⚠ Os pedidos à API OpenSky são limitados a um a cada 10 segundos para evitar bloqueio
+            de IP.</value>
     </data>
-
-    <data name="OpenSky_Theme" xml:space="preserve">
+    <data name="OpenSky_Theme">
         <value>Tema</value>
     </data>
-
-    <data name="OpenSky_Data" xml:space="preserve">
+    <data name="OpenSky_Data">
         <value>Dados</value>
     </data>
-
-    <data name="OpenSky_DataReal" xml:space="preserve">
+    <data name="OpenSky_DataReal">
         <value>Reais</value>
     </data>
-
-    <data name="OpenSky_DataDummy" xml:space="preserve">
+    <data name="OpenSky_DataDummy">
         <value>Simulados</value>
     </data>
+    <data name="OpenSky_InitMap">
+        <value>A inicializar o mapa</value>
+    </data>
+    <data name="OpenSky_SetupLayers">
+        <value>A configurar camadas...</value>
+    </data>
+    <data name="OpenSky_StartupError">
+        <value>Erro ao iniciar: {0}</value>
+    </data>
+    <data name="OpenSky_LoadError">
+        <value>Erro ao carregar: {0}</value>
+    </data>
+    <data name="OpenSky_FailedLoadStates">
+        <value>Falha ao carregar estados de voo: {0}</value>
+    </data>
+    <data name="OpenSky_RateLimitReached">
+        <value>Limite da API OpenSky atingido.\nPróximo reset às {0} UTC.</value>
+    </data>
 
-    <data name="Seismo_Title" xml:space="preserve">
+    <!-- SEISMOLOGY -->
+    <data name="Seismo_Title">
         <value>Atividade Sísmica</value>
     </data>
-
-    <data name="Seismo_SelectDate" xml:space="preserve">
+    <data name="Seismo_SelectDate">
         <value>Selecionar data</value>
     </data>
+    <data name="Seismo_Loading">
+        <value>A carregar</value>
+    </data>
+    <data name="Seismo_Initializing">
+        <value>A inicializar dados sísmicos...</value>
+    </data>
+    <data name="Seismo_StartupError">
+        <value>Erro ao iniciar: {0}</value>
+    </data>
+    <data name="Seismo_MapError">
+        <value>Erro no mapa: {0}</value>
+    </data>
+    <data name="Seismo_ThemeError">
+        <value>Erro ao aplicar tema\n{0}</value>
+    </data>
 
-    <data name="Weather_SelectLocation" xml:space="preserve">
+    <!-- WEATHER -->
+    <data name="Weather_SelectLocation">
         <value>Selecionar localização</value>
+    </data>
+    <data name="Weather_Loading">
+        <value>A carregar</value>
+    </data>
+    <data name="Weather_ForecastFor">
+        <value>Previsão para {0}...</value>
+    </data>
+    <data name="Weather_ErrorLoadingData">
+        <value>Erro ao carregar dados</value>
+    </data>
+    <data name="Weather_StartupError">
+        <value>Erro ao iniciar: {0}</value>
+    </data>
+
+    <data name="Weather_Title">
+        <value>Previsão Meteorológica</value>
+    </data>
+    <data name="Weather_Temperature">
+        <value>Temperatura</value>
+    </data>
+    <data name="Weather_Minimum">
+        <value>Mínima</value>
+    </data>
+    <data name="Weather_Maximum">
+        <value>Máxima</value>
+    </data>
+    <data name="Weather_Wind">
+        <value>Vento</value>
+    </data>
+    <data name="Weather_Intensity">
+        <value>Intensidade</value>
+    </data>
+    <data name="Weather_Direction">
+        <value>Direção</value>
+    </data>
+    <data name="Weather_Precipitation">
+        <value>Precipitação</value>
+    </data>
+    <data name="Weather_Probability">
+        <value>Probabilidade</value>
+    </data>
+    <data name="Weather_Warnings">
+        <value>Avisos</value>
     </data>
 
 </root>

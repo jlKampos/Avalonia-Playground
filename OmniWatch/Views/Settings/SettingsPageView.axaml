@@ -140,7 +140,9 @@
 								Command="{Binding TestOpenSkyCredentialsCommand}"
 								Background="{StaticResource DarkAccent}"
 								Foreground="{StaticResource DarkPrimary}"
-								Margin="0,10,0,0" Width="160"/>
+								Margin="0,10,0,0" Width="160"
+								FontWeight="Bold"
+								HorizontalContentAlignment="Center"/>
 					</StackPanel>
 				</StackPanel>
 			</Border>
