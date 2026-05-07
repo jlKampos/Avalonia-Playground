@@ -209,6 +209,7 @@ namespace OmniWatch.ViewModels
             }
         }
 
+
         private async Task LoadDataOrchestratorAsync(LocationDto value)
         {
             try
@@ -217,11 +218,9 @@ namespace OmniWatch.ViewModels
                 ProgressControl.Title = Translation("Weather_Loading");
                 ProgressControl.Message = string.Format(Translation("Weather_ForecastFor"), value.Name);
 
-                await Task.Run(async () =>
-                {
-                    await Task.Delay(500);
-                    await LoadForecastAsync(value.GlobalIdLocal);
-                });
+                await Task.Delay(10);
+                await LoadForecastAsync(value.GlobalIdLocal);
+
             }
             catch (Exception ex)
             {
