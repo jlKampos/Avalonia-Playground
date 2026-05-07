@@ -20,7 +20,7 @@
 		<Grid RowDefinitions="Auto,*,Auto" Background="{StaticResource PanelBrush}">
 
 			<!-- HEADER DINÂMICO -->
-			<Border Grid.Row="0" Background="{StaticResource DarkAccent}" Padding="10">
+			<Border Grid.Row="0" Background="{Binding HeaderColor}" Padding="10">
 				<StackPanel Orientation="Horizontal">
 					<Label FontFamily="{StaticResource PhosphorFill}"
 						   Content="{Binding Icon}"
@@ -41,7 +41,7 @@
 
 				<Button Content="Cancel"
 						Width="100"
-						Background="{StaticResource DarkAccent}"
+						Background="{Binding HeaderColor}"
 						Foreground="{StaticResource DarkPrimary}"
 						FontWeight="Bold"
 						HorizontalContentAlignment="Center"
@@ -49,7 +49,7 @@
 
 				<Button Content="OK"
 						Width="100"
-						Background="{StaticResource DarkAccent}"
+						Background="{Binding HeaderColor}"
 						Foreground="{StaticResource DarkPrimary}"
 						FontWeight="Bold"
 						HorizontalContentAlignment="Center"
