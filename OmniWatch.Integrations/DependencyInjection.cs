@@ -57,6 +57,12 @@ namespace OmniWatch.Integrations
             services.AddHttpClient(ApiType.OpenSky.ToString(), c =>
                 c.BaseAddress = new Uri("https://opensky-network.org/api/"));
 
+            // OpenSky OAuth2
+            services.AddHttpClient(ApiType.OpenSkyAuth.ToString(), client =>
+            {
+                client.BaseAddress = new Uri("https://auth.opensky-network.org/");
+            });
+
             services.AddHttpClient(ApiType.Noaa.ToString(), c =>
             {
                 c.BaseAddress = new Uri("https://www.nhc.noaa.gov/");

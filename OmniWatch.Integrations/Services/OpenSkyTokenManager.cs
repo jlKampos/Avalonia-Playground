@@ -125,7 +125,7 @@ namespace OmniWatch.Integrations.Services
 
             try
             {
-                var client = _factory.CreateClient("OpenSkyAuth");
+                var client = _factory.CreateClient(ApiType.OpenSkyAuth.ToString());
 
                 var content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {
@@ -204,7 +204,7 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                var client = _factory.CreateClient("OpenSkyAuth");
+                var client = _factory.CreateClient(ApiType.OpenSkyAuth.ToString());
 
                 var content = new FormUrlEncodedContent(new Dictionary<string, string>
                 {

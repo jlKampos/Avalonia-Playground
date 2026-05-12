@@ -35,7 +35,7 @@ namespace OmniWatch.Integrations.Tests.Services
         private OpenSkyTokenManager CreateSut(HttpClient client)
         {
             _factoryMock
-                .Setup(f => f.CreateClient("OpenSkyAuth"))
+                .Setup(f => f.CreateClient(ApiType.OpenSkyAuth.ToString()))
                 .Returns(client);
 
             return new OpenSkyTokenManager(
@@ -230,7 +230,7 @@ namespace OmniWatch.Integrations.Tests.Services
             };
 
             _factoryMock
-                .Setup(f => f.CreateClient("OpenSkyAuth"))
+                .Setup(f => f.CreateClient(ApiType.OpenSkyAuth.ToString()))
                 .Returns(client);
 
             var sut = CreateSut(client);

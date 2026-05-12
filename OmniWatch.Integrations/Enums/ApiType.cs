@@ -4,6 +4,7 @@
     {
         Ipma,
         OpenSky,
+        OpenSkyAuth,
         Meteo,
         Noaa
     }
