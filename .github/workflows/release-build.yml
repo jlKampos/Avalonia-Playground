@@ -78,4 +78,9 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        with
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: OmniWatch 1.0.${{ github.run_number }}
+          files: artifacts/**/*
+          draft: false
+          prerelease: false
