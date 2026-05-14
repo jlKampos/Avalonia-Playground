@@ -6,5 +6,7 @@ namespace OmniWatch.Core.Interfaces
     {
         AppSettings Load();
         void Save(AppSettings settings);
+
+        event Action<AppSettings>? SettingsChanged;
     }
 }

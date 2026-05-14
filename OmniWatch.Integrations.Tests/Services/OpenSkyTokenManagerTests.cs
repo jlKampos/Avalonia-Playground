@@ -7,13 +7,9 @@ using OmniWatch.Core.Settings;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Services;
 using OmniWatch.Integrations.Tests.Handlers;
-using System;
 using System.Net;
-using System.Net.Http;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 
 namespace OmniWatch.Integrations.Tests.Services
 {

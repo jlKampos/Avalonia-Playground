@@ -1,0 +1,210 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing"
+    mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework
+    object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+        <xsd:element name="root" msdata:IsDataSet="true">
+            <xsd:complexType>
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string" />
+                            <xsd:attribute name="type" type="xsd:string" />
+                            <xsd:attribute name="mimetype" type="xsd:string" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string" />
+                            <xsd:attribute name="name" type="xsd:string" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"
+                                    msdata:Ordinal="1" />
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0"
+                                    msdata:Ordinal="2" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"
+                                msdata:Ordinal="1" />
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+                            <xsd:attribute ref="xml:space" />
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"
+                                    msdata:Ordinal="1" />
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" />
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0,
+            Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Noaa_LoadActiveStormsFailed" xml:space="preserve">
+    <value>Falha ao carregar tempestades ativas da NOAA.</value>
+  </data>
+    <data name="Noaa_LoadActiveStormsError" xml:space="preserve">
+    <value>Erro ao carregar tempestades ativas da NOAA.</value>
+  </data>
+    <data name="Noaa_SearchingYear" xml:space="preserve">
+    <value>A procurar dados de {0} na base de dados local...</value>
+  </data>
+    <data name="Noaa_YearNotFound" xml:space="preserve">
+    <value>Dados de {0} não encontrados. A processar a partir do servidor NOAA...</value>
+  </data>
+    <data name="Noaa_IbtracsUpdated" xml:space="preserve">
+    <value>O dataset IBTrACS foi atualizado no servidor. A atualizar a cache global...</value>
+  </data>
+    <data name="Noaa_IbtracsClearing" xml:space="preserve">
+    <value>IBTrACS desatualizado. A limpar todas as tabelas históricas.</value>
+  </data>
+    <data name="Noaa_TransactionFailed" xml:space="preserve">
+    <value>A transação falhou ao atualizar a cache.</value>
+  </data>
+    <data name="Noaa_SavingRecords" xml:space="preserve">
+    <value>A guardar registos... ({0} pontos processados)</value>
+  </data>
+    <data name="Noaa_YearSyncCompleted" xml:space="preserve">
+    <value>Sincronização do ano concluída.</value>
+  </data>
+    <data name="Noaa_ManualClearRequested" xml:space="preserve">
+    <value>Pedido manual de limpeza da cache.</value>
+  </data>
+    <data name="Noaa_CleaningDatabase" xml:space="preserve">
+    <value>A limpar a base de dados...</value>
+  </data>
+    <data name="Noaa_CacheCleared" xml:space="preserve">
+    <value>Cache limpa com sucesso.</value>
+  </data>
+    <data name="Noaa_CacheClearedDownload" xml:space="preserve">
+    <value>Cache limpa com sucesso. A aplicação irá descarregar novos dados.</value>
+  </data>
+    <data name="Noaa_ClearCacheFailed" xml:space="preserve">
+    <value>Falha ao limpar a cache.</value>
+  </data>
+    <data name="Noaa_InvalidCoordinates" xml:space="preserve">
+    <value>Coordenadas inválidas 0,0 ignoradas para a tempestade {0}</value>
+  </data>
+    <data name="OpenSky_FailedToLoad_Flights" xml:space="preserve">
+    <value>Ocorreu um erro ao carregar os voos da API OpenSky</value>
+  </data>
+
+    <data name="Ipma_LoadLocationsFailed" xml:space="preserve">
+  <value>Falha ao carregar as localizações.</value>
+</data>
+
+    <data name="Ipma_LoadWeatherTypesFailed" xml:space="preserve">
+  <value>Falha ao carregar os tipos de tempo.</value>
+</data>
+
+    <data name="Ipma_LoadForecastCityFailed" xml:space="preserve">
+  <value>Falha ao carregar a previsão para a cidade {0}.</value>
+</data>
+
+    <data name="Ipma_LoadForecastDayFailed" xml:space="preserve">
+  <value>Falha ao carregar a previsão para o dia {0}.</value>
+</data>
+
+    <data name="Ipma_LoadWindFailed" xml:space="preserve">
+  <value>Falha ao carregar os dados de velocidade do vento.</value>
+</data>
+
+    <data name="Ipma_LoadSeismicFailed" xml:space="preserve">
+  <value>Falha ao carregar os dados sísmicos para a área {0}.</value>
+</data>
+
+    <data name="Ipma_LoadWarningsFailed" xml:space="preserve">
+  <value>Falha ao carregar os avisos meteorológicos.</value>
+</data>
+
+    <data name="Ipma_LoadPrecipitationFailed" xml:space="preserve">
+  <value>Falha ao carregar os dados de precipitação.</value>
+</data>
+
+</root>

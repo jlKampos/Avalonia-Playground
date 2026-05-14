@@ -329,5 +329,28 @@
     <data name="Weather_Warnings">
         <value>Warnings</value>
     </data>
+    <data name="MessageDialog_Unknown" xml:space="preserve">
+  <value>Unknown</value>
+</data>
+
+    <data name="MessageDialog_Warning" xml:space="preserve">
+  <value>Warning</value>
+</data>
+
+    <data name="MessageDialog_Error" xml:space="preserve">
+  <value>Error</value>
+</data>
+
+    <data name="MessageDialog_Success" xml:space="preserve">
+  <value>Success</value>
+</data>
+
+    <data name="MessageDialog_Information" xml:space="preserve">
+  <value>Information</value>
+</data>
+
+    <data name="MessageDialog_Message" xml:space="preserve">
+  <value>Message</value>
+</data>
 
 </root>

@@ -8,6 +8,7 @@ using OmniWatch.Integrations.Contracts.Wind;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
+using OmniWatch.Integrations.Localization;
 
 namespace OmniWatch.Integrations.Services
 {
@@ -24,11 +25,12 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient.GetAsync<LocationsResponse>("distrits-islands.json", ApiType.Ipma).ConfigureAwait(false);
+                return await _apiClient.GetAsync<LocationsResponse>(
+                    "distrits-islands.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException("Failed to load locations", ex);
+                throw new ApiException(IL.Translation("Ipma_LoadLocationsFailed"), ex);
             }
         }
 
@@ -36,11 +38,12 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient.GetAsync<WeatherTypeResponse>("weather-type-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                return await _apiClient.GetAsync<WeatherTypeResponse>(
+                    "weather-type-classe.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException("Failed to load weather types", ex);
+                throw new ApiException(IL.Translation("Ipma_LoadWeatherTypesFailed"), ex);
             }
         }
 
@@ -53,7 +56,8 @@ namespace OmniWatch.Integrations.Services
             }
             catch (Exception ex)
             {
-                throw new ApiException($"Failed to load forecast for city {globalId}", ex);
+                throw new ApiException(
+                    string.Format(IL.Translation("Ipma_LoadForecastCityFailed"), globalId), ex);
             }
         }
 
@@ -66,7 +70,8 @@ namespace OmniWatch.Integrations.Services
             }
             catch (Exception ex)
             {
-                throw new ApiException($"Failed to load forecast for day {day}", ex);
+                throw new ApiException(
+                    string.Format(IL.Translation("Ipma_LoadForecastDayFailed"), day), ex);
             }
         }
 
@@ -74,11 +79,12 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient.GetAsync<WindSpeedResponse>("wind-speed-daily-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                return await _apiClient.GetAsync<WindSpeedResponse>(
+                    "wind-speed-daily-classe.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException("Failed to load wind speed data", ex);
+                throw new ApiException(IL.Translation("Ipma_LoadWindFailed"), ex);
             }
         }
 
@@ -86,11 +92,13 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient.GetAsync<SeismicResponse>($"observation/seismic/{idArea}.json", ApiType.Ipma).ConfigureAwait(false);
+                return await _apiClient.GetAsync<SeismicResponse>(
+                    $"observation/seismic/{idArea}.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException($"Failed to load seismic data for area {idArea}", ex);
+                throw new ApiException(
+                    string.Format(IL.Translation("Ipma_LoadSeismicFailed"), idArea), ex);
             }
         }
 
@@ -98,13 +106,12 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient
-                    .GetAsync<List<AwarenessItem>>("forecast/warnings/warnings_www.json", ApiType.Ipma)
-                    .ConfigureAwait(false);
+                return await _apiClient.GetAsync<List<AwarenessItem>>(
+                    "forecast/warnings/warnings_www.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException("Failed to load warnings", ex);
+                throw new ApiException(IL.Translation("Ipma_LoadWarningsFailed"), ex);
             }
         }
 
@@ -112,11 +119,12 @@ namespace OmniWatch.Integrations.Services
         {
             try
             {
-                return await _apiClient.GetAsync<PrecipitationResponse>("precipitation-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                return await _apiClient.GetAsync<PrecipitationResponse>(
+                    "precipitation-classe.json", ApiType.Ipma).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                throw new ApiException("Failed to load precepitation data", ex);
+                throw new ApiException(IL.Translation("Ipma_LoadPrecipitationFailed"), ex);
             }
         }
     }

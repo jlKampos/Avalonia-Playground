@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -15,7 +15,27 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
+		<ProjectReference Include="..\OmniWatch.Core\OmniWatch.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Resources\Integrations.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Integrations.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="Resources\Integrations.pt-PT.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Integrations.pt_PT.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
+
+		<EmbeddedResource Update="Resources\Integrations.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<LastGenOutput>Integrations.Designer.cs</LastGenOutput>
+		</EmbeddedResource>
 	</ItemGroup>
 
 </Project>

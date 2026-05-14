@@ -28,7 +28,7 @@ namespace OmniWatch.ViewModels.Settings
         private readonly ISecretResetService _secretResetService;
         private readonly IMessageService _messageService;
         private readonly IOpenSkyTokenManager _tokenManager;
-
+        private readonly ILocalizationService _localizationService;
         #endregion
 
         #region Localization Helper
@@ -90,6 +90,8 @@ namespace OmniWatch.ViewModels.Settings
                 {
                     Language = value.Code;
 
+                    _localizationService.SetCulture(value.Code);
+
                     LanguageManager.Instance.CurrentCulture =
                         new System.Globalization.CultureInfo(value.Code);
                 }
@@ -106,7 +108,8 @@ namespace OmniWatch.ViewModels.Settings
             ISecretResetService secretResetService,
             ProgressControlViewModel progressControl,
             IMessageService messageService,
-            IOpenSkyTokenManager tokenManager) : base()
+            IOpenSkyTokenManager tokenManager,
+            ILocalizationService localizationService) : base()
         {
             PageName = Data.ApplicationPageNames.Settings;
 
@@ -116,6 +119,7 @@ namespace OmniWatch.ViewModels.Settings
             _secretResetService = secretResetService;
             _messageService = messageService;
             ProgressControl = progressControl;
+            _localizationService = localizationService;
 
             _ = Load();
         }

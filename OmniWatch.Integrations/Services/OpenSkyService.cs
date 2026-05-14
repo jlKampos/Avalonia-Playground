@@ -2,10 +2,11 @@
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.OpenSky;
 using OmniWatch.Integrations.Enums;
-using OmniWatch.Integrations.Interfaces;
-using System.Text.Json;
-using OmniWatch.Integrations.Helpers;
 using OmniWatch.Integrations.Exceptions;
+using OmniWatch.Integrations.Helpers;
+using OmniWatch.Integrations.Interfaces;
+using OmniWatch.Integrations.Localization;
+using System.Text.Json;
 namespace OmniWatch.Integrations.Services
 {
     public class OpenSkyService : IOpenSkyService
@@ -100,7 +101,7 @@ namespace OmniWatch.Integrations.Services
             }
             catch (Exception ex) when (!(ex is ApiException))
             {
-                throw new ApiException("Failed to load flights from OpenSky", ex);
+                throw new ApiException(IL.Translation("OpenSky_FailedToLoad_Flights"), ex);
             }
         }
 

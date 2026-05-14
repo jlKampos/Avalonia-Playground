@@ -53,6 +53,7 @@ public partial class App : Application
                 services.AddIntegrations();
 
                 services.AddSingleton<AppInitializer>();
+                services.AddSingleton<ILocalizationService, LocalizationService>();
 
                 services.AddDataProtection()
                     .PersistKeysToFileSystem(

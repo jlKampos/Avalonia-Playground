@@ -2,6 +2,7 @@
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using OmniWatch.Interfaces;
+using OmniWatch.Localization;
 using OmniWatch.ViewModels.MessageDialog;
 using OmniWatch.Views.MessageDialog;
 using System.Threading.Tasks;
@@ -11,19 +12,21 @@ namespace OmniWatch.Services
 {
     public class MessageService : IMessageService
     {
+        private string Translation(string key) =>
+         LanguageManager.Instance[key];
+
         public async Task<MessageDialogResult> ShowAsync(string message, MessageDialogType type)
         {
-            // O InvokeAsync garante que TODO o bloco de criação e exibição corre na UI Thread
             return await Dispatcher.UIThread.InvokeAsync(async () =>
             {
                 var title = type switch
                 {
-                    MessageDialogType.Unknown => "Unknown",
-                    MessageDialogType.Warning => "Aviso",
-                    MessageDialogType.Error => "Erro",
-                    MessageDialogType.Success => "Sucesso",
-                    MessageDialogType.Information => "Informação",
-                    _ => "Mensagem"
+                    MessageDialogType.Unknown => Translation("MessageDialog_Unknown"),
+                    MessageDialogType.Warning => Translation("MessageDialog_Warning"),
+                    MessageDialogType.Error => Translation("MessageDialog_Error"),
+                    MessageDialogType.Success => Translation("MessageDialog_Success"),
+                    MessageDialogType.Information => Translation("MessageDialog_Information"),
+                    _ => Translation("MessageDialog_Message")
                 };
 
                 var vm = new MessageDialogBoxViewModel(title, message, type);

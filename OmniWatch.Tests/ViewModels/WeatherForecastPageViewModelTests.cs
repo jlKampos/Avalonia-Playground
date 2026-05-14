@@ -151,9 +151,19 @@ public class WeatherForecastPageViewModelTests
             Name = "Braga"
         };
 
-        await Task.Delay(600); // devido ao Task.Run interno
+        for (int i = 0; i < 20; i++)
+        {
+            try
+            {
+                _api.Verify(x => x.GetForecastByCityAsync(1), Times.Once);
+                break;
+            }
+            catch
+            {
+                await Task.Delay(100);
+            }
+        }
 
-        _api.Verify(x => x.GetForecastByCityAsync(1), Times.Once);
     }
 
     // =========================

@@ -329,4 +329,29 @@
         <value>Avisos</value>
     </data>
 
+
+    <data name="MessageDialog_Unknown" xml:space="preserve">
+  <value>Desconhecido</value>
+</data>
+
+    <data name="MessageDialog_Warning" xml:space="preserve">
+  <value>Aviso</value>
+</data>
+
+    <data name="MessageDialog_Error" xml:space="preserve">
+  <value>Erro</value>
+</data>
+
+    <data name="MessageDialog_Success" xml:space="preserve">
+  <value>Sucesso</value>
+</data>
+
+    <data name="MessageDialog_Information" xml:space="preserve">
+  <value>Informação</value>
+</data>
+
+    <data name="MessageDialog_Message" xml:space="preserve">
+  <value>Mensagem</value>
+</data>
+
 </root>

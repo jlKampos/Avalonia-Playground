@@ -22,6 +22,7 @@ public class SettingsPageViewModelTests
     private readonly Mock<IMessageService> _messageService = new();
     private readonly Mock<IOpenSkyTokenManager> _tokenManager = new();
     private readonly Mock<IGlobalProgressService> _globalProgress = new();
+    private readonly Mock<ILocalizationService> _localizationService = new();
 
     private SettingsPageViewModel CreateVM()
     {
@@ -43,7 +44,8 @@ public class SettingsPageViewModelTests
             _secretResetService.Object,
             new ProgressControlViewModel(_globalProgress.Object),
             _messageService.Object,
-            _tokenManager.Object
+            _tokenManager.Object,
+            _localizationService.Object
         );
     }
 

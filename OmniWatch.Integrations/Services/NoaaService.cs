@@ -8,6 +8,7 @@ using OmniWatch.Integrations.Contracts.NOA.ActiveStorms;
 using OmniWatch.Integrations.Enums;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
+using OmniWatch.Integrations.Localization;
 using OmniWatch.Integrations.Persistence;
 using System.Globalization;
 
@@ -56,8 +57,8 @@ namespace OmniWatch.Integrations.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to load active storms from NOAA.");
-                throw new ApiException("Error loading active NOAA storms.", ex);
+                _logger.LogError(ex, IL.Translation("Noaa_LoadActiveStormsFailed"));
+                throw new ApiException(IL.Translation("Noaa_LoadActiveStormsError"), ex);
             }
         }
 
@@ -68,7 +69,8 @@ namespace OmniWatch.Integrations.Services
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
-            Report($"Searching for {year} data in local database...");
+            Report(string.Format(IL.Translation("Noaa_SearchingYear"), year));
+
             var cached = await db.StormTracks
                  .AsNoTracking()
                  .Include(s => s.Track.OrderBy(p => p.Time))
@@ -81,7 +83,8 @@ namespace OmniWatch.Integrations.Services
                 return cached;
             }
 
-            Report($"Data for {year} not found. Processing from NOAA remote server...");
+            Report(string.Format(IL.Translation("Noaa_YearNotFound"), year));
+
             var (stream, lastModified) = await _ibtracsClient.GetRemoteStreamAsync(cancellationToken);
 
             using (stream)
@@ -112,7 +115,7 @@ namespace OmniWatch.Integrations.Services
 
             if (localMeta != null && remoteDate <= localMeta.LastValue) return;
 
-            Report("Dataset IBTrACS updated on server. Refreshing global cache...");
+            Report(IL.Translation("Noaa_IbtracsUpdated"));
 
             var strategy = db.Database.CreateExecutionStrategy();
             await strategy.ExecuteAsync(async () =>
@@ -120,7 +123,7 @@ namespace OmniWatch.Integrations.Services
                 using var transaction = await db.Database.BeginTransactionAsync(ct);
                 try
                 {
-                    _logger.LogWarning("IBTrACS out of date. Clearing all historical tables.");
+                    _logger.LogWarning(IL.Translation("Noaa_IbtracsClearing"));
                     await db.StormTracks.ExecuteDeleteAsync(ct);
 
                     var isoDate = remoteDate.Value.ToString("o");
@@ -133,7 +136,7 @@ namespace OmniWatch.Integrations.Services
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Transaction failed while refreshing cache.");
+                    _logger.LogError(ex, IL.Translation("Noaa_TransactionFailed"));
                     await transaction.RollbackAsync(ct);
                     throw;
                 }
@@ -184,7 +187,7 @@ namespace OmniWatch.Integrations.Services
 
                 if (lat == 0 && lon == 0)
                 {
-                    _logger.LogWarning("Invalid 0,0 coordinate skipped for storm {SID}", sid);
+                    _logger.LogWarning(IL.Translation("Noaa_InvalidCoordinates"), sid);
                     continue;
                 }
 
@@ -204,21 +207,19 @@ namespace OmniWatch.Integrations.Services
 
                 if (++count % 5000 == 0)
                 {
-                    Report($"Saving records... ({count} points processed)");
+                    Report(string.Format(IL.Translation("Noaa_SavingRecords"), count));
                     await db.SaveChangesAsync(ct);
                     db.ChangeTracker.Clear();
                 }
             }
 
             await db.SaveChangesAsync(ct);
-            Report("Year synchronization completed.");
+            Report(IL.Translation("Noaa_YearSyncCompleted"));
         }
-
-
 
         public async Task ClearCacheAsync(CancellationToken cancellationToken)
         {
-            _logger.LogWarning("Manual cache clear requested by user.");
+            _logger.LogWarning(IL.Translation("Noaa_ManualClearRequested"));
 
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
@@ -229,22 +230,20 @@ namespace OmniWatch.Integrations.Services
                 using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
                 try
                 {
-                    Report("Cleaning the database...");
+                    Report(IL.Translation("Noaa_CleaningDatabase"));
 
                     await db.StormPoints.ExecuteDeleteAsync(cancellationToken);
-
                     await db.StormTracks.ExecuteDeleteAsync(cancellationToken);
-
                     await db.Metadata.ExecuteDeleteAsync(cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);
 
-                    _logger.LogInformation("Cache cleared successfully.");
-                    Report("Cache cleared successfully. The app will download new data.");
+                    _logger.LogInformation(IL.Translation("Noaa_CacheCleared"));
+                    Report(IL.Translation("Noaa_CacheClearedDownload"));
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to clear cache.");
+                    _logger.LogError(ex, IL.Translation("Noaa_ClearCacheFailed"));
                     await transaction.RollbackAsync(cancellationToken);
                     throw;
                 }

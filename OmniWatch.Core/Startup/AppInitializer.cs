@@ -11,17 +11,19 @@ namespace OmniWatch.Core.Startup
 
         private readonly ISettingsService _settingsService;
         private readonly ISecretService _secretService;
-
+        private readonly ILocalizationService _localizationService;
         #endregion
 
         #region Constructor
 
         public AppInitializer(
             ISettingsService settingsService,
-            ISecretService secretService)
+            ISecretService secretService,
+            ILocalizationService localizationService)
         {
             _settingsService = settingsService;
             _secretService = secretService;
+            _localizationService = localizationService;
         }
 
         #endregion
@@ -50,14 +52,18 @@ namespace OmniWatch.Core.Startup
             // If file missing or invalid → create defaults
             if (settings == null)
             {
-                _settingsService.Save(new AppSettings
+                settings = new AppSettings
                 {
                     UseOpenSkyCredentials = false,
                     OpenSkyClientId = string.Empty,
                     RefreshInterval = 10,
                     Language = "en-US"
-                });
+                };
+
+                _settingsService.Save(settings);
             }
+
+            _localizationService.SetCulture(settings.Language);
 
         }
 
