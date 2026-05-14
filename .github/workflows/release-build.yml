@@ -30,15 +30,19 @@ jobs:
           -o publish/win
 
       # -----------------------------
-      # DECODE CERTIFICATE
+      # DECODE CERTIFICATE (CORRIGIDO)
       # -----------------------------
       - name: Decode certificate
-        run: echo "${{ secrets.WINDOWS_CERTIFICATE }}" | certutil -decode - windows_cert.pfx
+        shell: pwsh
+        run: |
+          Set-Content -Path cert_base64.txt -Value "${{ secrets.WINDOWS_CERTIFICATE }}"
+          certutil -decode cert_base64.txt windows_cert.pfx
 
       # -----------------------------
       # SIGN FILES
       # -----------------------------
       - name: Sign binaries
+        shell: pwsh
         run: |
           $password = "${{ secrets.WINDOWS_CERT_PASSWORD }}"
           $files = Get-ChildItem -Recurse publish/win -Include *.exe,*.dll
@@ -74,9 +78,4 @@ jobs:
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: OmniWatch 1.0.${{ github.run_number }}
-          files: artifacts/**/*
-          draft: false
-          prerelease: false
+        with
