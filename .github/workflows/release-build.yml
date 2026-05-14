@@ -1,0 +1,82 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish
+        run: >
+          dotnet publish OmniWatch/OmniWatch.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:DebugType=embedded
+          -o publish/win
+
+      # -----------------------------
+      # DECODE CERTIFICATE
+      # -----------------------------
+      - name: Decode certificate
+        run: echo "${{ secrets.WINDOWS_CERTIFICATE }}" | certutil -decode - windows_cert.pfx
+
+      # -----------------------------
+      # SIGN FILES
+      # -----------------------------
+      - name: Sign binaries
+        run: |
+          $password = "${{ secrets.WINDOWS_CERT_PASSWORD }}"
+          $files = Get-ChildItem -Recurse publish/win -Include *.exe,*.dll
+          foreach ($f in $files) {
+            signtool sign /f windows_cert.pfx /p $password /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f.FullName
+          }
+
+      # -----------------------------
+      # PACKAGE ZIP
+      # -----------------------------
+      - name: Package ZIP
+        run: |
+          cd publish/win
+          powershell Compress-Archive -Path * -DestinationPath ../../OmniWatch-win-x64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmniWatch-win-x64
+          path: OmniWatch-win-x64.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: OmniWatch 1.0.${{ github.run_number }}
+          files: artifacts/**/*
+          draft: false
+          prerelease: false
