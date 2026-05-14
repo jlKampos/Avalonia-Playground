@@ -61,6 +61,78 @@ namespace OmniWatch.Integrations.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to load forecast for city {0}..
+        /// </summary>
+        internal static string Ipma_LoadForecastCityFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadForecastCityFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load forecast for day {0}..
+        /// </summary>
+        internal static string Ipma_LoadForecastDayFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadForecastDayFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load locations..
+        /// </summary>
+        internal static string Ipma_LoadLocationsFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadLocationsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load precipitation data..
+        /// </summary>
+        internal static string Ipma_LoadPrecipitationFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadPrecipitationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load seismic data for area {0}..
+        /// </summary>
+        internal static string Ipma_LoadSeismicFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadSeismicFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load warnings..
+        /// </summary>
+        internal static string Ipma_LoadWarningsFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadWarningsFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load weather types..
+        /// </summary>
+        internal static string Ipma_LoadWeatherTypesFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadWeatherTypesFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to load wind speed data..
+        /// </summary>
+        internal static string Ipma_LoadWindFailed {
+            get {
+                return ResourceManager.GetString("Ipma_LoadWindFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cache cleared successfully..
         /// </summary>
         internal static string Noaa_CacheCleared {
