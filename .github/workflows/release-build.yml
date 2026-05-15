@@ -55,7 +55,7 @@ jobs:
           $password = "${{ secrets.WINDOWS_CERT_PASSWORD }}"
           $files = Get-ChildItem -Recurse publish/win-x64 -Include *.exe,*.dll
           foreach ($f in $files) {
-            & $signtool.FullName sign /f windows_cert.pfx /p $password /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f.FullName
+            signtool sign /f windows_cert.pfx /p $password /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f.FullName
           }
           Remove-Item windows_cert.pfx, cert_base64.txt
 
@@ -84,50 +84,8 @@ jobs:
           name: OmniWatch-${{ matrix.rid }}
           path: OmniWatch-1.0.${{ github.run_number }}-${{ matrix.rid }}.*
 
-  # ============================
-  # LINUX BUILD
-  # ============================
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Restore
-        run: dotnet restore
-
-      - name: Publish Linux
-        run: >
-          dotnet publish OmniWatch/OmniWatch.csproj
-          -c Release
-          -r linux-x64
-          --self-contained true
-          -p:PublishSingleFile=true
-          -p:DebugType=embedded
-          -o publish/linux-x64
-
-      - name: Package Linux TAR.GZ
-        run: |
-          cd publish/linux-x64
-          tar -czf ../../OmniWatch-linux-x64.tar.gz .
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: OmniWatch-linux-x64
-          path: OmniWatch-linux-x64.tar.gz
-
-  # ============================
-  # RELEASE JOB
-  # ============================
   release:
-    needs: [build-windows, build-linux]
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
