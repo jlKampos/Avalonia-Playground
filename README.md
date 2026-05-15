@@ -8,8 +8,6 @@ Project created for learning Avalonia
     - Full working API CLient for IPMA data gathering
 * Work in progress
 
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=omniwatch&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=omniwatch)
-
 
 
 https://github.com/user-attachments/assets/0fb443d6-3365-43f3-8eb5-a8840220a28e
