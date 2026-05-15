@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using NetTopologySuite.Index.HPRtree;
 using OmniWatch.Data;
 using OmniWatch.Integrations.Exceptions;
 using OmniWatch.Integrations.Interfaces;
@@ -24,15 +23,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using static OmniWatch.ViewModels.MessageDialog.MessageDialogBoxViewModel;
 
 namespace OmniWatch.ViewModels
 {
-    public partial class WeatherForecastPageViewModel : PageViewModel, IAsyncPage
+    public partial class WeatherForecastPageViewModel : PageViewModel, IAsyncPage, IDisposable
     {
         private readonly IIpmaService _apiClient;
         private readonly IMessageService _messageService;
+        private CancellationTokenSource? _cts;
 
         private List<WeatherTypeDto> WeatherTypes { get; set; } = new();
         private List<WindSpeedDto> WindSpeeds { get; set; } = new();
@@ -84,48 +85,53 @@ namespace OmniWatch.ViewModels
                 foreach (var f in Forecasts)
                 {
                     f.OnLanguageChanged();
-
                     foreach (var a in f.AwarnessInformation)
                         a.OnLanguageChanged();
                 }
             };
-
         }
 
         public async Task LoadAsync()
         {
             try
             {
+                _cts?.Cancel();
+                _cts = new CancellationTokenSource();
+
                 await Task.WhenAll(
-                    LoadPrecipitationAsync(),
-                    LoadWindAsync(),
-                    LoadLocationsAsync(),
-                    LoadWeatherTypesAsync(),
-                    LoadAwarnessAsync()
+                    LoadPrecipitationAsync(_cts.Token),
+                    LoadWindAsync(_cts.Token),
+                    LoadLocationsAsync(_cts.Token),
+                    LoadWeatherTypesAsync(_cts.Token),
+                    LoadAwarnessAsync(_cts.Token)
                 );
             }
+            catch (OperationCanceledException) { }
             catch (ApiException ex)
             {
                 var exMsg = Translation("Weather_ErrorLoadingData");
-
-                if (ex.InnerException != null && !string.IsNullOrEmpty(ex.InnerException.InnerException?.Message))
-                {
+                if (ex.InnerException?.InnerException != null)
                     exMsg = ex.InnerException.InnerException.Message;
-                }
 
-                await _messageService.ShowAsync(
-                    string.Format(Translation("Weather_StartupError"), exMsg),
-                    MessageDialogType.Error);
+                await _messageService.ShowAsync(string.Format(Translation("Weather_StartupError"), exMsg), MessageDialogType.Error);
             }
             catch (Exception ex)
             {
-                await _messageService.ShowAsync(
-                    string.Format(Translation("Weather_StartupError"), ex.Message),
-                    MessageDialogType.Error);
+                await _messageService.ShowAsync(string.Format(Translation("Weather_StartupError"), ex.Message), MessageDialogType.Error);
             }
         }
 
-        public Task UnloadAsync() => Task.CompletedTask;
+        public Task UnloadAsync()
+        {
+            _cts?.Cancel();
+            return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+        }
 
         // =========================
         // DESIGN MODE CONSTRUCTOR
@@ -135,7 +141,6 @@ namespace OmniWatch.ViewModels
             if (Design.IsDesignMode)
             {
                 PageName = ApplicationPageNames.WeatherForecast;
-
                 Locations.Clear();
                 Locations.Add(new LocationDto { GlobalIdLocal = 1, Name = "Braga" });
                 Locations.Add(new LocationDto { GlobalIdLocal = 2, Name = "Porto" });
@@ -205,12 +210,13 @@ namespace OmniWatch.ViewModels
         {
             if (value != null)
             {
-                _ = LoadDataOrchestratorAsync(value);
+                _cts?.Cancel();
+                _cts = new CancellationTokenSource();
+                _ = LoadDataOrchestratorAsync(value, _cts.Token);
             }
         }
 
-
-        private async Task LoadDataOrchestratorAsync(LocationDto value)
+        private async Task LoadDataOrchestratorAsync(LocationDto value, CancellationToken ct)
         {
             try
             {
@@ -218,37 +224,32 @@ namespace OmniWatch.ViewModels
                 ProgressControl.Title = Translation("Weather_Loading");
                 ProgressControl.Message = string.Format(Translation("Weather_ForecastFor"), value.Name);
 
-                await Task.Delay(10);
-                await LoadForecastAsync(value.GlobalIdLocal);
-
+                await Task.Delay(10, ct);
+                await LoadForecastAsync(value.GlobalIdLocal, ct);
             }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 await _messageService.ShowAsync(ex.Message, MessageDialogType.Error);
             }
             finally
             {
-                ProgressControl.IsVisible = false;
+                if (!ct.IsCancellationRequested)
+                    ProgressControl.IsVisible = false;
             }
         }
 
         #region API Methods
 
-        private async Task LoadAwarnessAsync()
+        private async Task LoadAwarnessAsync(CancellationToken ct = default)
         {
             AwarnessTypes.Clear();
+            var response = await _apiClient.GetAwarnessAsync(ct);
 
-            var response = await _apiClient.GetAwarnessAsync();
+            if (response == null || response.Count == 0) return;
 
-            if (response == null || response.Count == 0)
-                return;
-
-            var mapped = response
-                .Select(x => x.ToDto())
-                .ToList();
-
-            foreach (var item in mapped)
-                AwarnessTypes.Add(item);
+            var mapped = response.Select(x => x.ToDto()).ToList();
+            foreach (var item in mapped) AwarnessTypes.Add(item);
         }
 
         public static SolidColorBrush GetLevelBrush(string level)
@@ -263,114 +264,77 @@ namespace OmniWatch.ViewModels
             };
         }
 
-        private async Task LoadWindAsync()
+        private async Task LoadWindAsync(CancellationToken ct = default)
         {
             WindSpeeds.Clear();
+            var response = await _apiClient.GetWindAsync(ct);
 
-            var response = await _apiClient.GetWindAsync();
+            if (response?.Data == null) return;
 
-            if (response?.Data == null)
-                return;
-
-            var mapped = response.Data
-                .Select(x => x.ToDto())
-                .ToList();
-
-            foreach (var item in mapped)
-                WindSpeeds.Add(item);
+            var mapped = response.Data.Select(x => x.ToDto()).ToList();
+            foreach (var item in mapped) WindSpeeds.Add(item);
         }
 
-        private async Task LoadPrecipitationAsync()
+        private async Task LoadPrecipitationAsync(CancellationToken ct = default)
         {
             PrecepitationTypes.Clear();
+            var response = await _apiClient.GetPrecipitationTypesAsync(ct);
 
-            var response = await _apiClient.GetPrecipitationTypesAsync();
+            if (response?.Data == null) return;
 
-            if (response?.Data == null)
-                return;
-
-            var mapped = response.Data
-                .Select(x => x.ToDto())
-                .ToList();
-
-            foreach (var item in mapped)
-                PrecepitationTypes.Add(item);
+            var mapped = response.Data.Select(x => x.ToDto()).ToList();
+            foreach (var item in mapped) PrecepitationTypes.Add(item);
         }
 
-        private async Task LoadLocationsAsync()
+        private async Task LoadLocationsAsync(CancellationToken ct = default)
         {
             Locations.Clear();
+            var response = await _apiClient.GetLocationsAsync(ct);
 
-            var response = await _apiClient.GetLocationsAsync();
+            if (response?.Data == null) return;
 
-            if (response?.Data == null)
-                return;
-
-            var mapped = response.Data
-                .Select(x => x.ToDto())
-                .OrderBy(x => x.Name)
-                .ToList();
-
-            foreach (var item in mapped)
-                Locations.Add(item);
+            var mapped = response.Data.Select(x => x.ToDto()).OrderBy(x => x.Name).ToList();
+            foreach (var item in mapped) Locations.Add(item);
         }
 
-        private async Task LoadWeatherTypesAsync()
+        private async Task LoadWeatherTypesAsync(CancellationToken ct = default)
         {
             WeatherTypes.Clear();
+            var response = await _apiClient.GetWeatherTypesAsync(ct);
 
-            var response = await _apiClient.GetWeatherTypesAsync();
+            if (response?.Data == null) return;
 
-            if (response?.Data == null)
-                return;
-
-            var mapped = response.Data
-                .Select(x => x.ToDto())
-                .ToList();
-
-            foreach (var item in mapped)
-                WeatherTypes.Add(item);
+            var mapped = response.Data.Select(x => x.ToDto()).ToList();
+            foreach (var item in mapped) WeatherTypes.Add(item);
         }
 
-        private async Task LoadForecastAsync(int locationId)
+        private async Task LoadForecastAsync(int locationId, CancellationToken ct = default)
         {
-            Forecasts.Clear();
+            var response = await _apiClient.GetForecastByCityAsync(locationId, ct);
 
-            var response = await _apiClient.GetForecastByCityAsync(locationId);
+            if (response?.Data == null) return;
 
-            if (response?.Data == null)
-                return;
-
-            var mapped = response.Data
-                .Select(x => x.ToDto())
-                .ToList();
-
+            var mapped = response.Data.Select(x => x.ToDto()).ToList();
             var tempList = new List<ForecastItemDto>();
 
             foreach (var item in mapped)
             {
-                item.WeatherInformation =
-                    WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId)
+                ct.ThrowIfCancellationRequested();
+
+                item.WeatherInformation = WeatherTypes.FirstOrDefault(x => x.IdWeatherType == item.WeatherTypeId)
                     ?? new WeatherTypeDto { DescriptionPT = "Unknown" };
 
-                item.WindInformation =
-                    WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass)
+                item.WindInformation = WindSpeeds.FirstOrDefault(x => x.ClassWindSpeedValue == item.WindSpeedClass)
                     ?? new WindSpeedDto { DescriptionPT = "N/A" };
 
-                item.PrecipitationInformation =
-                    PrecepitationTypes.FirstOrDefault(x => x.IntensityLevel == item.PrecipitationIntensityClass)
+                item.PrecipitationInformation = PrecepitationTypes.FirstOrDefault(x => x.IntensityLevel == item.PrecipitationIntensityClass)
                     ?? new PrecipitationDto { DescriptionPT = "---", IntensityLevel = -99 };
 
                 var dayStart = item.Date.Date;
                 var dayEnd = item.Date.Date.AddDays(1).AddTicks(-1);
 
                 item.AwarnessInformation = AwarnessTypes
-                    .Where(a =>
-                        SelectedLocation != null &&
-                        a.StartTime <= dayEnd &&
-                        a.EndTime >= dayStart &&
-                        SelectedLocation.IdAreaAviso == a.Area
-                    )
+                    .Where(a => SelectedLocation != null && a.StartTime <= dayEnd && a.EndTime >= dayStart && SelectedLocation.IdAreaAviso == a.Area)
                     .ToList();
 
                 tempList.Add(item);
@@ -378,8 +342,9 @@ namespace OmniWatch.ViewModels
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                Forecasts.Clear();
+                if (ct.IsCancellationRequested) return;
 
+                Forecasts.Clear();
                 foreach (var item in tempList)
                 {
                     foreach (var a in item.AwarnessInformation)
@@ -387,12 +352,9 @@ namespace OmniWatch.ViewModels
 
                     Forecasts.Add(item);
                 }
-
                 SelectedTab = Forecasts.FirstOrDefault();
             });
         }
-
-
         #endregion
     }
 }

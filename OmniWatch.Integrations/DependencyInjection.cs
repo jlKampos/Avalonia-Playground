@@ -72,7 +72,7 @@ namespace OmniWatch.Integrations
 
             services.AddHttpClient<IIbtracsClient, IbtracsClient>(client =>
             {
-                client.Timeout = TimeSpan.FromMinutes(2);
+                client.Timeout = Timeout.InfiniteTimeSpan;
                 client.DefaultRequestHeaders.Add("User-Agent", "OmniWatch/1.0");
 
                 client.DefaultRequestHeaders.Accept.Add(

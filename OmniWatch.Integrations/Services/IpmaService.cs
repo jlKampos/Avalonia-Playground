@@ -16,116 +16,103 @@ namespace OmniWatch.Integrations.Services
     {
         private readonly IApiClient _apiClient;
 
-        public IpmaService(IApiClient apiClient)
-        {
-            _apiClient = apiClient;
-        }
+        public IpmaService(IApiClient apiClient) => _apiClient = apiClient;
 
-        public async Task<LocationsResponse> GetLocationsAsync()
+        public async Task<LocationsResponse> GetLocationsAsync(CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<LocationsResponse>(
-                    "distrits-islands.json", ApiType.Ipma).ConfigureAwait(false);
+                    "distrits-islands.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException(IL.Translation("Ipma_LoadLocationsFailed"), ex);
-            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { throw new ApiException(IL.Translation("Ipma_LoadLocationsFailed"), ex); }
         }
 
-        public async Task<WeatherTypeResponse> GetWeatherTypesAsync()
+        public async Task<WeatherTypeResponse> GetWeatherTypesAsync(CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<WeatherTypeResponse>(
-                    "weather-type-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                    "weather-type-classe.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException(IL.Translation("Ipma_LoadWeatherTypesFailed"), ex);
-            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { throw new ApiException(IL.Translation("Ipma_LoadWeatherTypesFailed"), ex); }
         }
 
-        public async Task<ForecastResponse> GetForecastByCityAsync(int globalId)
+        public async Task<ForecastResponse> GetForecastByCityAsync(int globalId, CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<ForecastResponse>(
-                    $"forecast/meteorology/cities/daily/{globalId}.json", ApiType.Ipma).ConfigureAwait(false);
+                    $"forecast/meteorology/cities/daily/{globalId}.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
-                throw new ApiException(
-                    string.Format(IL.Translation("Ipma_LoadForecastCityFailed"), globalId), ex);
+                throw new ApiException(string.Format(IL.Translation("Ipma_LoadForecastCityFailed"), globalId), ex);
             }
         }
 
-        public async Task<ForecastByDayResponse> GetForecastByDayAsync(int day)
+        public async Task<ForecastByDayResponse> GetForecastByDayAsync(int day, CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<ForecastByDayResponse>(
-                    $"forecast/meteorology/cities/daily/hp-daily-forecast-day{day}.json", ApiType.Ipma).ConfigureAwait(false);
+                    $"forecast/meteorology/cities/daily/hp-daily-forecast-day{day}.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
-                throw new ApiException(
-                    string.Format(IL.Translation("Ipma_LoadForecastDayFailed"), day), ex);
+                throw new ApiException(string.Format(IL.Translation("Ipma_LoadForecastDayFailed"), day), ex);
             }
         }
 
-        public async Task<WindSpeedResponse> GetWindAsync()
+        public async Task<WindSpeedResponse> GetWindAsync(CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<WindSpeedResponse>(
-                    "wind-speed-daily-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                    "wind-speed-daily-classe.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException(IL.Translation("Ipma_LoadWindFailed"), ex);
-            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { throw new ApiException(IL.Translation("Ipma_LoadWindFailed"), ex); }
         }
 
-        public async Task<SeismicResponse> GetSeismicAsync(int idArea)
+        public async Task<SeismicResponse> GetSeismicAsync(int idArea, CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<SeismicResponse>(
-                    $"observation/seismic/{idArea}.json", ApiType.Ipma).ConfigureAwait(false);
+                    $"observation/seismic/{idArea}.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
+            catch (OperationCanceledException) { throw; }
             catch (Exception ex)
             {
-                throw new ApiException(
-                    string.Format(IL.Translation("Ipma_LoadSeismicFailed"), idArea), ex);
+                throw new ApiException(string.Format(IL.Translation("Ipma_LoadSeismicFailed"), idArea), ex);
             }
         }
 
-        public async Task<List<AwarenessItem>> GetAwarnessAsync()
+        public async Task<List<AwarenessItem>> GetAwarnessAsync(CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<List<AwarenessItem>>(
-                    "forecast/warnings/warnings_www.json", ApiType.Ipma).ConfigureAwait(false);
+                    "forecast/warnings/warnings_www.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException(IL.Translation("Ipma_LoadWarningsFailed"), ex);
-            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { throw new ApiException(IL.Translation("Ipma_LoadWarningsFailed"), ex); }
         }
 
-        public async Task<PrecipitationResponse> GetPrecipitationTypesAsync()
+        public async Task<PrecipitationResponse> GetPrecipitationTypesAsync(CancellationToken ct = default)
         {
             try
             {
                 return await _apiClient.GetAsync<PrecipitationResponse>(
-                    "precipitation-classe.json", ApiType.Ipma).ConfigureAwait(false);
+                    "precipitation-classe.json", ApiType.Ipma, ct: ct).ConfigureAwait(false);
             }
-            catch (Exception ex)
-            {
-                throw new ApiException(IL.Translation("Ipma_LoadPrecipitationFailed"), ex);
-            }
+            catch (OperationCanceledException) { throw; }
+            catch (Exception ex) { throw new ApiException(IL.Translation("Ipma_LoadPrecipitationFailed"), ex); }
         }
     }
 }

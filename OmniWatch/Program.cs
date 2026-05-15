@@ -12,12 +12,33 @@ namespace OmniWatch
         [STAThread]
         public static void Main(string[] args)
         {
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            // 1. Inicializa o Logger globalmente
+            Log.Logger = LoggingSetup.CreateLogger();
+
+            try
+            {
+                Log.Information("OmniWatch está iniciando...");
+
+                // 2. Inicia o app
+                BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "O aplicativo encerrou inesperadamente.");
+                throw;
+            }
+            finally
+            {
+                // 3. OBRIGATÓRIO: Descarrega os logs e fecha o arquivo corretamente
+                Log.CloseAndFlush();
+            }
         }
 
         public static AppBuilder BuildAvaloniaApp()
             => AppBuilder.Configure<App>()
-                .UsePlatformDetect();
+                .UsePlatformDetect()
+                .LogToTrace(); // Ajuda a ver logs do Avalonia no console
     }
 }
+
 

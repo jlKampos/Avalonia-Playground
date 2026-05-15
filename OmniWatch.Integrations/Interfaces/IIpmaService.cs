@@ -10,14 +10,20 @@ namespace OmniWatch.Integrations.Interfaces
 {
     public interface IIpmaService
     {
+        Task<PrecipitationResponse> GetPrecipitationTypesAsync(CancellationToken ct = default);
 
-        Task<PrecipitationResponse> GetPrecipitationTypesAsync();
-        Task<List<AwarenessItem>> GetAwarnessAsync();
-        Task<LocationsResponse> GetLocationsAsync();
-        Task<WeatherTypeResponse> GetWeatherTypesAsync();
-        Task<ForecastResponse> GetForecastByCityAsync(int globalId);
-        Task<ForecastByDayResponse> GetForecastByDayAsync(int day);
-        Task<WindSpeedResponse> GetWindAsync();
-        Task<SeismicResponse> GetSeismicAsync(int idArea);
+        Task<List<AwarenessItem>> GetAwarnessAsync(CancellationToken ct = default);
+
+        Task<LocationsResponse> GetLocationsAsync(CancellationToken ct = default);
+
+        Task<WeatherTypeResponse> GetWeatherTypesAsync(CancellationToken ct = default);
+
+        Task<ForecastResponse> GetForecastByCityAsync(int globalId, CancellationToken ct = default);
+
+        Task<ForecastByDayResponse> GetForecastByDayAsync(int day, CancellationToken ct = default);
+
+        Task<WindSpeedResponse> GetWindAsync(CancellationToken ct = default);
+
+        Task<SeismicResponse> GetSeismicAsync(int idArea, CancellationToken ct = default);
     }
 }

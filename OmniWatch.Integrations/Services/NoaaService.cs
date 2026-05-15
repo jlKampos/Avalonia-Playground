@@ -147,49 +147,82 @@ namespace OmniWatch.Integrations.Services
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
+
+            // 1. Disable tracking for massive speed boost during bulk inserts
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            var stormIdsInDb = new HashSet<string>();
+            // 2. Load EVERY ID currently in the database for this year into the HashSet
+            // This is the most reliable way to avoid UNIQUE constraint violations
+            var stormIdsInDb = new HashSet<string>(
+                await db.StormTracks
+                    .AsNoTracking()
+                    .Where(s => s.Season == targetYear)
+                    .Select(s => s.Id)
+                    .ToListAsync(ct),
+                StringComparer.OrdinalIgnoreCase // Ensure case-insensitive matching
+            );
+
             using var parser = new TextFieldParser(reader) { TextFieldType = FieldType.Delimited };
             parser.SetDelimiters(",");
 
+            // Skip to headers
             string[]? headers = null;
             while (!parser.EndOfData)
             {
                 var row = parser.ReadFields();
-                if (row?.Any(h => h.Equals("LAT", StringComparison.OrdinalIgnoreCase)) == true) { headers = row; break; }
+                if (row?.Any(h => h.Equals("LAT", StringComparison.OrdinalIgnoreCase)) == true)
+                {
+                    headers = row;
+                    break;
+                }
             }
+
             if (headers == null) return;
 
-            int idIdx = FindColumn(headers, ["SID"]), nameIdx = FindColumn(headers, ["NAME"]), seasonIdx = FindColumn(headers, ["SEASON"]),
-                latIdx = FindColumn(headers, ["LAT"]), lonIdx = FindColumn(headers, ["LON"]), timeIdx = FindColumn(headers, ["ISO_TIME"]),
+            // Indices (FindColumn is your helper method)
+            int idIdx = FindColumn(headers, ["SID"]), nameIdx = FindColumn(headers, ["NAME"]),
+                seasonIdx = FindColumn(headers, ["SEASON"]), latIdx = FindColumn(headers, ["LAT"]),
+                lonIdx = FindColumn(headers, ["LON"]), timeIdx = FindColumn(headers, ["ISO_TIME"]),
                 basinIdx = FindColumn(headers, ["BASIN"]), windIdx = FindColumn(headers, ["USA_WIND", "WIND"]),
                 presIdx = FindColumn(headers, ["USA_PRES", "PRES"]), catIdx = FindColumn(headers, ["USA_SSHS"]),
                 natureIdx = FindColumn(headers, ["NATURE"]), distIdx = FindColumn(headers, ["DIST2LAND"]);
 
             int count = 0;
+            string targetYearStr = targetYear.ToString();
+
             while (!parser.EndOfData)
             {
                 if (ct.IsCancellationRequested) break;
+
                 var row = parser.ReadFields();
-                if (row == null || !int.TryParse(row[seasonIdx], out int rowSeason) || rowSeason != targetYear) continue;
+                if (row == null || row.Length <= seasonIdx) continue;
+
+                // SKIP rows from other years
+                if (row[seasonIdx] != targetYearStr) continue;
 
                 string sid = row[idIdx];
+
+                // 3. Double-check before adding
                 if (!stormIdsInDb.Contains(sid))
                 {
-                    if (!await db.StormTracks.AnyAsync(x => x.Id == sid, ct))
-                        db.StormTracks.Add(new StormTrack { Id = sid, Name = row[nameIdx], Season = targetYear });
+                    db.StormTracks.Add(new StormTrack
+                    {
+                        Id = sid,
+                        Name = row[nameIdx],
+                        Season = targetYear
+                    });
+
+                    // Add to HashSet immediately so we don't try to add it again 
+                    // if it appears on the next line of the CSV
                     stormIdsInDb.Add(sid);
                 }
 
+                // Coordinate parsing...
                 if (!double.TryParse(row[latIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) ||
-                    !double.TryParse(row[lonIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon)) continue;
-
-                if (lat == 0 && lon == 0)
-                {
-                    _logger.LogWarning(IL.Translation("Noaa_InvalidCoordinates"), sid);
+                    !double.TryParse(row[lonIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
                     continue;
-                }
+
+                if (lat == 0 && lon == 0) continue;
 
                 db.StormPoints.Add(new StormTrackPointItem
                 {
@@ -205,10 +238,12 @@ namespace OmniWatch.Integrations.Services
                     DistanceToLand = SafeDouble(GetSafe(row, distIdx))
                 });
 
-                if (++count % 5000 == 0)
+                // 4. Frequent saves to keep the transaction small
+                if (++count % 1000 == 0)
                 {
                     Report(string.Format(IL.Translation("Noaa_SavingRecords"), count));
                     await db.SaveChangesAsync(ct);
+                    // Clear to prevent the ChangeTracker from growing and slowing down
                     db.ChangeTracker.Clear();
                 }
             }

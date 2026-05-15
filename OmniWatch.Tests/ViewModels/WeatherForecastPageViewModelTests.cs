@@ -34,40 +34,41 @@ public class WeatherForecastPageViewModelTests
     // =========================
     // LoadAsync
     // =========================
-
     [Fact]
     public async Task LoadAsync_Should_Call_All_Api_Methods()
     {
-        _api.Setup(x => x.GetLocationsAsync())
+        // Setup com It.IsAny<CancellationToken>() em todos os métodos
+        _api.Setup(x => x.GetLocationsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LocationsResponse { Data = new List<LocationItem>() });
 
-        _api.Setup(x => x.GetWeatherTypesAsync())
+        _api.Setup(x => x.GetWeatherTypesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WeatherTypeResponse { Data = new List<WeatherTypeItem>() });
 
-        _api.Setup(x => x.GetWindAsync())
+        _api.Setup(x => x.GetWindAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new WindSpeedResponse { Data = new List<WindSpeedItem>() });
 
-        _api.Setup(x => x.GetPrecipitationTypesAsync())
+        _api.Setup(x => x.GetPrecipitationTypesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PrecipitationResponse { Data = new List<PrecipitationItem>() });
 
-        _api.Setup(x => x.GetAwarnessAsync())
+        _api.Setup(x => x.GetAwarnessAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<AwarenessItem>());
 
         var vm = CreateVM();
 
         await vm.LoadAsync();
 
-        _api.Verify(x => x.GetLocationsAsync(), Times.Once);
-        _api.Verify(x => x.GetWeatherTypesAsync(), Times.Once);
-        _api.Verify(x => x.GetWindAsync(), Times.Once);
-        _api.Verify(x => x.GetPrecipitationTypesAsync(), Times.Once);
-        _api.Verify(x => x.GetAwarnessAsync(), Times.Once);
+        // Verify também precisa do CancellationToken
+        _api.Verify(x => x.GetLocationsAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _api.Verify(x => x.GetWeatherTypesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _api.Verify(x => x.GetWindAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _api.Verify(x => x.GetPrecipitationTypesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _api.Verify(x => x.GetAwarnessAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
-
     [Fact]
     public async Task LoadAsync_Should_Show_Error_On_Exception()
     {
-        _api.Setup(x => x.GetLocationsAsync())
+        // Adicionado It.IsAny<CancellationToken>()
+        _api.Setup(x => x.GetLocationsAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new Exception("boom"));
 
         var vm = CreateVM();

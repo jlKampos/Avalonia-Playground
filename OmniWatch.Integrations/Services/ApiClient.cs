@@ -24,7 +24,14 @@ namespace OmniWatch.Integrations.Services
             NumberHandling = JsonNumberHandling.AllowReadingFromString,
         };
 
-        public async Task<T?> GetAsync<T>(string endpoint, ApiType type, string? bearerToken = null)
+        /// <summary>
+        /// Realiza um pedido GET e desserializa o JSON de resposta.
+        /// </summary>
+        public async Task<T?> GetAsync<T>(
+            string endpoint,
+            ApiType type,
+            string? bearerToken = null,
+            CancellationToken ct = default)
         {
             var client = _factory.CreateClient(type.ToString());
 
@@ -33,25 +40,29 @@ namespace OmniWatch.Integrations.Services
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             }
 
-            var response = await client.GetAsync(endpoint);
+            var response = await client.GetAsync(endpoint, ct).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
                 return default;
 
-            var json = await response.Content.ReadAsStringAsync();
+            var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+
             return JsonSerializer.Deserialize<T>(json, _jsonOptions);
         }
 
-        public async Task<Stream> GetStreamAsync(string endpoint, ApiType type)
+        /// <summary>
+        /// Realiza um pedido GET e retorna o Stream de resposta (útil para ficheiros grandes).
+        /// </summary>
+        public async Task<Stream> GetStreamAsync(string endpoint, ApiType type, CancellationToken ct = default)
         {
             var client = _factory.CreateClient(type.ToString());
 
-            var response = await client.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead);
+            var response = await client.GetAsync(endpoint, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
 
             if (!response.IsSuccessStatusCode)
                 throw new ApiException($"Failed request: {response.StatusCode}");
 
-            return await response.Content.ReadAsStreamAsync();
+            return await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
         }
     }
 }
