@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic.FileIO;
 using OmniWatch.Core.Interfaces;
 using OmniWatch.Integrations.Contracts.NOA;
 using OmniWatch.Integrations.Contracts.NOA.ActiveStorms;
@@ -21,6 +20,10 @@ namespace OmniWatch.Integrations.Services
         private readonly IGlobalProgressService _globalProgress;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly ILogger<NoaaService> _logger;
+
+        // Keys for the Metadata table persistence
+        private const string KEY_LAST_CHECK = "Last_Check_Timestamp";
+        private const string KEY_IBTRACS_SYNC = "Ibtracs_Sync";
 
         public NoaaService(
             IIbtracsClient ibtracsClient,
@@ -47,13 +50,10 @@ namespace OmniWatch.Integrations.Services
             try
             {
                 var endpoint = "CurrentStorms.json";
-
-#if DEBUG
-                endpoint = "productexamples/NHC_JSON_Sample.json";
-#endif
-
-                return await _apiClient.GetAsync<NhcActiveStormResponse>(
-                    endpoint, ApiType.Noaa);
+                //#if DEBUG
+                //                endpoint = "productexamples/NHC_JSON_Sample.json";
+                //#endif
+                return await _apiClient.GetAsync<NhcActiveStormResponse>(endpoint, ApiType.Noaa);
             }
             catch (Exception ex)
             {
@@ -64,41 +64,40 @@ namespace OmniWatch.Integrations.Services
 
         public async Task<List<StormTrack>> GetHistoricalStormTracksAsync(int year, CancellationToken cancellationToken)
         {
+            // 1. Check if an internet update check is required (Throttled to every 12h)
             await EnsureCacheIsFreshAsync(cancellationToken);
 
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
-            Report(string.Format(IL.Translation("Noaa_SearchingYear"), year));
-
+            // 2. Optimized local search using AsSplitQuery for better performance with large track datasets
             var cached = await db.StormTracks
                  .AsNoTracking()
                  .Include(s => s.Track.OrderBy(p => p.Time))
+                 .AsSplitQuery()
                  .Where(s => s.Season == year)
                  .ToListAsync(cancellationToken);
 
-            if (cached.Any())
-            {
-                _logger.LogInformation("Found {Count} storms in cache for year {Year}", cached.Count, year);
-                return cached;
-            }
+            if (cached.Any()) return cached;
 
+            // 3. If no local data exists for this year, download and parse
             Report(string.Format(IL.Translation("Noaa_YearNotFound"), year));
-
-            var (stream, lastModified) = await _ibtracsClient.GetRemoteStreamAsync(cancellationToken);
+            var (stream, _) = await _ibtracsClient.GetRemoteStreamAsync(cancellationToken);
 
             using (stream)
             using (var reader = new StreamReader(stream))
             {
-                await Task.Run(async () => await ParseAndCacheYearAsync(reader, year, cancellationToken), cancellationToken);
+                await ParseAndCacheYearAsync(reader, year, cancellationToken);
             }
 
-            using var scope2 = _scopeFactory.CreateScope();
-            var db2 = scope2.ServiceProvider.GetRequiredService<NoaaCacheContext>();
+            // 4. Refresh data from DB after insertion to return the populated objects
+            using var refreshScope = _scopeFactory.CreateScope();
+            var dbRefresh = refreshScope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
-            return await db2.StormTracks
+            return await dbRefresh.StormTracks
                  .AsNoTracking()
                  .Include(s => s.Track.OrderBy(p => p.Time))
+                 .AsSplitQuery()
                  .Where(s => s.Season == year)
                  .ToListAsync(cancellationToken);
         }
@@ -108,13 +107,31 @@ namespace OmniWatch.Integrations.Services
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
+            // Check when the last internet verification was performed
+            var lastCheckMeta = await db.Metadata.AsNoTracking().FirstOrDefaultAsync(m => m.Key == KEY_LAST_CHECK, ct);
+
+            // Comparison using your DateTimeOffset model property
+            if (lastCheckMeta != null && lastCheckMeta.LastValue > DateTimeOffset.UtcNow.AddHours(-12))
+            {
+                return; // Exit if checked recently to keep transitions instant
+            }
+
+            // Perform a lightweight HEAD request to check the last modified date on the NOAA server
             var remoteDate = await _ibtracsClient.GetRemoteLastModifiedAsync(ct);
             if (!remoteDate.HasValue) return;
 
-            var localMeta = await db.Metadata.AsNoTracking().FirstOrDefaultAsync(m => m.Key == "Ibtracs_Sync", ct);
+            // Update the last check timestamp in the database
+            await UpsertMetadataAsync(db, KEY_LAST_CHECK, DateTimeOffset.UtcNow, ct);
 
-            if (localMeta != null && remoteDate <= localMeta.LastValue) return;
+            // Compare remote date with the date of the last successful data synchronization
+            var syncMeta = await db.Metadata.AsNoTracking().FirstOrDefaultAsync(m => m.Key == KEY_IBTRACS_SYNC, ct);
 
+            if (syncMeta != null && remoteDate.Value <= syncMeta.LastValue)
+            {
+                return; // Local cache is already up to date with server
+            }
+
+            // Remote file is NEWER: Cache reset required to ensure data integrity
             Report(IL.Translation("Noaa_IbtracsUpdated"));
 
             var strategy = db.Database.CreateExecutionStrategy();
@@ -124,13 +141,13 @@ namespace OmniWatch.Integrations.Services
                 try
                 {
                     _logger.LogWarning(IL.Translation("Noaa_IbtracsClearing"));
+
+                    // Wipe old data to avoid inconsistencies with the updated global CSV
+                    await db.StormPoints.ExecuteDeleteAsync(ct);
                     await db.StormTracks.ExecuteDeleteAsync(ct);
 
-                    var isoDate = remoteDate.Value.ToString("o");
-                    await db.Database.ExecuteSqlRawAsync(
-                        "INSERT INTO Metadata (Key, LastValue) VALUES ('Ibtracs_Sync', {0}) " +
-                        "ON CONFLICT(Key) DO UPDATE SET LastValue = {0};",
-                        isoDate);
+                    // Register the new synchronization date from the server
+                    await UpsertMetadataAsync(db, KEY_IBTRACS_SYNC, remoteDate.Value, ct);
 
                     await transaction.CommitAsync(ct);
                 }
@@ -143,119 +160,118 @@ namespace OmniWatch.Integrations.Services
             });
         }
 
+        private async Task UpsertMetadataAsync(NoaaCacheContext db, string key, DateTimeOffset value, CancellationToken ct)
+        {
+            var existing = await db.Metadata.FirstOrDefaultAsync(m => m.Key == key, ct);
+            if (existing != null)
+            {
+                existing.LastValue = value;
+            }
+            else
+            {
+                db.Metadata.Add(new DbMetadata { Key = key, LastValue = value });
+            }
+            await db.SaveChangesAsync(ct);
+        }
+
         private async Task ParseAndCacheYearAsync(StreamReader reader, int targetYear, CancellationToken ct)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
-            // 1. Disable tracking for massive speed boost during bulk inserts
+            // PERFORMANCE: Disable change tracking for high-volume bulk insertion
             db.ChangeTracker.AutoDetectChangesEnabled = false;
 
-            // 2. Load EVERY ID currently in the database for this year into the HashSet
-            // This is the most reliable way to avoid UNIQUE constraint violations
-            var stormIdsInDb = new HashSet<string>(
-                await db.StormTracks
-                    .AsNoTracking()
-                    .Where(s => s.Season == targetYear)
-                    .Select(s => s.Id)
-                    .ToListAsync(ct),
-                StringComparer.OrdinalIgnoreCase // Ensure case-insensitive matching
-            );
+            // Cleanup for the target year to avoid duplicates
+            var stormIdsForYear = db.StormTracks.Where(s => s.Season == targetYear).Select(s => s.Id);
+            await db.StormPoints.Where(p => stormIdsForYear.Contains(p.StormTrackId)).ExecuteDeleteAsync(ct);
+            await db.StormTracks.Where(s => s.Season == targetYear).ExecuteDeleteAsync(ct);
 
-            using var parser = new TextFieldParser(reader) { TextFieldType = FieldType.Delimited };
-            parser.SetDelimiters(",");
+            string? headerLine = await reader.ReadLineAsync();
+            string? unitLine = await reader.ReadLineAsync(); // Skip the units line in IBTrACS CSV
 
-            // Skip to headers
-            string[]? headers = null;
-            while (!parser.EndOfData)
-            {
-                var row = parser.ReadFields();
-                if (row?.Any(h => h.Equals("LAT", StringComparison.OrdinalIgnoreCase)) == true)
-                {
-                    headers = row;
-                    break;
-                }
-            }
+            if (headerLine == null) return;
 
-            if (headers == null) return;
+            // Dynamic column mapping based on aliases
+            var headers = headerLine.Split(',');
+            int idIdx = FindColumn(headers, ["SID"]),
+                nameIdx = FindColumn(headers, ["NAME"]),
+                seasonIdx = FindColumn(headers, ["SEASON"]),
+                latIdx = FindColumn(headers, ["LAT"]),
+                lonIdx = FindColumn(headers, ["LON"]),
+                timeIdx = FindColumn(headers, ["ISO_TIME"]),
+                windIdx = FindColumn(headers, ["USA_WIND", "WIND"]),
+                presIdx = FindColumn(headers, ["USA_PRES", "PRES"]),
+                catIdx = FindColumn(headers, ["USA_SSHS"]),
+                basinIdx = FindColumn(headers, ["BASIN"]),
+                natureIdx = FindColumn(headers, ["NATURE"]),
+                distIdx = FindColumn(headers, ["DIST2LAND"]);
 
-            // Indices (FindColumn is your helper method)
-            int idIdx = FindColumn(headers, ["SID"]), nameIdx = FindColumn(headers, ["NAME"]),
-                seasonIdx = FindColumn(headers, ["SEASON"]), latIdx = FindColumn(headers, ["LAT"]),
-                lonIdx = FindColumn(headers, ["LON"]), timeIdx = FindColumn(headers, ["ISO_TIME"]),
-                basinIdx = FindColumn(headers, ["BASIN"]), windIdx = FindColumn(headers, ["USA_WIND", "WIND"]),
-                presIdx = FindColumn(headers, ["USA_PRES", "PRES"]), catIdx = FindColumn(headers, ["USA_SSHS"]),
-                natureIdx = FindColumn(headers, ["NATURE"]), distIdx = FindColumn(headers, ["DIST2LAND"]);
+            using var transaction = await db.Database.BeginTransactionAsync(ct);
 
-            int count = 0;
+            var stormIdsInContext = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             string targetYearStr = targetYear.ToString();
+            int count = 0;
+            string? line;
 
-            while (!parser.EndOfData)
+            while ((line = await reader.ReadLineAsync()) != null)
             {
                 if (ct.IsCancellationRequested) break;
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                var row = parser.ReadFields();
-                if (row == null || row.Length <= seasonIdx) continue;
+                var row = line.Split(',');
+                // Filter rows strictly by the requested year
+                if (row.Length <= seasonIdx || row[seasonIdx] != targetYearStr) continue;
 
-                // SKIP rows from other years
-                if (row[seasonIdx] != targetYearStr) continue;
+                string sid = row[idIdx].Trim();
 
-                string sid = row[idIdx];
-
-                // 3. Double-check before adding
-                if (!stormIdsInDb.Contains(sid))
+                // Manage StormTrack (Parent entity)
+                if (!stormIdsInContext.Contains(sid))
                 {
                     db.StormTracks.Add(new StormTrack
                     {
                         Id = sid,
-                        Name = row[nameIdx],
+                        Name = GetSafe(row, nameIdx),
                         Season = targetYear
                     });
-
-                    // Add to HashSet immediately so we don't try to add it again 
-                    // if it appears on the next line of the CSV
-                    stormIdsInDb.Add(sid);
+                    stormIdsInContext.Add(sid);
                 }
 
-                // Coordinate parsing...
-                if (!double.TryParse(row[latIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) ||
-                    !double.TryParse(row[lonIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
-                    continue;
-
-                if (lat == 0 && lon == 0) continue;
-
-                db.StormPoints.Add(new StormTrackPointItem
+                // Parse and add the StormPoint (Child entity)
+                if (double.TryParse(row[latIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lat) &&
+                    double.TryParse(row[lonIdx], NumberStyles.Any, CultureInfo.InvariantCulture, out var lon))
                 {
-                    StormTrackId = sid,
-                    Time = DateTime.Parse(row[timeIdx], CultureInfo.InvariantCulture),
-                    Latitude = lat,
-                    Longitude = lon,
-                    Wind = SafeInt(GetSafe(row, windIdx)),
-                    Pressure = SafeInt(GetSafe(row, presIdx)),
-                    Category = SafeInt(GetSafe(row, catIdx)),
-                    Basin = GetSafe(row, basinIdx) ?? "NA",
-                    Nature = GetSafe(row, natureIdx) ?? "NA",
-                    DistanceToLand = SafeDouble(GetSafe(row, distIdx))
-                });
+                    db.StormPoints.Add(new StormTrackPointItem
+                    {
+                        StormTrackId = sid,
+                        Time = DateTime.TryParse(row[timeIdx], CultureInfo.InvariantCulture, out var t) ? t : DateTime.MinValue,
+                        Latitude = lat,
+                        Longitude = lon,
+                        Wind = SafeInt(GetSafe(row, windIdx)),
+                        Pressure = SafeInt(GetSafe(row, presIdx)),
+                        Category = SafeInt(GetSafe(row, catIdx)),
+                        Basin = GetSafe(row, basinIdx) ?? "NA",
+                        Nature = GetSafe(row, natureIdx) ?? "NA",
+                        DistanceToLand = SafeDouble(GetSafe(row, distIdx))
+                    });
+                }
 
-                // 4. Frequent saves to keep the transaction small
+                // Batch Save every 1000 records to maintain memory stability during massive CSV parsing
                 if (++count % 1000 == 0)
                 {
-                    Report(string.Format(IL.Translation("Noaa_SavingRecords"), count));
                     await db.SaveChangesAsync(ct);
-                    // Clear to prevent the ChangeTracker from growing and slowing down
                     db.ChangeTracker.Clear();
                 }
             }
 
             await db.SaveChangesAsync(ct);
-            Report(IL.Translation("Noaa_YearSyncCompleted"));
+            await transaction.CommitAsync(ct);
+
+            _logger.LogInformation("Import completed: {Count} points registered for year {Year}", count, targetYear);
         }
 
         public async Task ClearCacheAsync(CancellationToken cancellationToken)
         {
-            _logger.LogWarning(IL.Translation("Noaa_ManualClearRequested"));
-
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<NoaaCacheContext>();
 
@@ -272,9 +288,7 @@ namespace OmniWatch.Integrations.Services
                     await db.Metadata.ExecuteDeleteAsync(cancellationToken);
 
                     await transaction.CommitAsync(cancellationToken);
-
                     _logger.LogInformation(IL.Translation("Noaa_CacheCleared"));
-                    Report(IL.Translation("Noaa_CacheClearedDownload"));
                 }
                 catch (Exception ex)
                 {
@@ -286,12 +300,8 @@ namespace OmniWatch.Integrations.Services
         }
 
         private static int SafeInt(string value) => int.TryParse(value, out var n) ? n : 0;
-
-        private static string GetSafe(string[] row, int index)
-        {
-            return index >= 0 && index < row.Length ? row[index] : string.Empty;
-        }
         private static double SafeDouble(string value) => double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var d) ? d : 0;
+        private static string GetSafe(string[] row, int index) => index >= 0 && index < row.Length ? row[index] : string.Empty;
 
         private int FindColumn(string[] headers, string[] aliases)
         {

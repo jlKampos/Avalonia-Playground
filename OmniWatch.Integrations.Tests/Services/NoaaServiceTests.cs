@@ -138,8 +138,10 @@ namespace OmniWatch.Integrations.Tests.Services
         [Fact]
         public async Task GetHistoricalStormTracksAsync_ShouldParseAndSave()
         {
+            // Added a second line (dummy units) to match the service's expectations
             var csv = @"SID,SEASON,LAT,LON,NAME,ISO_TIME,USA_WIND,USA_PRES,USA_SSHS,BASIN,NATURE
-A,2021,10,20,StormA,2021-01-01 00:00:00,50,1000,1,NA,TS";
+    (empty), (units), (units), (units), (units), (units), (units), (units), (units), (units), (units)
+    A,2021,10,20,StormA,2021-01-01 00:00:00,50,1000,1,NA,TS";
 
             var stream = new MemoryStream(Encoding.UTF8.GetBytes(csv));
 
@@ -147,16 +149,16 @@ A,2021,10,20,StormA,2021-01-01 00:00:00,50,1000,1,NA,TS";
                 .ReturnsAsync((stream, DateTime.UtcNow));
 
             _ibtracs.Setup(x => x.GetRemoteLastModifiedAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync((DateTime?)null); // evita transaction path
+                .ReturnsAsync((DateTimeOffset?)null); // Match the DateTimeOffset type
 
             var sut = CreateSut();
 
             var result = await sut.GetHistoricalStormTracksAsync(2021, CancellationToken.None);
 
             Assert.Single(result);
-            Assert.True(result.First().Track.Count > 0);
+            Assert.NotEmpty(result.First().Track);
+            Assert.Equal("StormA", result.First().Name);
         }
-
         // =========================
         // CANCEL
         // =========================

@@ -4,6 +4,9 @@
     {
         public int Id { get; set; }
         public string StormTrackId { get; set; } // Foreign Key para StormTrack.Id
+
+        public virtual StormTrack StormTrack { get; set; }
+
         public DateTime Time { get; set; }
 
         public double Latitude { get; set; }

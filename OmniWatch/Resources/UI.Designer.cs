@@ -205,6 +205,60 @@ namespace OmniWatch.Localization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        public static string MessageDialog_Error {
+            get {
+                return ResourceManager.GetString("MessageDialog_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Information.
+        /// </summary>
+        public static string MessageDialog_Information {
+            get {
+                return ResourceManager.GetString("MessageDialog_Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Message.
+        /// </summary>
+        public static string MessageDialog_Message {
+            get {
+                return ResourceManager.GetString("MessageDialog_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Success.
+        /// </summary>
+        public static string MessageDialog_Success {
+            get {
+                return ResourceManager.GetString("MessageDialog_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown.
+        /// </summary>
+        public static string MessageDialog_Unknown {
+            get {
+                return ResourceManager.GetString("MessageDialog_Unknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        public static string MessageDialog_Warning {
+            get {
+                return ResourceManager.GetString("MessageDialog_Warning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ⚠ There are currently {0} active storm(s)..
         /// </summary>
         public static string Noaa_ActiveStorms {

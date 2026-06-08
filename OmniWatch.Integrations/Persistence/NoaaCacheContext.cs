@@ -41,12 +41,13 @@ namespace OmniWatch.Integrations.Persistence
                 .HasIndex(p => p.Time);
 
             // =========================
-            // RELATIONSHIP (EXPLÍCITA)
+            // RELATIONSHIP (FIXED)
             // =========================
             modelBuilder.Entity<StormTrackPointItem>()
-                .HasOne<StormTrack>()
+                .HasOne(p => p.StormTrack) // Use the navigation property
                 .WithMany(s => s.Track)
-                .HasForeignKey(p => p.StormTrackId)
+                .HasForeignKey(p => p.StormTrackId) // Explicitly link to your string ID
+                .IsRequired() // Ensures EF doesn't think it's optional
                 .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
