@@ -1,4 +1,3 @@
-```yaml
 name: Release Build
 
 on:
@@ -23,7 +22,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: '8.0.x'
 
       - name: Restore
         run: dotnet restore
@@ -40,57 +39,32 @@ jobs:
           -p:InformationalVersion=1.0.${{ github.run_number }}
           -o publish/${{ matrix.rid }}
 
-      # -----------------------------
-      # SIGN WINDOWS BINARIES
-      # -----------------------------
+      - name: Install Windows SDK
+        if: matrix.rid == 'win-x64'
+        run: choco install windows-sdk-10-version-2004-all -y
+
       - name: Decode & Sign Windows Binaries
         if: matrix.rid == 'win-x64'
         shell: pwsh
         run: |
-          # Decode certificate
           Set-Content -Path cert_base64.txt -Value "${{ secrets.WINDOWS_CERTIFICATE }}"
           certutil -decode cert_base64.txt windows_cert.pfx
 
           $password = "${{ secrets.WINDOWS_CERT_PASSWORD }}"
 
-          # Locate signtool
           $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\" -Recurse -Filter signtool.exe |
-                      Where-Object { $_.FullName -like "*\x64\*" } |
-                      Sort-Object FullName -Descending |
+                      Where-Object { $_.FullName -like "*x64*" } |
                       Select-Object -First 1
-
-          if (-not $signtool) {
-            throw "signtool.exe not found"
-          }
 
           Write-Host "Using signtool: $($signtool.FullName)"
 
-          # Sign all executables and libraries
-          $files = Get-ChildItem "publish\win-x64" -Recurse -Include *.exe,*.dll
-
+          $files = Get-ChildItem -Recurse publish/win-x64 -Include *.exe,*.dll
           foreach ($f in $files) {
-            Write-Host "Signing $($f.FullName)"
-
-            & $signtool.FullName `
-              sign `
-              /f windows_cert.pfx `
-              /p $password `
-              /tr http://timestamp.digicert.com `
-              /td sha256 `
-              /fd sha256 `
-              $f.FullName
-
-            if ($LASTEXITCODE -ne 0) {
-              throw "Failed to sign $($f.FullName)"
-            }
+            & $signtool.FullName sign /f windows_cert.pfx /p $password /tr http://timestamp.digicert.com /td sha256 /fd sha256 $f.FullName
           }
 
-          Remove-Item windows_cert.pfx -Force
-          Remove-Item cert_base64.txt -Force
+          Remove-Item windows_cert.pfx, cert_base64.txt
 
-      # -----------------------------
-      # PACKAGE
-      # -----------------------------
       - name: Package Linux
         if: matrix.rid == 'linux-x64'
         run: |
@@ -101,25 +75,18 @@ jobs:
         if: matrix.rid == 'win-x64'
         shell: pwsh
         run: |
-          Compress-Archive `
-            -Path publish/win-x64/* `
-            -DestinationPath OmniWatch-1.0.${{ github.run_number }}-win-x64.zip
+          cd publish/win-x64
+          Compress-Archive -Path * -DestinationPath ../../OmniWatch-1.0.${{ github.run_number }}-win-x64.zip
 
-      # -----------------------------
-      # UPLOAD ARTIFACTS
-      # -----------------------------
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: OmniWatch-${{ matrix.rid }}
-          path: |
-            OmniWatch-1.0.${{ github.run_number }}-win-x64.zip
-            OmniWatch-1.0.${{ github.run_number }}-linux-x64.tar.gz
+          path: OmniWatch-1.0.${{ github.run_number }}-${{ matrix.rid }}.*
 
   release:
     needs: build
     runs-on: ubuntu-latest
-
     permissions:
       contents: write
 
@@ -137,4 +104,3 @@ jobs:
           files: artifacts/**/*
           draft: false
           prerelease: false
-```
