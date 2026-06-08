@@ -163,15 +163,17 @@
 
 				<mapsui:MapControl x:Name="MyMapControl" />
 
-				<!-- Warning for non-auth users -->
-				<Grid HorizontalAlignment="Left"
-					  VerticalAlignment="Top"
-					  Margin="10">
 
+				<StackPanel Orientation="Vertical"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Margin="10"
+            Spacing="10">
+
+					<!-- Warning for non-auth users -->
 					<Border Background="#BFFFA500"
 							CornerRadius="4"
 							Padding="7"
-							Margin="5,0,0,0"
 							IsVisible="{Binding ShowRateLimitNonAuthUser}">
 						<TextBlock Text="{Binding [OpenSky_WarningRateLimit], Source={x:Static local:LanguageManager.Instance}}"
 								   Foreground="#FF191000"
@@ -179,7 +181,63 @@
 								   FontWeight="Bold"
 								   TextWrapping="Wrap"/>
 					</Border>
-				</Grid>
+
+					<!-- ACTIVE STORMS -->
+					<StackPanel Orientation="Horizontal"
+								HorizontalAlignment="Left"
+								VerticalAlignment="Top"
+								Spacing="8"
+								IsVisible="{Binding AnyActiveStorms}">
+
+						<!-- BORDER WITH TEXT -->
+						<Border Background="#BFFFA500"
+								CornerRadius="4"
+								Padding="7">
+							<TextBlock Text="{Binding ActiveStormsMessage}"
+									   Foreground="#FF191000"
+									   FontSize="11"
+									   FontWeight="Bold"
+									   TextWrapping="Wrap"/>
+						</Border>
+
+						<!-- BUTTON NEXT TO THE BORDER (OUTSIDE) -->
+						<Button Content="⟳"
+								Width="28"
+								Height="28"
+								VerticalAlignment="Center"
+								Command="{Binding CycleStormCommand}"
+								ToolTip.Tip="Go to the next storm">
+
+							<Button.Styles>
+								<!-- Normal state -->
+								<Style Selector="Button">
+									<Setter Property="Background" Value="#BFFFA500"/>
+									<Setter Property="BorderBrush" Value="#FFFF8C00"/>
+									<Setter Property="Foreground" Value="#FF191000"/>
+								</Style>
+
+								<!-- Hover state -->
+								<Style Selector="Button:pointerover">
+									<Setter Property="Foreground" Value="#BFFFA5"/>
+									<Setter Property="Background" Value="#DFFFA500"/>
+									<!-- slightly brighter -->
+									<Setter Property="BorderBrush" Value="#FFFFA500"/>
+									<!-- brighter border -->
+									<Setter Property="Cursor" Value="Hand"/>
+								</Style>
+
+								<!-- Pressed state (optional) -->
+								<Style Selector="Button:pressed">
+									<Setter Property="Background" Value="#E6FF8C00"/>
+								</Style>
+							</Button.Styles>
+
+						</Button>
+
+					</StackPanel>
+
+
+				</StackPanel>
 
 				<!-- THEME -->
 				<Grid HorizontalAlignment="Right"
