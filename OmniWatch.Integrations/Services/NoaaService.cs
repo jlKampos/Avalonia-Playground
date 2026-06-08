@@ -50,9 +50,9 @@ namespace OmniWatch.Integrations.Services
             try
             {
                 var endpoint = "CurrentStorms.json";
-#if DEBUG
-                endpoint = "productexamples/NHC_JSON_Sample.json";
-#endif
+                //#if DEBUG
+                //                endpoint = "productexamples/NHC_JSON_Sample.json";
+                //#endif
                 return await _apiClient.GetAsync<NhcActiveStormResponse>(endpoint, ApiType.Noaa);
             }
             catch (Exception ex)
